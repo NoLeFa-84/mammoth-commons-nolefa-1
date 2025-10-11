@@ -91,13 +91,48 @@ def multi_objective_report(
 
     plot_html = plot3d(x=O_1, y=O_2, z=O_3, html=True)
 
-    # Create an instance of your existing HTML class with the plot content
-    # html_content = HTML(body=plot_html)
-    html = (
-        """
+    html = f"""<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>Multi-objective Report</title>
+            <style>
+            body {{
+                margin: 0;
+                padding: 20px;
+                box-sizing: border-box;
+                font-family: system-ui, sans-serif;
+                background-color: #fafafa;
+            }}
+            .container {{
+                max-width: 1200px;
+                margin: 0 auto;
+                text-align: center;
+            }}
+            .about {{
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
             <h1>About</h1>
-            <p> The report highlights three primary objectives: accuracy loss, balanced accuracy loss, and discrimination (MMM-fairness) loss. Each point plotted within the 3D space represents a Pareto-optimal solution, which achieves an optimal balance between these objectives where no single objective can improve without worsening another. \n Users can hover over any solution point to display the corresponding loss values for each objective. Additionally, each point includes a theta value, indicating up to which sequence in the ONNX ensemble the particular solution is achieved. This allows users to observe performance changes throughout different stages of the ensemble, helping them better understand the trade-offs involved in each model configuration.</p>
-            """
-        + plot_html
-    )
+            <p class="about">
+                The report highlights three primary objectives: accuracy loss, balanced accuracy loss, and discrimination (MMM-fairness) loss.
+                Each point plotted within the 3D space represents a Pareto-optimal solution, which achieves an optimal balance between these
+                objectives where no single objective can improve without worsening another.
+            </p>
+            <p class="about">
+                Users can hover over any solution point to display the corresponding loss values for each objective. Additionally, each point
+                includes a theta value, indicating up to which sequence in the ONNX ensemble the particular solution is achieved. This allows
+                users to observe performance changes throughout different stages of the ensemble, helping them better understand the trade-offs
+                involved in each model configuration.
+            </p>
+            {plot_html}
+            </div>
+        </body>
+        </html>
+        """
     return HTML(html)  # fb.interactive_html(report, show=False, name="Classes"))
