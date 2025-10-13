@@ -149,7 +149,7 @@ class SelectAnalysis(Step):
     def on_success(self, pipeline):
         self.loading_message.done(0)
         self.stacked_widget.slideToWidget(4)
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
 
     def on_notify(self, message):
         self.loading_message.setText(message)
@@ -157,7 +157,7 @@ class SelectAnalysis(Step):
     def on_failure(self, error_message):
         self.loading_message.done(0)
         self.show_error_message(error_message)
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
 
     def on_cancel(self):
         self.loading_message.done(0)
@@ -171,7 +171,7 @@ class SelectAnalysis(Step):
         self.save("analysis")
         self.runs[-1]["status"] = "saved"
         self.stacked_widget.slideToWidget(0)
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
 
     def closeEvent(self, event):
         if hasattr(self, "thread") and self.thread.isRunning():

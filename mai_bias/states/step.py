@@ -68,12 +68,13 @@ def format_name(name):
 
 
 class Step(Styled):
-    def __init__(self, step_name, stacked_widget, dataset_loaders, runs):
+    def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
         super().__init__()
         self.stacked_widget = stacked_widget
         self.dataset_loaders = dataset_loaders
         self.first_selection = True  # Track if first selection is made
         self.runs = runs
+        self.dataset = dataset
 
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)

@@ -86,7 +86,7 @@ class DatasetLoaderThread(QThread):
 class SelectDataset(Step):
     def next(self):
         self.save("dataset")
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
 
         self.loading_message = QMessageBox(self)
         self.loading_message.setWindowTitle("Loading Dataset")
@@ -146,7 +146,7 @@ class SelectDataset(Step):
         self.save("dataset")
         self.runs[-1]["status"] = "saved"
         self.stacked_widget.slideToWidget(0)
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
 
     def closeEvent(self, event):
         if hasattr(self, "thread") and self.thread.isRunning():

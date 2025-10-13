@@ -208,6 +208,7 @@ class MainWindow(QMainWindow):
                 self.stacked_widget,
                 registry.dataset_loaders,
                 active_run,
+                items
             )
         )
         self.stacked_widget.addWidget(
@@ -216,6 +217,7 @@ class MainWindow(QMainWindow):
                 self.stacked_widget,
                 registry.model_loaders,
                 active_run,
+                items
             )
         )
         self.stacked_widget.addWidget(
@@ -224,11 +226,10 @@ class MainWindow(QMainWindow):
                 self.stacked_widget,
                 registry.analysis_methods,
                 active_run,
+                items
             )
         )
-        self.stacked_widget.addWidget(
-            Results(self.stacked_widget, active_run, tags)
-        )
+        self.stacked_widget.addWidget(Results(self.stacked_widget, active_run, tags, items))
         self.setCentralWidget(self.stacked_widget)
 
 

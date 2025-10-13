@@ -210,13 +210,14 @@ class Dashboard(Styled):
         new_run = self.runs[index].copy()
         new_run["status"] = "new"
         new_run["timestamp"] = now()
+        self.active_run[-1] = new_run
         self.runs.append(new_run)
         self.stacked_widget.slideToWidget(1)
 
     def create_new_item(self):
-        self.runs.append(
-            {"description": "", "timestamp": now(), "status": "in_progress"}
-        )
+        new_run =  {"description": "", "timestamp": now(), "status": "in_progress"}
+        self.active_run[-1] = new_run
+        self.runs.append(new_run)
         self.stacked_widget.slideToWidget(1)
         self.refresh_dashboard()
 
@@ -429,7 +430,7 @@ class Dashboard(Styled):
             timestamp_label.setStyleSheet(
                 "font-size: 12px; color: #666; background: none; border: none;"
             )
-            timestamp_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+            timestamp_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
             card_layout.addWidget(timestamp_label)
 
             # --- Spacer ---

@@ -94,7 +94,7 @@ class SelectModel(Step):
 
     def next(self):
         self.save("model")
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
         pipeline = self.runs[-1]
 
         self.loading_message = QMessageBox(self)
@@ -139,7 +139,7 @@ class SelectModel(Step):
         self.save("model")
         self.runs[-1]["status"] = "saved"
         self.stacked_widget.slideToWidget(0)
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
 
     def closeEvent(self, event):
         if hasattr(self, "thread") and self.thread.isRunning():

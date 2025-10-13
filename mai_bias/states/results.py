@@ -18,7 +18,7 @@ from .cache import ExternalLinkPage
 
 
 def format_run(run):
-    return "[" + run["timestamp"] + "] " + run["description"]
+    return run["description"] + " " + run["timestamp"]
 
 
 def now():
@@ -26,11 +26,12 @@ def now():
 
 
 class Results(Styled):
-    def __init__(self, stacked_widget, runs, tag_descriptions):
+    def __init__(self, stacked_widget, runs, tag_descriptions, dataset):
         super().__init__()
         self.stacked_widget = stacked_widget
         self.runs = runs
         self.tag_descriptions = tag_descriptions
+        self.dataset = dataset
 
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -40,10 +41,16 @@ class Results(Styled):
         self.top_container.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         # Title label (Now aligned with buttons)
+
+
         self.title_label = QLabel("Analysis Outcome", self)
-        self.title_label.setStyleSheet("font-size: 20px; font-weight: bold;")
+        self.title_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
         self.top_container.addWidget(self.title_label)
+
+        self.tags_container = QHBoxLayout()
+        self.tags_container.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.top_container.addLayout(self.tags_container)
 
         # Spacer between title and buttons
         self.top_container.addItem(
@@ -62,6 +69,11 @@ class Results(Styled):
         self.delete_button = self.create_icon_button(
             "🗑", "#dc3545", "Delete", self.delete_run
         )
+
+        self.open_button = self.create_icon_button(
+            "In browser", "#7c2d12", "In browser", self.open_in_browser
+        )
+        self.open_button.setFixedWidth(100)
         self.close_button = self.create_icon_button(
             "Close", "#7c2d12", "Close", self.switch_to_dashboard
         )
@@ -70,14 +82,12 @@ class Results(Styled):
         self.top_container.addWidget(self.variation_button)
         self.top_container.addWidget(self.edit_button)
         self.top_container.addWidget(self.delete_button)
+        self.top_container.addWidget(self.open_button)
         self.top_container.addWidget(self.close_button)
 
         self.layout.addLayout(self.top_container)
 
         # Tags container (Left-aligned)
-        self.tags_container = QHBoxLayout()
-        self.tags_container.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.layout.addLayout(self.tags_container)
 
         # Results Viewer
         self.results_viewer = QWebEngineView(self)
@@ -88,6 +98,17 @@ class Results(Styled):
         self.layout.addWidget(self.results_viewer, 1)
 
         self.setLayout(self.layout)
+
+    def open_in_browser(self):
+        run = self.runs[-1]
+        results = run.get("analysis", dict()).get("return", "No results available.")
+        with open("temp.html", "w", encoding="utf-8") as file:
+            file.write(results)
+        try:
+            import webbrowser
+            webbrowser.open_new("temp.html")
+        except:
+            pass
 
     def switch_to_dashboard(self):
         self.stacked_widget.slideToWidget(0)
@@ -202,7 +223,8 @@ class Results(Styled):
         new_run = self.runs[-1].copy()
         new_run["status"] = "new"
         new_run["timestamp"] = now()
-        self.runs.append(new_run)
+        self.runs[-1] = new_run
+        self.dataset.append(new_run)
         self.stacked_widget.slideToWidget(1)
 
     def delete_run(self):
@@ -216,6 +238,9 @@ class Results(Styled):
             QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
-            self.runs.pop()
+            last_run = self.runs[-1]
+            if last_run in self.dataset:
+                self.dataset.remove(last_run)
             self.stacked_widget.slideToWidget(0)
-            save_all_runs("history.json", self.runs)
+            save_all_runs("history.json", self.dataset)
+
