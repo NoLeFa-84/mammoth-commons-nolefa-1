@@ -11,10 +11,10 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QPushButton,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
 from datetime import datetime
 from mammoth_commons.externals import prepare
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QDesktopServices
 from functools import partial
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from .cache import ExternalLinkPage
@@ -64,7 +64,7 @@ class Dashboard(Styled):
         # top_row_layout.addWidget(logo_button, alignment=Qt.AlignmentFlag.AlignTop)
 
         # Spacer to push buttons to the right
-        # top_row_layout.addStretch()
+        #top_row_layout.addStretch()
 
         # Buttons on the right
         search_field = QLineEdit(self)
@@ -78,6 +78,35 @@ class Dashboard(Styled):
             Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter
         )
         button_layout.addWidget(search_field)
+
+
+        def make_link_button(text, url, tooltip=None):
+            btn = QPushButton(text, self)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedSize(
+            40, 30)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background: white;
+                    color: #0369a1;
+                    font-weight: 600;
+                    border: 0px solid #0369a1;
+                    border-radius: 8px;
+                    text-align: center;
+                    font-size:20px;
+                }
+                QPushButton:hover {
+                    background: #d3ecfa;
+                }
+            """)
+            if tooltip:
+                btn.setToolTip(tooltip)
+            btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
+            return btn
+        # --- Sidebar links ---
+        #button_layout.addWidget(make_link_button("📘", "https://github.com/mammoth-eu/mammoth-commons"))
+        #button_layout.addWidget(make_link_button("📖", "https://github.com/mammoth-eu/FairnessDefinitionGuide"))
+        button_layout.addWidget(make_link_button("🌐", "https://mammoth-eu.github.io/mammoth-commons/"))
 
         # Wrap buttons in a widget so layout behaves properly
         button_widget = QWidget()
@@ -241,14 +270,15 @@ class Dashboard(Styled):
             latest_per_group[group_key] = runs_sorted
 
         # --- Card layout constants ---
-        card_width = 320
-        card_height = 130
+        card_width = 480
+        card_height = 110
         card_spacing = 9
         # Responsive cols
         window_width = self.scroll_area.viewport().width() or 700
         max_cols = max(1, window_width // (card_width + card_spacing))
         if len(latest_per_group) == 1:
             max_cols = 1
+
 
         grid_layout = QGridLayout()
         grid_layout.setSpacing(card_spacing)
@@ -392,9 +422,9 @@ class Dashboard(Styled):
             card_layout.addWidget(separator)
 
             # --- Tags---
-            tags_col = QVBoxLayout()
+            tags_col = QHBoxLayout()
             tags_col.setContentsMargins(11, 5, 0, 5)
-            tags_col.setSpacing(2)  # More spacing if you like
+            tags_col.setSpacing(2)
 
             for key in ["dataset", "model", "analysis"]:
                 mod = latest_run.get(key, {}).get("module", "")

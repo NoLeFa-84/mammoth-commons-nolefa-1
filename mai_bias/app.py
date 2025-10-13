@@ -1,9 +1,3 @@
-import os
-
-os.environ["QT_QUICK_BACKEND"] = "software"
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
-
-
 from PySide6.QtWidgets import QApplication, QMainWindow
 import sys
 from mai_bias.states.dashboard import Dashboard
@@ -198,7 +192,7 @@ class MainWindow(QMainWindow):
             ).items()
         }
         self.setWindowTitle("MAI-BIAS local runner")
-        self.setGeometry(100, 100, 1024, 768)
+        self.setGeometry(100, 100, 920, 600)
         self.stacked_widget = SlidingStackedWidget()
         self.stacked_widget.addWidget(Dashboard(self.stacked_widget, items, tags))
         self.stacked_widget.addWidget(
