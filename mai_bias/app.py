@@ -1,7 +1,3 @@
-import os
-
-os.environ["QT_QUICK_BACKEND"] = "software"
-
 from PySide6.QtWidgets import QApplication, QMainWindow
 import sys
 from mai_bias.states.dashboard import Dashboard
@@ -74,7 +70,7 @@ class SlidingStackedWidget(QStackedWidget):
 
         self.setAutoFillBackground(True)
         palette = self.palette()
-        palette.setColor(self.backgroundRole(), QColor("#eee"))
+        palette.setColor(self.backgroundRole(), QColor("#ffffff"))
         self.setPalette(palette)
 
     def slideInNext(self) -> bool:

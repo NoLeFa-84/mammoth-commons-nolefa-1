@@ -13,11 +13,13 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QDialog,
     QListWidget,
+    QScrollArea,
 )
+from PySide6.QtWidgets import QSizePolicy
 from PySide6.QtCore import Qt, QLocale
 from PySide6.QtGui import QIntValidator, QDoubleValidator, QIcon
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
+from PySide6.QtWebEngineCore import QWebEnginePage
 import json
 import os
 import csv
@@ -72,17 +74,19 @@ class Step(Styled):
         super().__init__()
         self.stacked_widget = stacked_widget
         self.dataset_loaders = dataset_loaders
-        self.first_selection = True  # Track if first selection is made
+        self.first_selection = True
         self.runs = runs
         self.dataset = dataset
 
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
+        # Step title
         self.label = QLabel(step_name, self)
         self.label.setStyleSheet("font-size: 50px; font-weight: bold")
         layout.addWidget(self.label)
 
+        # Dataset selector
         self.dataset_selector = QComboBox(self)
         self.dataset_selector.addItems(
             ["Select a module"] + list(dataset_loaders.keys())
@@ -90,22 +94,41 @@ class Step(Styled):
         self.dataset_selector.currentTextChanged.connect(self.update_param_form)
         layout.addWidget(self.dataset_selector)
 
-        # Dataset description section
+        # === Description and Form side-by-side ===
+        content_layout = QHBoxLayout()
+
+        # Left: Description
         self.description_label = QWebEngineView(self)
-        self.description_label.setFixedHeight(300)
+        self.description_label.setMinimumWidth(500)
         self.description_label.setPage(ExternalLinkPage(self.description_label))
-        layout.addWidget(self.description_label)
+        self.description_label.setSizePolicy(
+            QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        )
+        content_layout.addWidget(self.description_label, 2)
 
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setFrameShadow(QFrame.Shadow.Sunken)
-        layout.addWidget(separator)
-
+        # Right: Parameter form (in scroll area)
         self.param_form = QFormLayout()
         self.param_inputs = {}
         self.form_widget = QWidget()
         self.form_widget.setLayout(self.param_form)
-        layout.addWidget(self.form_widget)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(self.form_widget)
+        scroll_area.setSizePolicy(
+            QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        )
+        content_layout.addWidget(scroll_area, 3)
+
+        layout.addLayout(content_layout, stretch=1)
+
+        # === Buttons & description ===
+        layout.addStretch()
+
+        self.description_input = QLineEdit(self)
+        self.description_input.setPlaceholderText("Describe your analysis (optional)")
+        self.description_input.setStyleSheet("background-color: #ffffff")
+        layout.addWidget(self.description_input)
 
         button_layout = QHBoxLayout()
         self.next_button = QPushButton("Next", self)
@@ -142,20 +165,13 @@ class Step(Styled):
 
         button_layout.addWidget(self.next_button)
         button_layout.addWidget(self.cancel_button)
-
-        layout.addStretch()
-
-        self.description_input = QLineEdit(self)
-        self.description_input.setPlaceholderText("Describe your analysis (optional)")
-        self.description_input.setStyleSheet("background-color: #ddd")
-        layout.addWidget(self.description_input)
         layout.addLayout(button_layout)
+
         self.setLayout(layout)
         self.defaults = dict()
         self.update_param_form(self.dataset_selector.currentText())
 
     def update_param_form(self, dataset_name):
-        """Update the form based on the selected dataset loader."""
         if self.first_selection and dataset_name != self.dataset_selector.itemText(0):
             self.dataset_selector.removeItem(0)
             self.first_selection = False
@@ -179,19 +195,18 @@ class Step(Styled):
         )
 
         self.last_url = None
-        self.last_delimiter = None  # never set, placeholder for the future perhaps?
+        self.last_delimiter = None
         for name, param_type, default, description in loader["parameters"]:
             default = self.defaults.get(name, default)
             if name == "dataset" or name == "model":
                 continue
-            param_options = loader.get("parameter_options", {}).get(
-                name, []
-            )  # Get options if available
+            param_options = loader.get("parameter_options", {}).get(name, [])
             param_widget = self.create_input_widget(
                 name, param_type, default, description, param_options
             )
             self.param_form.addRow(param_widget)
 
+    # === rest of file unchanged ===
     def open_sensitive_modal(self, title, input_field, columns):
         if not isinstance(columns, list):
             path = columns[0].text()
@@ -200,14 +215,14 @@ class Step(Styled):
                 QMessageBox.warning(
                     self,
                     "Error",
-                    f"The previous file was empty and could not be used as reference.",
+                    "The previous file was empty and could not be used as reference.",
                 )
                 return
             if delimiter is not None and len(delimiter) == 0:
                 QMessageBox.warning(
                     self,
                     "Error",
-                    f"The previous file's delimiter was empty and could not be used as reference</b>",
+                    "The previous file's delimiter was empty and could not be used as reference</b>",
                 )
                 return
             try:
@@ -223,13 +238,12 @@ class Step(Styled):
                             if delimiter in string.ascii_letters:
                                 common_delims = [",", ";", "|", "\t"]
                                 counts = {d: sample.count(d) for d in common_delims}
-                                # pick the one with highest count, fallback to ","
                                 delimiter = (
                                     max(counts, key=counts.get)
                                     if any(counts.values())
                                     else ","
                                 )
-                    except Exception as e:
+                    except Exception:
                         delimiter = ","
                 df = pd_read_csv(
                     path, nrows=3, on_bad_lines="skip", delimiter=delimiter
@@ -246,13 +260,11 @@ class Step(Styled):
         prev_value = input_field.text()
         prev_selection = set(prev_value.split(","))
 
-        """Open a modal dialog to select sensitive columns."""
         dialog = QDialog(self)
         dialog.setWindowTitle(title)
         dialog.setModal(True)
 
         layout = QVBoxLayout()
-
         list_widget = QListWidget(dialog)
         list_widget.addItems(columns)
         list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
@@ -267,9 +279,9 @@ class Step(Styled):
             input_field.setText(prev_value)
             dialog.accept()
 
-        confirm_button = QPushButton("Cancel", dialog)
-        confirm_button.clicked.connect(cancel)
-        layout.addWidget(confirm_button)
+        cancel_button = QPushButton("Cancel", dialog)
+        cancel_button.clicked.connect(cancel)
+        layout.addWidget(cancel_button)
 
         confirm_button = QPushButton("Done", dialog)
         confirm_button.clicked.connect(
@@ -281,7 +293,6 @@ class Step(Styled):
         dialog.exec()
 
     def set_sensitive_values(self, dialog, list_widget, input_field):
-        """Set selected columns into the input field."""
         selected_items = [item.text() for item in list_widget.selectedItems()]
         input_field.setText(", ".join(selected_items))
         dialog.accept()
@@ -580,14 +591,15 @@ class Step(Styled):
             input_widget.setStyleSheet(
                 """
                 QLineEdit {
-                    background-color: #ccc;
-                    border: 1px solid #ccc;
+                    background-color: #fff;
+                    border: 0px solid #ccc;
                 }
                 QLineEdit:hover {
-                    border: 1px solid #999;
+                    border: 0px solid #999;
                 }
                 QLineEdit:focus {
-                    border: 1px solid #444;
+                    background-color: #fff;
+                    border: 0px solid #444;
                 }
                 """
             )
@@ -599,12 +611,12 @@ class Step(Styled):
         label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         help_button = QPushButton("?")
-        help_button.setFixedSize(30, 20)
+        help_button.setFixedSize(20, 20)
         help_button.setStyleSheet(
             f"""
             QPushButton {{
                 background-color: #dddddd; 
-                border-radius: 5px;
+                border-radius: 10px;
             }}
             QPushButton:hover {{
                 background-color: {self.highlight_color('#dddddd')};
