@@ -70,11 +70,14 @@ class Results(Styled):
         )
 
         self.open_button = self.create_icon_button(
-            "In browser", "#7c2d12", "In browser", self.open_in_browser
+            "To browser",
+            "#7c2d12",
+            "Opens the analysi result in your browser",
+            self.open_in_browser,
         )
         self.open_button.setFixedWidth(100)
         self.close_button = self.create_icon_button(
-            "Close", "#7c2d12", "Close", self.switch_to_dashboard
+            "Close", "#7c2d12", "Back to main menu", self.switch_to_dashboard
         )
         self.close_button.setFixedWidth(100)
 
@@ -86,6 +89,60 @@ class Results(Styled):
 
         self.layout.addLayout(self.top_container)
 
+        # --- INFO BOX (new) ---
+        info_container = QVBoxLayout()
+        info_container.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        def make_info_box(html_content):
+            frame = QWidget(self)
+            frame.setObjectName("InfoBox")
+            frame.setStyleSheet(
+                """
+                        QWidget#InfoBox {
+                            background-color: #dddddd;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 10px;
+                            padding: 14px 18px;
+                        }
+                        QLabel {
+                            color: #334155;
+                            font-size: 13px;
+                            line-height: 1.4em;
+                        }
+                        ul {
+                            margin-left: 16px;
+                        }
+                        li {
+                            margin: 4px 0;
+                        }
+                    """
+            )
+            label = QLabel(html_content, frame)
+            label.setTextFormat(Qt.TextFormat.RichText)
+            label.setWordWrap(True)
+            label.setOpenExternalLinks(True)
+            layout = QVBoxLayout(frame)
+            layout.setContentsMargins(14, 14, 18, 14)
+            layout.addWidget(label)
+            return frame
+
+        fairness_html = """
+                <p><b>Fairness does not end after producing AI outputs.</b></p>
+                 💡 Continue interacting with stakeholders to assert that their idea of fairness is correctly implemented.
+                 <br>💡 Monitor the outputs of deployed systems by rerunning the analysis on updated models and datasets.
+                 <br>💡 Test model and dataset variations for multiple sensitive characteristics and parameters.
+                <div style='margin-top: 10px;'>
+                <p>
+                Keep a balance between justifying outputs as part of a fair process and accommodating constructive criticism.
+                Do not over-rely on technical justification.
+                </p>
+                </div>
+                """
+
+        info_container.addWidget(make_info_box(fairness_html))
+        self.layout.addLayout(info_container)
+        # --- END INFO BOX ---
+
         # Tags container (Left-aligned)
 
         # Results Viewer
@@ -94,7 +151,7 @@ class Results(Styled):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         self.results_viewer.setSizePolicy(size_policy)
-        self.layout.addWidget(self.results_viewer, 1)
+        self.layout.insertWidget(self.layout.count() - 2, self.results_viewer)
 
         self.setLayout(self.layout)
 

@@ -150,6 +150,80 @@ class Dashboard(Styled):
         self.scroll_area.setWidget(self.content_widget)
 
         self.main_layout.addWidget(self.scroll_area)
+
+        # --- Informational Sections ---
+
+        info_container = QVBoxLayout()
+        info_container.setAlignment(Qt.AlignmentFlag.AlignTop)
+        info_container.setSpacing(16)
+
+        def make_info_box(html_content):
+            frame = QFrame(self)
+            frame.setObjectName("InfoBox")
+            frame.setFrameShape(QFrame.Shape.StyledPanel)
+            frame.setStyleSheet(
+                """
+                        QFrame#InfoBox {
+                            background-color: #dddddd;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 10px;
+                            padding: 14px 18px;
+                        }
+                        QLabel {
+                            color: #334155;
+                            font-size: 13px;
+                            line-height: 1.4em;
+                        }
+                        a {
+                            color: #0369a1;
+                            text-decoration: none;
+                            font-weight: 600;
+                        }
+                        a:hover {
+                            text-decoration: underline;
+                        }
+                        ul {
+                            margin-left: 16px;
+                        }
+                        li {
+                            margin: 4px 0;
+                        }
+                    """
+            )
+            label = QLabel(html_content, frame)
+            label.setTextFormat(Qt.TextFormat.RichText)
+            label.setWordWrap(True)
+            label.setOpenExternalLinks(True)
+            layout = QVBoxLayout(frame)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(label)
+            return frame
+
+        # 1️⃣ Fairness is multi-layered
+        fairness_html = """
+                <p>Fairness is multi-layered in that it needs to account for various aspects, 
+                such as technical, social, legal, and ethical. MAI-BIAS is meant for AI system creators, 
+                so it focuses on the technical aspects. However, these make up only a part of the problem; 
+                we recommend close cooperation with other disciplines to properly address the issue of fairness:.</p>
+
+                💡 Consult with legal experts to ensure compliance with laws and regulations.
+                <br>💡 Work with social scientists to gather interests of 
+                <span title="Stakeholders refer to individuals or social groups who might be positively or negatively affected by the use of AI. They include, for example, developers, users, profiting organizations, policymakers, and vulnerable groups who might be discriminated against by its use. They may also include product owners, such as parent or funding organizations, that drive the system’s main technical specifications.">
+                stakeholders</span> and ensure that they are adequately represented and integrated.
+                <br>💡 Combine research principles with fairness concerns. This requires co-designing AI systems with said stakeholders.</li>
+                <br><br>
+                
+                
+                <a href='https://github.com/mammoth-eu/FairnessDefinitionGuide' target='_blank'>AI fairness definition guide</a><br/>
+                <span>Learn more about an interdisciplinary approach to fairness in this guide by the MAMMOth project.</span>
+                <br>
+                <a href='https://www.trail-ml.com/eu-ai-act-compliance-checker' target='_blank'>Am I affected by the EU AI Act?</a><br/>
+                <span>Visit this self-assessment checklist by the third-party European AI Alliance.</span>
+                """
+        info_container.addWidget(make_info_box(fairness_html))
+
+        self.main_layout.addLayout(info_container)
+
         self.setLayout(self.main_layout)
         self.tag_descriptions = tag_descriptions
 
@@ -550,7 +624,7 @@ class Dashboard(Styled):
             row += 1
 
         if (
-            len(latest_per_group) <= 1 and len(self.invisible_runs) > 0
+            len(latest_per_group) <= 1  # and len(self.invisible_runs) > 0
         ):  # or (len(latest_per_group) == 1 and len(runs) > 1):
             # --- Clear Search Button ---
             clear_search_btn = QPushButton("Back", self)

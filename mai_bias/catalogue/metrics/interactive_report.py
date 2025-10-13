@@ -62,4 +62,8 @@ def interactive_report(
                 for label in labels
             }
         )
-    return HTML(fb.interactive_html(report, show=False, name="Classes"))
+    return HTML(
+        "<div class='container'><h1>Interactive report</h1>\n"
+        + fb.interactive_html(report, show=False, name="Classes")
+        + "</div>"
+    )

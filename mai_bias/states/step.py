@@ -69,6 +69,59 @@ def format_name(name):
     return name.replace("_", " ").capitalize()
 
 
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
+from PySide6.QtCore import Qt
+
+
+class InfoBox(QFrame):
+    """Reusable informational box matching Dashboard style."""
+
+    def __init__(self, html_content, parent=None):
+        super().__init__(parent)
+        self.setObjectName("InfoBox")
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setStyleSheet(
+            """
+            QFrame#InfoBox {
+                background-color: #dddddd;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 14px 18px;
+            }
+            QLabel {
+                color: #334155;
+                font-size: 13px;
+                line-height: 1.4em;
+            }
+            a {
+                color: #0369a1;
+                text-decoration: none;
+                font-weight: 600;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            ul {
+                margin-left: 16px;
+            }
+            li {
+                margin: 4px 0;
+            }
+        """
+        )
+
+        label = QLabel(html_content, self)
+        label.setTextFormat(Qt.TextFormat.RichText)
+        label.setWordWrap(True)
+        label.setOpenExternalLinks(True)
+        label.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(label)
+
+
 class Step(Styled):
     def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
         super().__init__()
