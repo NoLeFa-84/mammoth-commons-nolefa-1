@@ -1,3 +1,7 @@
+import os
+
+os.environ["QT_QUICK_BACKEND"] = "software"
+
 from PySide6.QtWidgets import QApplication, QMainWindow
 import sys
 from mai_bias.states.dashboard import Dashboard
@@ -192,21 +196,39 @@ class MainWindow(QMainWindow):
             ).items()
         }
         self.setWindowTitle("MAI-BIAS local runner")
-        self.setGeometry(100, 100, 920, 600)
+        self.setGeometry(100, 100, 1200, 900)
         self.stacked_widget = SlidingStackedWidget()
-        self.stacked_widget.addWidget(Dashboard(self.stacked_widget, items, tags))
+        active_run = [None]
         self.stacked_widget.addWidget(
-            SelectDataset("Data", self.stacked_widget, registry.dataset_loaders, items)
+            Dashboard(self.stacked_widget, items, tags, active_run)
         )
         self.stacked_widget.addWidget(
-            SelectModel("Model", self.stacked_widget, registry.model_loaders, items)
+            SelectDataset(
+                "Data",
+                self.stacked_widget,
+                registry.dataset_loaders,
+                active_run,
+            )
+        )
+        self.stacked_widget.addWidget(
+            SelectModel(
+                "Model",
+                self.stacked_widget,
+                registry.model_loaders,
+                active_run,
+            )
         )
         self.stacked_widget.addWidget(
             SelectAnalysis(
-                "Analysis method", self.stacked_widget, registry.analysis_methods, items
+                "Analysis method",
+                self.stacked_widget,
+                registry.analysis_methods,
+                active_run,
             )
         )
-        self.stacked_widget.addWidget(Results(self.stacked_widget, items, tags))
+        self.stacked_widget.addWidget(
+            Results(self.stacked_widget, active_run, tags)
+        )
         self.setCentralWidget(self.stacked_widget)
 
 

@@ -964,9 +964,9 @@ class Dashboard:
         coloring = colorsbg if -1 == state.selection else colors
         print(f"{coloring.element}{'New run'.ljust(80)}{colors.reset}")
         for i, run in enumerate(runs):
-            if i < state.selection-5:
+            if i < state.selection - 5:
                 continue
-            if i > state.selection+5+max(0,5-state.selection):
+            if i > state.selection + 5 + max(0, 5 - state.selection):
                 break
             description = run["description"]
             if not description:

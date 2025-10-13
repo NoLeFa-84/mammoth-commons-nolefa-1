@@ -63,8 +63,9 @@ class Results(Styled):
             "🗑", "#dc3545", "Delete", self.delete_run
         )
         self.close_button = self.create_icon_button(
-            "❌", "#6c757d", "Close", self.switch_to_dashboard
+            "Close", "#7c2d12", "Close", self.switch_to_dashboard
         )
+        self.close_button.setFixedWidth(100)
 
         self.top_container.addWidget(self.variation_button)
         self.top_container.addWidget(self.edit_button)

@@ -81,7 +81,9 @@ def sklearn_visual_analysis(
     import tempfile, webbrowser
 
     class HTMLHeatMap:
-        def __init__(self, legend=True, open_in_browser=True, bar_mode=True, cell_width_px=80):
+        def __init__(
+            self, legend=True, open_in_browser=True, bar_mode=True, cell_width_px=80
+        ):
             self.legend = legend
             self.open_in_browser = open_in_browser
             self.accumulated_bars = []
@@ -104,7 +106,9 @@ def sklearn_visual_analysis(
                 self.accumulated_bars.append(["---"] * len(self.col_names))
             for r_idx, row in enumerate(self.accumulated_bars):
                 if len(row) < len(self.col_names):
-                    self.accumulated_bars[r_idx] += ["---"] * (len(self.col_names) - len(row))
+                    self.accumulated_bars[r_idx] += ["---"] * (
+                        len(self.col_names) - len(row)
+                    )
 
         def _embed_bars(self):
             last_title = self.last_title[-1]
@@ -128,8 +132,9 @@ def sklearn_visual_analysis(
                     col_num = self.col_names[last_title]
 
                 self._ensure_cell_structure()
-                assert self.accumulated_bars[row_num][col_num] == "---", \
-                    f"Two or more conflicting values for '{title}' under header '{last_title}'."
+                assert (
+                    self.accumulated_bars[row_num][col_num] == "---"
+                ), f"Two or more conflicting values for '{title}' under header '{last_title}'."
                 self.accumulated_bars[row_num][col_num] = (float(val), float(target))
 
             self.bars = []
@@ -175,14 +180,14 @@ def sklearn_visual_analysis(
 
             if diff < 0:
                 # greenish for below target
-                r = int(128 * (1 - ratio)+122)
+                r = int(128 * (1 - ratio) + 122)
                 g = int(255 - 80 * ratio)
                 b = int(164)
             elif diff > 0:
                 # reddish for above target
                 r = int(255)
-                g = int(164 * (1 - ratio)+60)
-                b = int(164 * (1 - ratio)+60)
+                g = int(164 * (1 - ratio) + 60)
+                b = int(164 * (1 - ratio) + 60)
             else:
                 # neutral
                 r, g, b = 200, 200, 200
@@ -233,7 +238,9 @@ def sklearn_visual_analysis(
                 if cell is not None
                 for val, target in [cell]
             ]
-            min_diff, max_diff = (min(all_diffs), max(all_diffs)) if all_diffs else (0, 1)
+            min_diff, max_diff = (
+                (min(all_diffs), max(all_diffs)) if all_diffs else (0, 1)
+            )
 
             # Used for width normalization (based on raw values)
             all_vals = [
@@ -299,10 +306,16 @@ def sklearn_visual_analysis(
                             """
                             cell_html = f'<td style="border:0;padding:2px;text-align:center;width:{self.cell_width_px}px;">{bar_html}</td>'
                         cells.append(cell_html)
-                    rows_html.append(f"<tr><th style='text-align:left;'>{row_label}</th>{''.join(cells)}</tr>")
+                    rows_html.append(
+                        f"<tr><th style='text-align:left;'>{row_label}</th>{''.join(cells)}</tr>"
+                    )
 
-                header_cells = "".join(f"<th style='width:{self.cell_width_px}px;'>{x}</th>" for x in x_labels)
-                html_sections.append(f"""
+                header_cells = "".join(
+                    f"<th style='width:{self.cell_width_px}px;'>{x}</th>"
+                    for x in x_labels
+                )
+                html_sections.append(
+                    f"""
                 <div style="margin:20px;">
                     <h2 style="font-family:sans-serif;">{title}</h2>
                     <table style="border-collapse:collapse;font-family:sans-serif;">
@@ -310,7 +323,8 @@ def sklearn_visual_analysis(
                         {''.join(rows_html)}
                     </table>
                 </div>
-                """)
+                """
+                )
 
             html_page = f"<html><body>{''.join(html_sections)}</body></html>"
             return html_page
@@ -342,7 +356,6 @@ def sklearn_visual_analysis(
 
         def curve(self, *args, **kwargs):
             pass
-
 
     min_group_size = int(min_group_size)
     assert len(sensitive) != 0, "Set at least one sensitive attribute"
@@ -428,7 +441,9 @@ def sklearn_visual_analysis(
             env=HTMLHeatMap(open_in_browser=False),
             depth=1,
         ),
-        "Base quantities": report.min.rebase(fb.core.Descriptor("per group", "per group")).show(
+        "Base quantities": report.min.rebase(
+            fb.core.Descriptor("per group", "per group")
+        ).show(
             env=HTMLHeatMap(open_in_browser=False),
             depth=2,
         ),
