@@ -215,7 +215,7 @@ class Dashboard(Styled):
         self.stacked_widget.slideToWidget(1)
 
     def create_new_item(self):
-        new_run =  {"description": "", "timestamp": now(), "status": "in_progress"}
+        new_run = {"description": "", "timestamp": now(), "status": "in_progress"}
         self.active_run[-1] = new_run
         self.runs.append(new_run)
         self.stacked_widget.slideToWidget(1)
@@ -430,7 +430,9 @@ class Dashboard(Styled):
             timestamp_label.setStyleSheet(
                 "font-size: 12px; color: #666; background: none; border: none;"
             )
-            timestamp_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
+            timestamp_label.setAlignment(
+                Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight
+            )
             card_layout.addWidget(timestamp_label)
 
             # --- Spacer ---
@@ -547,7 +549,9 @@ class Dashboard(Styled):
             grid_layout.addWidget(no_results_label, row, 0, 1, max_cols)
             row += 1
 
-        if len(latest_per_group) <= 1:
+        if (
+            len(latest_per_group) <= 1 and len(self.invisible_runs) > 0
+        ):  # or (len(latest_per_group) == 1 and len(runs) > 1):
             # --- Clear Search Button ---
             clear_search_btn = QPushButton("Back", self)
             clear_search_btn.setCursor(Qt.CursorShape.PointingHandCursor)

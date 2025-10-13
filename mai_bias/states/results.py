@@ -42,7 +42,6 @@ class Results(Styled):
 
         # Title label (Now aligned with buttons)
 
-
         self.title_label = QLabel("Analysis Outcome", self)
         self.title_label.setStyleSheet("font-size: 14px; font-weight: bold;")
 
@@ -106,6 +105,7 @@ class Results(Styled):
             file.write(results)
         try:
             import webbrowser
+
             webbrowser.open_new("temp.html")
         except:
             pass
@@ -243,4 +243,3 @@ class Results(Styled):
                 self.dataset.remove(last_run)
             self.stacked_widget.slideToWidget(0)
             save_all_runs("history.json", self.dataset)
-
