@@ -23,6 +23,7 @@ def model_card(
     problematic_deviation: float = 0.1,
     show_non_problematic: bool = True,
     min_group_size: int = 1,
+    presentation: Options("Numbers","Bars") = "Numbers"
 ) -> HTML:
     """
     <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench"
@@ -55,6 +56,7 @@ def model_card(
         problematic_deviation: Sets up a threshold of when to consider deviation from ideal values as problematic. If nothing is considered problematic fairness is not necessarily achieved, but this is a good way to identify the most prominent biases. If value of 0 is set, all report values are shown, including those that have no ideal value.
         show_non_problematic: Determine whether deviations less than the problematic one should be shown or not. If they are shown, the coloring scheme is adjusted to identify problematic values as red.
         min_group_size: The minimum number of samples per group that should be considered during analysis - groups with less memers are ignored.
+        presentation: "Whether to focus on showing numbers or showing accompanying bars for easier comparison. Prefer a number comparison to avoid being influenced by comparisons between incomparable measure values.
     """
     fb = importlib.import_module("fairbench")
     reps = fb.reports
@@ -62,6 +64,7 @@ def model_card(
     min_group_size = int(min_group_size)
     assert len(sensitive) != 0, "At least one sensitive attribute should be provided"
     assert 0 <= prob <= 1, "Problematic deviation should be in [0,1]"
+    presentation = fb.export.HtmlBars if presentation=="Bars" else fb.export.HtmlTable
     report_type = reps.pairwise if compare_groups == "Pairwise" else reps.vsall
     reject = not bool(show_non_problematic)
     predictions = model.predict(dataset, sensitive)
@@ -81,13 +84,13 @@ def model_card(
         report = report.filter(fb.investigate.DeviationsOver(prob, prune=reject))
 
     views = {
-        "Summary": report.show(env=fb.export.HtmlTable(view=False, filename=None)),
+        "Summary": report.show(env=presentation(view=False, filename=None)),
         "Stamps": report.filter(fb.investigate.Stamps).show(
             env=fb.export.Html(view=False, filename=None),
             depth=2 if isinstance(predictions, dict) else 1,
         ),
         "Full report": report.show(
-            env=fb.export.Html(view=False, filename=None),
+            env=presentation(view=False, filename=None),
             depth=3 if isinstance(predictions, dict) else 2,
         ),
     }
