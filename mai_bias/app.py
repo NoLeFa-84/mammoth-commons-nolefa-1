@@ -1,3 +1,10 @@
+import os
+
+os.environ["QT_QUICK_BACKEND"] = "software"
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
+# if "XDG_RUNTIME_DIR" not in os.environ:
+#     os.environ["XDG_RUNTIME_DIR"] = "/tmp"
+
 from PySide6.QtWidgets import QApplication, QMainWindow
 import sys
 from mai_bias.states.dashboard import Dashboard

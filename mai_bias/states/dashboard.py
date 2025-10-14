@@ -594,7 +594,7 @@ class Dashboard(Styled):
                     self.edit_item(i)
 
             # Assign directly; do NOT use lambda+partial, just a closure:
-            card_widget.mousePressEvent = (
+            card_widget.mousePressEvent = partial(
                 lambda event, i=latest_index, r=latest_run, runs_in_group=[
                     idx for idx, _ in runs
                 ]: card_mouse_press(event, i, r, runs_in_group)
@@ -694,7 +694,7 @@ class Dashboard(Styled):
                 narrow_card = QWidget(self)
                 narrow_card.setObjectName("NarrowResultCard")
                 narrow_width = int(card_width)
-                narrow_card.setFixedSize(narrow_width, 50)
+                narrow_card.setFixedSize(narrow_width, 35)
                 narrow_card.setStyleSheet(
                     f"""
                     QWidget#NarrowResultCard {{
@@ -709,16 +709,16 @@ class Dashboard(Styled):
                 """
                 )
                 narrow_layout = QGridLayout(narrow_card)
-                narrow_layout.setContentsMargins(7, 5, 7, 5)
+                narrow_layout.setContentsMargins(7, 3, 7, 3)
                 narrow_layout.setSpacing(2)
 
                 # --- Special title and date ---
                 info_label = QLabel(
-                    "<b>{}</b><br><span style='font-size:11px;color:#666'>{}</span>".format(
+                    "<b>{}</b> <span style='color:#666'>{}</span>".format(
                         (
                             get_special_title(run)
                             if run["status"] == "completed"
-                            else "Creating"
+                            else "INCOMPLETE"
                         ),
                         convert_to_readable(run["timestamp"]),
                     ),
@@ -730,14 +730,15 @@ class Dashboard(Styled):
                     "border: none; background: none; font-size: 12px; margin-top: 2px;"
                 )
                 narrow_layout.addWidget(info_label, 0, 0)
+                delete_button = self.create_icon_button(
+                    "🗑",
+                    "#dc3545",
+                    "Delete",
+                    partial(lambda i=index: self.delete_item(i)),
+                    size=25,
+                )
                 narrow_layout.addWidget(
-                    self.create_icon_button(
-                        "🗑",
-                        "#dc3545",
-                        "Delete",
-                        partial(lambda i=index: self.delete_item(i)),
-                        size=28,
-                    ),
+                    delete_button,
                     0,
                     1,
                 )

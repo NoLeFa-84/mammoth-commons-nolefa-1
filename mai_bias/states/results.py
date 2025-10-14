@@ -185,6 +185,22 @@ class Results(Styled):
             html_content = "<p>No results available.</p>"
 
         # Use QTimer to ensure WebEngineView renders properly
+        self.results_viewer.setHtml(
+            """
+        <div style="
+            height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+        ">
+          <h3>
+            Results too complicated to render here.<br>
+            Move them <i>to browser</i> instead.
+          </h3>
+        </div>
+        """
+        )
         QTimer.singleShot(1, lambda: self.results_viewer.setHtml(html_content))
         self.results_viewer.show()
 

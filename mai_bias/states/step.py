@@ -234,9 +234,7 @@ class Step(Styled):
         self.param_inputs.clear()
 
         if dataset_name not in self.dataset_loaders:
-            self.description_label.setHtml(
-                "Select a dataset loader to see its description."
-            )
+            self.description_label.setHtml("Select a module to see its description.")
             return
 
         loader = self.dataset_loaders[dataset_name]
