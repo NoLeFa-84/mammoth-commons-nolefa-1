@@ -47,7 +47,6 @@ def run_test(file_path: str):
         return False
 
 
-
 def run_tests_in_folder(path):
     success = True
     for file_name in os.listdir(path):
