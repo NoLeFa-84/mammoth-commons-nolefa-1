@@ -3,43 +3,43 @@ from mammoth_commons import testing
 from mai_bias.catalogue.dataset_loaders.custom_csv import data_custom_csv
 from mai_bias.catalogue.model_loaders.onnx import model_onnx
 from mai_bias.catalogue.metrics.model_card import model_card
+from mai_bias.catalogue.metrics.croissant import croissant
 
 
 def test_bias_exploration():
-    with testing.Env(data_custom_csv, model_onnx, model_card) as env:
-        numeric = ["age", "duration", "campaign", "pdays", "previous"]
-        categorical = [
-            "job",
-            "marital",
-            "education",
-            "default",
-            "housing",
-            "loan",
-            "contact",
-            "poutcome",
-        ]
-        sensitive = ["marital"]
-        dataset_uri = "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv"
+    with testing.Env(data_custom_csv, model_onnx, model_card, croissant) as env:
         dataset = env.data_custom_csv(
-            dataset_uri,
-            categorical=categorical,
-            numeric=numeric,
+            path="https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv",
+            categorical=[
+                "job",
+                "marital",
+                "education",
+                "default",
+                "housing",
+                "loan",
+                "contact",
+                "poutcome",
+            ],
+            numeric=["age", "duration", "campaign", "pdays", "previous"],
             label="y",
             delimiter=";",
         )
-
-        # age, duration, campaign, pdays, previous
-        # job, marital, education, default, housing, loan, contact, poutcome
-        # y ;
-
-        model_path = "file://localhost//" + os.path.abspath("./data/model.onnx")
-        print(
-            model_path
-        )  # e.g., file://localhost///home/maniospas/Documents/mammoth-commons/data/model.onnx
-        model = env.model_onnx(model_path, trained_with_sensitive=True)
-
-        markdown_result = env.model_card(dataset, model, sensitive)
-        markdown_result.show()
+        model = env.model_onnx(
+            path="file://localhost//" + os.path.abspath("./data/model.onnx"),
+            trained_with_sensitive=True,
+        )
+        env.model_card(dataset, model, sensitive=["marital"]).show()
+        env.croissant(
+            dataset,
+            None,
+            sensitive=["marital"],
+            name="Bank dataset with marital sensitive attribute",
+            license="Creative Commons Attribution 4.0 International (CC BY 4.0)",
+            description="The data is related with direct marketing campaigns of a Portuguese banking institution. The marketing campaigns were based on phone calls. Often, more than one contact to the same client was required, in order to access if the product (bank term deposit) would be ('yes') or not ('no') subscribed.",
+            citation="A data-driven approach to predict the success of bank telemarketing, By Sérgio Moro, P. Cortez, P. Rita. 2014, Published in Decision Support Systems",
+            qualitative_creators="Sérgio Moro, P. Cortez, P. Rita",
+            distribution="https://archive.ics.uci.edu/dataset/222/bank+marketing",
+        ).show("docs/validation/bank_1_sensitive.html")
 
 
 if __name__ == "__main__":

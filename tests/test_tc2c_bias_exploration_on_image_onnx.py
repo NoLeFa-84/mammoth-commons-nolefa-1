@@ -8,31 +8,21 @@ from mai_bias.catalogue.metrics.model_card import model_card
 
 def test_bias_exploration():
     with testing.Env(data_images, model_torch2onnx, model_card) as env:
-        target = "task"
-        protected = "protected"
-        model_path = "./data/torch_model/torch_model.py"
-        model_dict = "./data/torch_model/resnet18.pt"
-        data_dir = "./data/xai_images/race_per_7000"
-        csv_dir = "./data/xai_images/bupt_anno.csv"
-
         dataset = env.data_images(
-            path=csv_dir,
-            image_root_dir=data_dir,
-            target=target,
+            path="./data/xai_images/bupt_anno.csv",
+            image_root_dir="./data/xai_images/race_per_7000",
+            target="task",
             data_transform_path="./data/xai_images/torch_transform.py",
             batch_size=4,
             shuffle=False,
         )
-
         model = env.model_torch2onnx(
-            state_path=model_dict,
-            model_path=model_path,
+            state_path="./data/torch_model/resnet18.pt",
+            model_path="./data/torch_model/torch_model.py",
             input_width=dataset.input_size[0],
             input_height=dataset.input_size[1],
         )
-
-        result = env.model_card(dataset, model, [protected], problematic_deviation=0)
-        result.show()
+        env.model_card(dataset, model, ["protected"], problematic_deviation=0).show()
 
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ def sklearn_audit(
     show_non_problematic: bool = True,
     top_recommendations: int = 3,
     min_group_size: int = 1,
-    presentation: Options("Numbers","Bars") = "Numbers"
+    presentation: Options("Numbers", "Bars") = "Numbers",
 ) -> HTML:
     """
     <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
@@ -81,7 +81,7 @@ def sklearn_audit(
 
     min_group_size = int(min_group_size)
     assert len(sensitive) != 0, "Set at least one sensitive attribute"
-    presentation = fb.export.HtmlBars if presentation=="Bars" else fb.export.HtmlTable
+    presentation = fb.export.HtmlBars if presentation == "Bars" else fb.export.HtmlTable
     reject = not bool(show_non_problematic)
     X = dataset.to_pred(sensitive)
     y = dataset.labels
