@@ -28,7 +28,7 @@ def test_optimal_transport():
             path="file://localhost//" + os.path.abspath("./data/model.onnx"),
             trained_with_sensitive=True,
         )
-        markdown_result = env.optimal_transport(dataset, model, sensitive)
+        markdown_result = env.optimal_transport(dataset, model, sensitive=["marital"])
         markdown_result.show()
 
 

@@ -10,7 +10,7 @@ import tempfile
     namespace="mammotheu",
     version="v0049",
     python="3.13",
-    packages=("numpy", "torch", "torchvision"),
+    packages=("numpy", "torch", "torchvision", "onnxscript"),
 )
 def model_torch2onnx(
     state_path: str = "",
