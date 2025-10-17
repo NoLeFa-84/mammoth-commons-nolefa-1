@@ -55,6 +55,22 @@ def model_torch2onnx(
     model.eval()
     dummy_input = torch.randn(1, 3, input_width, input_height)
 
+    # TODO: temporary monkey patch of normalization
+    import torchvision.transforms._functional_tensor as F_t
+
+    def safe_normalize(tensor, mean, std, inplace=False):
+        # TorchVision-compatible signature, but no (std == 0).any() guard
+        dtype = tensor.dtype
+        device = tensor.device
+        mean = torch.as_tensor(mean, dtype=dtype, device=device).view(1, -1, 1, 1)
+        std = torch.as_tensor(std, dtype=dtype, device=device).view(1, -1, 1, 1)
+        if inplace:
+            tensor.sub_(mean).div_(std)
+            return tensor
+        return (tensor - mean) / std
+
+    F_t.normalize = safe_normalize
+
     with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as temp_file:
         onnx_model_path = temp_file.name
         torch.onnx.export(
