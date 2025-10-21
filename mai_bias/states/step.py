@@ -351,6 +351,8 @@ class Step(Styled):
     def create_input_widget(
         self, name, param_type, default, description, param_options
     ):
+        if name == "sensitive":
+            description = "<h1>Sensitive/protected attributes</h1>Protected attributes usually refer to personal characteristics protected by the law on non-discrimination. For example, the EU Charter of Fundamental Rights in Article 21 enacts a non-exhaustive list of grounds for non-discrimination as follows: sex, race, colour, ethnic or social origin, genetic features, language, religion or belief, political or any other opinion, membership of a national minority, property, birth, disability, age or sexual orientation.<br><br>Here we include also attributes that are not necessarily protected by the law, but that can still lead to potential forms of discrimination. "
         """Create an appropriate input widget based on the parameter type."""
         param_layout = QHBoxLayout()
         param_layout.setContentsMargins(0, 0, 0, 0)

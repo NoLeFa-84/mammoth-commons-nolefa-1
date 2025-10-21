@@ -55,33 +55,37 @@ def model_torch2onnx(
     model.eval()
     dummy_input = torch.randn(1, 3, input_width, input_height)
 
-    # TODO: temporary monkey patch of normalization
-    import torchvision.transforms._functional_tensor as F_t
+    # with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as temp_file:
+    #     onnx_model_path = temp_file.name
+    #     torch.onnx.export(
+    #         model,
+    #         dummy_input,
+    #         onnx_model_path,
+    #         input_names=["input"],
+    #         output_names=["output"],
+    #         dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
+    #     )
 
-    def safe_normalize(tensor, mean, std, inplace=False):
-        # TorchVision-compatible signature, but no (std == 0).any() guard
-        dtype = tensor.dtype
-        device = tensor.device
-        mean = torch.as_tensor(mean, dtype=dtype, device=device).view(1, -1, 1, 1)
-        std = torch.as_tensor(std, dtype=dtype, device=device).view(1, -1, 1, 1)
-        if inplace:
-            tensor.sub_(mean).div_(std)
-            return tensor
-        return (tensor - mean) / std
+    from torch import export
+    from torch.onnx import export as onnx_export
 
-    F_t.normalize = safe_normalize
-
+    exported = export.export(model, (dummy_input,), strict=False)
     with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as temp_file:
         onnx_model_path = temp_file.name
-        torch.onnx.export(
-            model,
-            dummy_input,
+        onnx_export(
+            exported.module(),  # the traced Module
+            (dummy_input,),
             onnx_model_path,
             input_names=["input"],
             output_names=["output"],
-            dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
+            opset_version=17,
+            dynamic_axes={
+                "input": {0: "batch_size"},
+                "output": {0: "batch_size"},
+            },
         )
 
     onnx_model = ONNX(onnx_model_path, threshold=multiclass_threshold)
+
     os.remove(onnx_model_path)
     return onnx_model

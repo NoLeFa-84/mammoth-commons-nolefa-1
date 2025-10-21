@@ -134,7 +134,11 @@ class Results(Styled):
                 <div style='margin-top: 10px;'>
                 <p>
                 Keep a balance between justifying outputs as part of a fair process and accommodating constructive criticism.
-                Do not over-rely on technical justification.
+                Do not over-rely on technical justification, and ensure meaningful human oversight whenever 
+                AI systems are deployed in decision-making, 
+                high-stakes, or rights-impacting contexts. Human oversight prevents overreliance on imperfect models, 
+                catches context-specific errors, and enables ethical judgment, accountability, and recourse for 
+                affected people.
                 </p>
                 </div>
                 """
