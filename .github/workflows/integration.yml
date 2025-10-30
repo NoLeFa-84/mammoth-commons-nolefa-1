@@ -30,13 +30,13 @@ jobs:
         python -m pip install coverage black
         python -m pip install -r requirements[mai].txt
 
-    - name: Generate catalogue
-      run: |
-        python -m docs.generate
-
     - name: Run tests
       run: |
         python integration_tests.py
+
+    - name: Generate catalogue
+      run: |
+        python -m docs.generate
 
     - name: Coverage check
       run: |

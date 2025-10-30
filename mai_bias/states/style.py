@@ -36,6 +36,7 @@ class Styled(QWidget):
                 border-radius: 10px;
                 font-size: 12px;
                 border: 0px solid #bbb;
+                padding: 0px 5px;
             }
             QPushButton:hover {
                 border-radius: 10px;

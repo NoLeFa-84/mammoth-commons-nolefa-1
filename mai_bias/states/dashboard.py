@@ -11,10 +11,11 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QPushButton,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt, QUrl
 from datetime import datetime
 from mammoth_commons.externals import prepare
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QDesktopServices
 from functools import partial
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from .cache import ExternalLinkPage
@@ -50,10 +51,11 @@ def convert_to_readable(date_str):
 
 
 class Dashboard(Styled):
-    def __init__(self, stacked_widget, runs, tag_descriptions):
+    def __init__(self, stacked_widget, runs, tag_descriptions, active_run):
         super().__init__()
         self.stacked_widget = stacked_widget
         self.runs = runs
+        self.active_run = active_run
 
         self.main_layout = QVBoxLayout()
         self.main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -78,6 +80,38 @@ class Dashboard(Styled):
             Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter
         )
         button_layout.addWidget(search_field)
+
+        def make_link_button(text, url, tooltip=None):
+            btn = QPushButton(text, self)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedSize(40, 30)
+            btn.setStyleSheet(
+                """
+                QPushButton {
+                    background: white;
+                    color: #0369a1;
+                    font-weight: 600;
+                    border: 0px solid #0369a1;
+                    border-radius: 8px;
+                    text-align: center;
+                    font-size:20px;
+                }
+                QPushButton:hover {
+                    background: #d3ecfa;
+                }
+            """
+            )
+            if tooltip:
+                btn.setToolTip(tooltip)
+            btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
+            return btn
+
+        # --- Sidebar links ---
+        # button_layout.addWidget(make_link_button("📘", "https://github.com/mammoth-eu/mammoth-commons"))
+        # button_layout.addWidget(make_link_button("📖", "https://github.com/mammoth-eu/FairnessDefinitionGuide"))
+        button_layout.addWidget(
+            make_link_button("🌐", "https://mammoth-eu.github.io/mammoth-commons/")
+        )
 
         # Wrap buttons in a widget so layout behaves properly
         button_widget = QWidget()
@@ -116,6 +150,90 @@ class Dashboard(Styled):
         self.scroll_area.setWidget(self.content_widget)
 
         self.main_layout.addWidget(self.scroll_area)
+
+        # --- Informational Sections ---
+
+        info_container = QVBoxLayout()
+        info_container.setAlignment(Qt.AlignmentFlag.AlignTop)
+        info_container.setSpacing(16)
+
+        def make_info_box(html_content):
+            frame = QFrame(self)
+            frame.setObjectName("InfoBox")
+            frame.setFrameShape(QFrame.Shape.StyledPanel)
+            frame.setStyleSheet(
+                """
+                        QFrame#InfoBox {
+                            background-color: #dddddd;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 10px;
+                            padding: 14px 18px;
+                        }
+                        QLabel {
+                            color: #334155;
+                            font-size: 13px;
+                            line-height: 1.4em;
+                        }
+                        a {
+                            color: #0369a1;
+                            text-decoration: none;
+                            font-weight: 600;
+                        }
+                        a:hover {
+                            text-decoration: underline;
+                        }
+                        ul {
+                            margin-left: 16px;
+                        }
+                        li {
+                            margin: 4px 0;
+                        }
+                    """
+            )
+            label = QLabel(html_content, frame)
+            label.setTextFormat(Qt.TextFormat.RichText)
+            label.setWordWrap(True)
+            label.setOpenExternalLinks(True)
+            layout = QVBoxLayout(frame)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(label)
+            return frame
+
+        # 1️⃣ Fairness is multi-layered
+        fairness_html = """
+                <p>Fairness is multi-layered in that it needs to account for various aspects, 
+                such as technical, social, legal, and ethical. MAI-BIAS is meant for AI system creators, 
+                so it focuses on the technical aspects. However, these make up only a part of the problem; 
+                we recommend close cooperation with other disciplines to properly address the issue of fairness:
+                </p>
+
+                💡 Consult with legal experts to ensure compliance with laws and regulations.
+                <br>💡 Work with social scientists to gather interests of 
+                stakeholders and ensure that they are adequately represented and integrated.
+                <br>💡 Combine research principles with fairness concerns. This requires co-designing AI systems with stakeholders.</li>
+                <br><br>
+                
+                <a href='https://github.com/mammoth-eu/FairnessDefinitionGuide' target='_blank'>AI fairness definition guide</a><br/>
+                <span>Learn more about an interdisciplinary approach to fairness in this guide by the MAMMOth project.</span>
+                <br>
+                <a href='https://www.trail-ml.com/eu-ai-act-compliance-checker' target='_blank'>Am I affected by the EU AI Act?</a><br/>
+                <span>Visit this self-assessment checklist by the third-party European AI Alliance.</span>
+                <br>
+                <b>A social science perspective</b>
+                <br>
+                AI “bias” originates from historical and present social inequalities 
+                and systems of oppression at the expense of marginalized groups, which should be understood 
+                in your domain.
+                """
+        """
+                Stakeholders include individuals or social groups who might be positively or negatively affected 
+                by AI, like developers, users, profiting organizations, policymakers, 
+                and vulnerable groups who might be discriminated against by its use. They may also include product 
+                owners that drive main technical specifications, such as parent or funding organizations."""
+        info_container.addWidget(make_info_box(fairness_html))
+
+        self.main_layout.addLayout(info_container)
+
         self.setLayout(self.main_layout)
         self.tag_descriptions = tag_descriptions
 
@@ -151,8 +269,7 @@ class Dashboard(Styled):
         self.refresh_dashboard()
 
     def view_result(self, index):
-        run = self.runs.pop(index)
-        self.runs.append(run)
+        self.active_run[-1] = self.runs[index]
         self.refresh_dashboard()
         self.stacked_widget.slideToWidget(4)
 
@@ -170,23 +287,21 @@ class Dashboard(Styled):
             )
         if reply != QMessageBox.StandardButton.Yes:
             return
-        # self.runs[index]["timestamp"] = now()
-        run = self.runs.pop(index)
-        self.runs.append(run)
-        self.refresh_dashboard()
+        self.active_run[-1] = self.runs[index]
         self.stacked_widget.slideToWidget(1)
 
     def create_variation(self, index):
         new_run = self.runs[index].copy()
         new_run["status"] = "new"
         new_run["timestamp"] = now()
+        self.active_run[-1] = new_run
         self.runs.append(new_run)
         self.stacked_widget.slideToWidget(1)
 
     def create_new_item(self):
-        self.runs.append(
-            {"description": "", "timestamp": now(), "status": "in_progress"}
-        )
+        new_run = {"description": "", "timestamp": now(), "status": "in_progress"}
+        self.active_run[-1] = new_run
+        self.runs.append(new_run)
         self.stacked_widget.slideToWidget(1)
         self.refresh_dashboard()
 
@@ -217,6 +332,9 @@ class Dashboard(Styled):
         self.refresh_dashboard()
 
     def refresh_dashboard(self):
+        scroll_bar = self.scroll_area.verticalScrollBar()
+        scroll_value = scroll_bar.value()
+
         self.clear_layout(self.layout)
         from collections import defaultdict
 
@@ -241,9 +359,9 @@ class Dashboard(Styled):
             latest_per_group[group_key] = runs_sorted
 
         # --- Card layout constants ---
-        card_width = 320
-        card_height = 130
-        card_spacing = 9
+        card_width = 1100
+        card_height = 40
+        card_spacing = 6
         # Responsive cols
         window_width = self.scroll_area.viewport().width() or 700
         max_cols = max(1, window_width // (card_width + card_spacing))
@@ -258,7 +376,7 @@ class Dashboard(Styled):
         # --- LOGO CARD ---
         logo_card = QPushButton(self)
         logo_card.setCursor(Qt.CursorShape.PointingHandCursor)
-        logo_card.setFixedSize(card_width, card_height)
+        logo_card.setFixedSize(card_width, card_height * 3)
         logo_card.setToolTip("New analysis")
         logo_card.clicked.connect(self.create_new_item)
         logo_card.setStyleSheet(
@@ -284,7 +402,7 @@ class Dashboard(Styled):
         )
         # Fit logo to ~60% width of card, keep aspect
         img_max_width = int(card_width * 0.60)
-        img_max_height = int(card_height * 0.7)
+        img_max_height = int(card_height * 2)
         logo_pixmap = logo_pixmap.scaled(
             img_max_width,
             img_max_height,
@@ -297,7 +415,7 @@ class Dashboard(Styled):
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo_label.setGeometry(
             (card_width - logo_pixmap.width()) // 2,
-            (card_height - logo_pixmap.height()) // 2,
+            (card_height * 3 - logo_pixmap.height()) // 2,
             logo_pixmap.width(),
             logo_pixmap.height(),
         )
@@ -346,117 +464,86 @@ class Dashboard(Styled):
             """
             )
 
-            card_layout = QVBoxLayout(card_widget)
-            card_layout.setContentsMargins(0, 0, 0, 0)
-            card_layout.setSpacing(0)
+            # --- Compact one-line layout instead of stacked sections ---
+            card_layout = QHBoxLayout(card_widget)
+            card_layout.setContentsMargins(10, 6, 10, 6)
+            card_layout.setSpacing(8)
 
-            # --- Header Bar with title ---
-            header_bar = QFrame(card_widget)
-            header_bar.setFixedHeight(34)
-            header_bar.setStyleSheet(
-                f"""
-                QFrame {{
-                    background: {card_border};
-                    border-top-left-radius: 10px;
-                    border-top-right-radius: 10px;
-                }}
-            """
-            )
-            header_layout = QHBoxLayout(header_bar)
-            header_layout.setContentsMargins(11, 0, 11, 0)
-            header_layout.setAlignment(
-                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
-            )
+            # --- Title / status label ---
             desc_label = QLabel(
                 (
                     get_special_title(latest_run)
                     if latest_run["status"] == "completed"
                     else "INCOMPLETE"
                 ),
-                header_bar,
+                card_widget,
             )
             desc_label.setStyleSheet(
-                "font-size: 14px; font-weight: bold; color: white; border: none; background: none;"
+                f"font-size: 13px; font-weight: bold; color: {card_border}; border: none; background: none;"
             )
-            header_layout.addWidget(desc_label)
-            header_layout.addStretch()
-            card_layout.addWidget(header_bar)
+            desc_label.setFixedHeight(26)
+            desc_label.setFixedWidth(360)
+            card_layout.addWidget(desc_label)
 
-            # --- Separator ---
-            separator = QFrame(card_widget)
-            separator.setFrameShape(QFrame.HLine)
-            separator.setFrameShadow(QFrame.Plain)
-            separator.setStyleSheet(
-                "color: #e5e7eb; background: #e5e7eb; min-height: 1px; max-height: 1px; border: none;"
-            )
-            card_layout.addWidget(separator)
-
-            # --- Tags---
-            tags_col = QVBoxLayout()
-            tags_col.setContentsMargins(11, 5, 0, 5)
-            tags_col.setSpacing(2)  # More spacing if you like
-
+            # --- Tags inline (dataset/model/analysis) ---
+            tags_row = QHBoxLayout()
+            tags_row.setSpacing(4)
+            tags_row.setContentsMargins(0, 0, 0, 0)
+            tags_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
             for key in ["dataset", "model", "analysis"]:
                 mod = latest_run.get(key, {}).get("module", "")
                 if mod:
                     tag_btn = self.create_tag_button(
-                        f" {mod} ",
+                        f"{mod}",
                         "Module info",
                         partial(lambda mod=mod: self.show_tag_description(mod)),
                     )
-                    tags_col.addWidget(tag_btn)
+                    tag_btn.setFixedHeight(24)
+                    tags_row.addWidget(tag_btn)
+            tags_widget = QWidget(card_widget)
+            tags_widget.setLayout(tags_row)
 
-            tags_col.addStretch()
-            card_layout.addLayout(tags_col)
-
-            # --- Main Content (info and actions) ---
-            main_content = QWidget(card_widget)
-            main_layout = QVBoxLayout(main_content)
-            main_layout.setContentsMargins(11, 5, 11, 0)
-            main_layout.setSpacing(0)
-
-            # Actions row
-            actions_row = QHBoxLayout()
-            actions_row.setContentsMargins(0, 0, 0, 5)
-            actions_row.setSpacing(2)
-
-            info_label = QLabel(
-                "<span style='font-size:12px;color:#666'>{}</span>".format(
-                    convert_to_readable(latest_run["timestamp"])
-                    if latest_run["status"] == "completed"
-                    else ""
-                ),
-                main_content,
+            # --- Timestamp ---
+            timestamp_label = QLabel(
+                convert_to_readable(latest_run["timestamp"]),
+                # if latest_run["status"] == "completed"
+                # else "not yet run",
+                card_widget,
             )
-            info_label.setTextFormat(Qt.TextFormat.RichText)
-            info_label.setAlignment(
-                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom
+            timestamp_label.setFixedWidth(140)
+            timestamp_label.setStyleSheet(
+                "font-size: 12px; color: #666; background: none; border: none;"
             )
-            info_label.setStyleSheet(
-                "border: none; background: none; font-size: 12px; margin-top: 2px;"
+            timestamp_label.setAlignment(
+                Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight
             )
-            actions_row.addWidget(info_label)
+            card_layout.addWidget(timestamp_label)
 
-            actions_row.addStretch()
+            # --- Spacer ---
+            card_layout.addWidget(tags_widget)
+            card_layout.addStretch()
+
+            # --- Actions inline (History, New, Delete) ---
             if len(runs) > 1 and len(latest_per_group) != 1:
-                history_btn = QPushButton("History (" + str(len(runs)) + ")", self)
+                history_btn = QPushButton(f"History ({len(runs)})", card_widget)
                 history_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-                history_btn.setFixedHeight(28)
+                history_btn.setFixedHeight(26)
+                history_btn.setFixedWidth(100)
                 history_btn.setStyleSheet(
                     """
                     QPushButton {
                         background: #f1f5f9;
-                        border-radius: 6px;
-                        border: 1.1px solid #b6c6da;
+                        border-radius: 5px;
+                        border: 1px solid #b6c6da;
                         color: #0369a1;
-                        font-size: 13px;
+                        font-size: 12px;
                         font-weight: 500;
-                        padding: 0 15px;
+                        padding: 0 10px;
                     }
                     QPushButton:hover {
                         background: #bae6fd;
                         color: #035388;
-                        border: 1.4px solid #38bdf8;
+                        border: 1px solid #38bdf8;
                     }
                 """
                 )
@@ -470,29 +557,28 @@ class Dashboard(Styled):
                     return on_history
 
                 history_btn.clicked.connect(make_on_history(group_run_indices))
-                actions_row.addWidget(history_btn)
+                card_layout.addWidget(history_btn)
 
             if latest_run["status"] == "completed":
-                actions_row.addWidget(
+                card_layout.addWidget(
                     self.create_icon_button(
                         "+",
                         "#007bff",
                         "New variation",
                         partial(lambda i=latest_index: self.create_variation(i)),
-                        size=28,
+                        size=26,
                     )
                 )
-            actions_row.addWidget(
+
+            card_layout.addWidget(
                 self.create_icon_button(
                     "🗑",
                     "#dc3545",
                     "Delete",
                     partial(lambda i=latest_index: self.delete_item(i)),
-                    size=28,
+                    size=26,
                 )
             )
-            main_layout.addLayout(actions_row)
-            card_layout.addWidget(main_content)
 
             # --- Make card clickable except buttons and tags ---
             def card_mouse_press(
@@ -518,7 +604,7 @@ class Dashboard(Styled):
                     self.edit_item(i)
 
             # Assign directly; do NOT use lambda+partial, just a closure:
-            card_widget.mousePressEvent = (
+            card_widget.mousePressEvent = partial(
                 lambda event, i=latest_index, r=latest_run, runs_in_group=[
                     idx for idx, _ in runs
                 ]: card_mouse_press(event, i, r, runs_in_group)
@@ -547,7 +633,9 @@ class Dashboard(Styled):
             grid_layout.addWidget(no_results_label, row, 0, 1, max_cols)
             row += 1
 
-        if len(latest_per_group) <= 1:
+        if (
+            len(latest_per_group) <= 1  # and len(self.invisible_runs) > 0
+        ):  # or (len(latest_per_group) == 1 and len(runs) > 1):
             # --- Clear Search Button ---
             clear_search_btn = QPushButton("Back", self)
             clear_search_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -616,7 +704,7 @@ class Dashboard(Styled):
                 narrow_card = QWidget(self)
                 narrow_card.setObjectName("NarrowResultCard")
                 narrow_width = int(card_width)
-                narrow_card.setFixedSize(narrow_width, 50)
+                narrow_card.setFixedSize(narrow_width, 35)
                 narrow_card.setStyleSheet(
                     f"""
                     QWidget#NarrowResultCard {{
@@ -631,16 +719,16 @@ class Dashboard(Styled):
                 """
                 )
                 narrow_layout = QGridLayout(narrow_card)
-                narrow_layout.setContentsMargins(7, 5, 7, 5)
+                narrow_layout.setContentsMargins(7, 3, 7, 3)
                 narrow_layout.setSpacing(2)
 
                 # --- Special title and date ---
                 info_label = QLabel(
-                    "<b>{}</b><br><span style='font-size:11px;color:#666'>{}</span>".format(
+                    "<b>{}</b> <span style='color:#666'>{}</span>".format(
                         (
                             get_special_title(run)
                             if run["status"] == "completed"
-                            else "Creating"
+                            else "INCOMPLETE"
                         ),
                         convert_to_readable(run["timestamp"]),
                     ),
@@ -652,14 +740,15 @@ class Dashboard(Styled):
                     "border: none; background: none; font-size: 12px; margin-top: 2px;"
                 )
                 narrow_layout.addWidget(info_label, 0, 0)
+                delete_button = self.create_icon_button(
+                    "🗑",
+                    "#dc3545",
+                    "Delete",
+                    partial(lambda i=index: self.delete_item(i)),
+                    size=25,
+                )
                 narrow_layout.addWidget(
-                    self.create_icon_button(
-                        "🗑",
-                        "#dc3545",
-                        "Delete",
-                        partial(lambda i=index: self.delete_item(i)),
-                        size=28,
-                    ),
+                    delete_button,
                     0,
                     1,
                 )
@@ -687,6 +776,12 @@ class Dashboard(Styled):
                 if col >= max_cols:
                     row += 1
                     col = 0
+
+        def restore_scroll_position():
+            sb = self.scroll_area.verticalScrollBar()
+            sb.setValue(scroll_value)
+
+        QTimer.singleShot(0, restore_scroll_position)
 
     def show_tag_description(self, tag):
         dialog = QDialog(self)

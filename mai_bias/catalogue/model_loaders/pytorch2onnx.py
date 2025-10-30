@@ -10,7 +10,7 @@ import tempfile
     namespace="mammotheu",
     version="v0049",
     python="3.13",
-    packages=("numpy", "torch", "torchvision"),
+    packages=("numpy", "torch", "torchvision", "onnxscript"),
 )
 def model_torch2onnx(
     state_path: str = "",
@@ -55,17 +55,37 @@ def model_torch2onnx(
     model.eval()
     dummy_input = torch.randn(1, 3, input_width, input_height)
 
+    # with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as temp_file:
+    #     onnx_model_path = temp_file.name
+    #     torch.onnx.export(
+    #         model,
+    #         dummy_input,
+    #         onnx_model_path,
+    #         input_names=["input"],
+    #         output_names=["output"],
+    #         dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
+    #     )
+
+    from torch import export
+    from torch.onnx import export as onnx_export
+
+    exported = export.export(model, (dummy_input,), strict=False)
     with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as temp_file:
         onnx_model_path = temp_file.name
-        torch.onnx.export(
-            model,
-            dummy_input,
+        onnx_export(
+            exported.module(),  # the traced Module
+            (dummy_input,),
             onnx_model_path,
             input_names=["input"],
             output_names=["output"],
-            dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
+            opset_version=17,
+            dynamic_axes={
+                "input": {0: "batch_size"},
+                "output": {0: "batch_size"},
+            },
         )
 
     onnx_model = ONNX(onnx_model_path, threshold=multiclass_threshold)
+
     os.remove(onnx_model_path)
     return onnx_model

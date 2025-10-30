@@ -1,5 +1,5 @@
 from mammoth_commons.datasets import Dataset
-from mammoth_commons.models import Predictor
+from mammoth_commons.models import EmptyModel
 from mammoth_commons.exports import HTML
 from typing import List
 from mammoth_commons.integration import metric
@@ -20,7 +20,7 @@ import json
 )
 def croissant(
     dataset: Dataset,
-    model: Predictor,  # unused
+    model: EmptyModel,
     sensitive: List[str],
     language: str = "en",
     license: str = "",
@@ -28,6 +28,7 @@ def croissant(
     description: str = "",
     citation: str = "",
     qualitative_creators: List[str] = "",
+    distribution: List[str] = "",
 ) -> HTML:
     """Generate some json dataset metadata that boostraps conversion of your datasets into the
     <a href="https://github.com/mlcommons/croissant">Croissant</a> format. That format is used to
@@ -36,15 +37,11 @@ def croissant(
     are working with, or using publicly hosted data by providing https links for files.
     Metadata are displayed as HTML to help you get an overview and are presented as a copy-able block of json.
     """
-    import pandas as pd
-
     if isinstance(qualitative_creators, str):
         qualitative_creators = qualitative_creators.split(",")
-
-    # This line likely shouldn't be here since model is unused, but preserved if intentional
-    predictions = pd.Series(model.predict(dataset, sensitive))
+    if isinstance(distribution, str):
+        distribution = distribution.split(",")
     dataset = dataset.to_csv(sensitive)
-
     context = {
         "@language": "en",
         "@vocab": "https://schema.org/",
@@ -90,7 +87,7 @@ def croissant(
     metadata = {
         "@context": context,
         "@type": "sc:Dataset",
-        "distribution": [],
+        "distribution": distribution,
         "@language": language,
         "@vocab": "https://schema.org/",
         "conformsTo": "http://mlcommons.org/croissant/1.1",

@@ -29,6 +29,7 @@ from mai_bias.catalogue.metrics.model_card import model_card
 from mai_bias.catalogue.metrics.specific_concerns import specific_concerns
 from mai_bias.catalogue.metrics.interactive_report import interactive_report
 from mai_bias.catalogue.metrics.sklearn_audit import sklearn_audit
+from mai_bias.catalogue.metrics.sklearn_visual_analysis import sklearn_visual_analysis
 from mai_bias.catalogue.metrics.image_bias_analysis import image_bias_analysis
 from mai_bias.catalogue.metrics.xai_analysis import facex_regions
 from mai_bias.catalogue.metrics.xai_analysis_embeddings import facex_embeddings
@@ -116,6 +117,7 @@ registry.analysis(model_card)
 registry.analysis(specific_concerns)
 registry.analysis(interactive_report)
 registry.analysis(sklearn_audit)
+registry.analysis(sklearn_visual_analysis)
 registry.analysis(aif360)
 registry.analysis(optimal_transport)
 registry.analysis(bias_scan)

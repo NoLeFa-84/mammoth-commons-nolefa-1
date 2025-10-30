@@ -21,7 +21,7 @@ from mammoth_commons.externals import fb_categories
         "pygrank",
     ),
 )
-def sklearn_audit(
+def sklearn_visual_analysis(
     dataset: CSV,
     model: EmptyModel,
     sensitive: List[str],
@@ -32,7 +32,6 @@ def sklearn_audit(
     show_non_problematic: bool = True,
     top_recommendations: int = 3,
     min_group_size: int = 1,
-    presentation: Options("Numbers", "Bars") = "Numbers",
 ) -> HTML:
     """
     <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
@@ -74,14 +73,292 @@ def sklearn_audit(
         show_non_problematic: Determine whether deviations less than the problematic one should be shown or not. If they are shown, the coloring scheme is adjusted to identify non-problematic values as green and the rest as either orange or red.
         top_recommendations: The number of top recommendations in evaluation that emulates showing the respective data samples to users when querying the trained model to give examples for each class in the dataset. Common values in the literature are 1,3,5,10.
         min_group_size: The minimum number of samples per group that should be considered during analysis - groups with less memers are ignored.
-        presentation: Whether to focus on showing numbers or showing accompanying bars for easier comparison. Prefer a number comparison to avoid being influenced by comparisons between incomparable measure values.
     """
     import fairbench as fb
     from sklearn import model_selection
+    import webbrowser
+    import tempfile
+    import tempfile, webbrowser
+
+    class HTMLHeatMap:
+        def __init__(
+            self, legend=True, open_in_browser=True, bar_mode=True, cell_width_px=80
+        ):
+            self.legend = legend
+            self.open_in_browser = open_in_browser
+            self.accumulated_bars = []
+            self.row_names = {}
+            self.col_names = {}
+            self.last_title = []
+            self.last_supertitle = None
+            self.bars = []
+            self.level = 0
+            self.results = dict()
+            self.bar_mode = bar_mode
+            self.cell_width_px = cell_width_px
+            self.figures_data = []  # (z, text_data, x_labels, y_labels, title)
+
+        # ------------------------------------------------------------------ #
+        # internal data accumulation
+        # ------------------------------------------------------------------ #
+        def _ensure_cell_structure(self):
+            for r_idx in range(len(self.accumulated_bars), len(self.row_names)):
+                self.accumulated_bars.append(["---"] * len(self.col_names))
+            for r_idx, row in enumerate(self.accumulated_bars):
+                if len(row) < len(self.col_names):
+                    self.accumulated_bars[r_idx] += ["---"] * (
+                        len(self.col_names) - len(row)
+                    )
+
+        def _embed_bars(self):
+            last_title = self.last_title[-1]
+            for title, units, val, target in self.bars:
+                title = " ".join(word for word in title.split() if word != last_title)
+
+                if title not in self.row_names:
+                    row_num = len(self.row_names)
+                    self.row_names[title] = row_num
+                    self._ensure_cell_structure()
+                    self.accumulated_bars.append(["---" for _ in self.col_names])
+                else:
+                    row_num = self.row_names[title]
+
+                if last_title not in self.col_names:
+                    col_num = len(self.col_names)
+                    self.col_names[last_title] = col_num
+                    for row in self.accumulated_bars:
+                        row.append("---")
+                else:
+                    col_num = self.col_names[last_title]
+
+                self._ensure_cell_structure()
+                assert (
+                    self.accumulated_bars[row_num][col_num] == "---"
+                ), f"Two or more conflicting values for '{title}' under header '{last_title}'."
+                self.accumulated_bars[row_num][col_num] = (float(val), float(target))
+
+            self.bars = []
+            self.last_supertitle = self.last_title
+
+        def _embed_accumulated_bars(self):
+            if not self.accumulated_bars:
+                return
+
+            x_labels = list(self.col_names.keys())
+            y_labels = list(self.row_names.keys())
+            z, text_data = [], []
+
+            for row in self.accumulated_bars:
+                z_row, text_row = [], []
+                for cell in row:
+                    if cell == "---":
+                        z_row.append(None)
+                        text_row.append("")
+                    else:
+                        val, target = cell
+                        z_row.append((val, target))  # store both
+                        text_row.append(str(round(val, 3)))
+                z.append(z_row)
+                text_data.append(text_row)
+
+            title = " ".join(self.last_supertitle[:-1]) if self.last_supertitle else ""
+            self.figures_data.append((z, text_data, x_labels, y_labels, title))
+
+            self.accumulated_bars = []
+            self.row_names = {}
+            self.col_names = {}
+
+        # ------------------------------------------------------------------ #
+        # color computation (green-red gradient based on deviation sign)
+        # ------------------------------------------------------------------ #
+        @staticmethod
+        def _color_for(diff, min_val, max_val):
+            # normalize to 0-1 range based on magnitude (global scale)
+            ratio = abs(diff - min_val) / (max_val - min_val + 1e-9)
+            # clamp
+            ratio = max(0.0, min(1.0, ratio))
+
+            if diff < 0:
+                # greenish for below target
+                r = int(128 * (1 - ratio) + 122)
+                g = int(255 - 80 * ratio)
+                b = int(164)
+            elif diff > 0:
+                # reddish for above target
+                r = int(255)
+                g = int(164 * (1 - ratio) + 60)
+                b = int(164 * (1 - ratio) + 60)
+            else:
+                # neutral
+                r, g, b = 200, 200, 200
+
+            return f"rgb({r},{g},{b})"
+
+        # ------------------------------------------------------------------ #
+        # main builder
+        # ------------------------------------------------------------------ #
+        def title(self, text, level=0, link=None):
+            if self.bars:
+                try:
+                    self._embed_bars()
+                except AssertionError:
+                    self._embed_accumulated_bars()
+                    self._embed_bars()
+            self.last_title = self.last_title[:level]
+            self.last_title.append(text)
+            self.level = level
+            return self
+
+        def bar(self, title, val: float, target: float, units: str = ""):
+            if units == title:
+                units = ""
+            self.bars.append((title, units, val, target))
+            return self
+
+        def end(self):
+            self._embed_accumulated_bars()
+            return self
+
+        # ------------------------------------------------------------------ #
+        # rendering
+        # ------------------------------------------------------------------ #
+        def show(self, ratio: float = None):
+            if not self.figures_data:
+                return ""
+
+            # ----------------------------------------------------------
+            # Compute global ranges
+            # ----------------------------------------------------------
+            # Used for coloring (based on deviation)
+            all_diffs = [
+                abs(val - target)
+                for z, *_ in self.figures_data
+                for row in z
+                for cell in row
+                if cell is not None
+                for val, target in [cell]
+            ]
+            min_diff, max_diff = (
+                (min(all_diffs), max(all_diffs)) if all_diffs else (0, 1)
+            )
+
+            # Used for width normalization (based on raw values)
+            all_vals = [
+                val
+                for z, *_ in self.figures_data
+                for row in z
+                for cell in row
+                if cell is not None
+                for val, _ in [cell]
+            ]
+            max_val = max(all_vals) if all_vals else 1.0
+
+            # User-provided scaling
+            if ratio is not None and ratio < 1:
+                user_ratio = ratio
+            else:
+                user_ratio = 1.0
+
+            # ----------------------------------------------------------
+            # Render all figures
+            # ----------------------------------------------------------
+            html_sections = []
+            for z, text_data, x_labels, y_labels, title in self.figures_data:
+                rows_html = []
+                for y, (z_row, text_row) in enumerate(zip(z, text_data)):
+                    row_label = y_labels[y] if y < len(y_labels) else f""
+                    cells = []
+                    for cell, text in zip(z_row, text_row):
+                        if cell is None:
+                            cell_html = f'<td style="text-align:left;padding:6px;width:{self.cell_width_px}px;"></td>'
+                        else:
+                            val, target = cell
+                            diff = val - target
+                            color = self._color_for(diff, min_diff, max_diff)
+
+                            # ----------------------------------------------------------
+                            # Width logic:
+                            # values ≤ 1: use directly
+                            # values > 1: normalize by global max
+                            # then apply optional user scaling (<1)
+                            # ----------------------------------------------------------
+                            if val <= 1:
+                                ratio_val = val * user_ratio
+                            else:
+                                ratio_val = (val / max_val) * user_ratio
+
+                            ratio_val = max(0.0, min(1.0, ratio_val))  # clamp to [0,1]
+
+                            bar_html = f"""
+                            <div style="position:relative;width:{self.cell_width_px}px;height:14px;">
+                                <div style="position:absolute;bottom:0;left:0;height:100%;width:100%;
+                                            background:#ccc;border-radius:2px;overflow:hidden;border:1px solid #000;">
+                                    <div style="position:absolute;top:0;left:0;height:100%;
+                                                width:{ratio_val * 100:.1f}%;
+                                                background:{color};border-radius:2px 0 0 2px;"></div>
+                                    <div style="position:relative;z-index:1;width:100%;height:100%;
+                                                display:flex;align-items:center;justify-content:center;
+                                                font-size:11px;font-family:sans-serif;">
+                                        {text}
+                                    </div>
+                                </div>
+                            </div>
+                            """
+                            cell_html = f'<td style="border:0;padding:2px;text-align:center;width:{self.cell_width_px}px;">{bar_html}</td>'
+                        cells.append(cell_html)
+                    rows_html.append(
+                        f"<tr><th style='text-align:left;'>{row_label}</th>{''.join(cells)}</tr>"
+                    )
+
+                header_cells = "".join(
+                    f"<th style='width:{self.cell_width_px}px;'>{x}</th>"
+                    for x in x_labels
+                )
+                html_sections.append(
+                    f"""
+                <div style="margin:20px;">
+                    <h2 style="font-family:sans-serif;">{title}</h2>
+                    <table style="border-collapse:collapse;font-family:sans-serif;">
+                        <tr><th></th>{header_cells}</tr>
+                        {''.join(rows_html)}
+                    </table>
+                </div>
+                """
+                )
+
+            html_page = f"<html><body>{''.join(html_sections)}</body></html>"
+            return html_page
+
+        # ------------------------------------------------------------------ #
+        # compatibility stubs
+        # ------------------------------------------------------------------ #
+        def navigation(self, text, routes: dict):
+            return self
+
+        def first(self):
+            return self
+
+        def quote(self, text, keywords=()):
+            return self
+
+        def result(self, title, val, target, units=""):
+            self.results[title] = f"{val:0.3f} {units}"
+            return self
+
+        def bold(self, text):
+            return self
+
+        def text(self, text):
+            return self
+
+        def p(self):
+            return self
+
+        def curve(self, *args, **kwargs):
+            pass
 
     min_group_size = int(min_group_size)
     assert len(sensitive) != 0, "Set at least one sensitive attribute"
-    presentation = fb.export.HtmlBars if presentation == "Bars" else fb.export.HtmlTable
     reject = not bool(show_non_problematic)
     X = dataset.to_pred(sensitive)
     y = dataset.labels
@@ -156,14 +433,22 @@ def sklearn_audit(
         )
 
     views = {
-        "Summary": report.show(env=presentation(view=False, filename=None)),
-        "Stamps": report.filter(fb.investigate.Stamps).show(
-            env=fb.export.Html(view=False, filename=None), depth=1
+        "Summary": report.show(
+            env=HTMLHeatMap(open_in_browser=False),
+            depth=1,
         ),
-        "Full report": report.show(
-            env=presentation(view=False, filename=None), depth=2
+        "Details": report.min.rebase(fb.core.Descriptor("per group", "per group")).show(
+            env=HTMLHeatMap(open_in_browser=False),
+            depth=1,
+        ),
+        "Base quantities": report.min.rebase(
+            fb.core.Descriptor("per group", "per group")
+        ).show(
+            env=HTMLHeatMap(open_in_browser=False),
+            depth=2,
         ),
     }
+
     # Generate tabbed HTML content
     tab_headers = "".join(
         f'<button class="tablinks" data-tab="{key}">{key}</button>' for key in views

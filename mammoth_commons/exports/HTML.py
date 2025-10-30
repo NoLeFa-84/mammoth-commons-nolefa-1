@@ -64,10 +64,10 @@ class HTML:
         self.script = script
         self.images = dict() if images is None else images
 
-    def show(self):
+    def show(self, temppath="temp.html"):
         import webbrowser
 
-        with open("temp.html", "w", encoding="utf-8") as file:
+        with open(temppath, "w", encoding="utf-8") as file:
             file.write(self.all())
         webbrowser.open_new(file.name)
 

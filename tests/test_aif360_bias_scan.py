@@ -8,31 +8,26 @@ from mai_bias.catalogue.metrics.bias_scan import bias_scan
 
 def test_bias_scan():
     with testing.Env(data_custom_csv, model_onnx, bias_scan) as env:
-        numeric = ["age", "duration", "campaign", "pdays", "previous"]
-        categorical = [
-            "job",
-            "marital",
-            "education",
-            "default",
-            "housing",
-            "loan",
-            "contact",
-            "poutcome",
-        ]
-        sensitive = []
-        dataset_uri = "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv"
         dataset = env.data_custom_csv(
-            dataset_uri,
-            categorical=categorical,
-            numeric=numeric,
+            "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv",
+            categorical=[
+                "job",
+                "marital",
+                "education",
+                "default",
+                "housing",
+                "loan",
+                "contact",
+                "poutcome",
+            ],
+            numeric=["age", "duration", "campaign", "pdays", "previous"],
             label="y",
             delimiter=";",
         )
-
-        model_path = "file://localhost//" + os.path.abspath("./data/model.onnx")
-        model = env.model_onnx(model_path)
-
-        markdown_result = env.bias_scan(dataset, model, sensitive, penalty=0.5)
+        model = env.model_onnx(
+            "file://localhost//" + os.path.abspath("./data/model.onnx")
+        )
+        markdown_result = env.bias_scan(dataset, model, sensitive=[], penalty=0.5)
         markdown_result.show()
 
 

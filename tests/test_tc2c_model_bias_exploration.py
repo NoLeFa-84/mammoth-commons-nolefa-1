@@ -7,34 +7,33 @@ from mai_bias.catalogue.metrics.sklearn_audit import sklearn_audit
 
 def test_bias_exploration():
     with testing.Env(data_custom_csv, model_onnx, sklearn_audit) as env:
-        numeric = ["age", "duration", "campaign", "pdays", "previous"]
-        categorical = [
-            "job",
-            "marital",
-            "education",
-            "default",
-            "housing",
-            "loan",
-            "contact",
-            "poutcome",
-        ]
-        sensitive = ["marital", "age"]
-        dataset_uri = "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv"
+
         dataset = env.data_custom_csv(
-            dataset_uri,
-            categorical=categorical,
-            numeric=numeric,
+            path="https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv",
+            categorical=[
+                "job",
+                "marital",
+                "education",
+                "default",
+                "housing",
+                "loan",
+                "contact",
+                "poutcome",
+            ],
+            numeric=["age", "duration", "campaign", "pdays", "previous"],
             label="y",
             delimiter=";",
         )
-
-        model_path = "file://localhost//" + os.path.abspath("./data/model.onnx")
-        model = env.model_onnx(model_path)
-
-        html_result = env.sklearn_audit(
-            dataset, model, sensitive, predictor="Logistic regression"
+        model = env.model_onnx(
+            path="file://localhost//" + os.path.abspath("./data/model.onnx"),
+            trained_with_sensitive=True,
         )
-        html_result.show()
+        env.sklearn_audit(
+            dataset,
+            model,
+            sensitive=["marital", "age"],
+            predictor="Logistic regression",
+        ).show()
 
 
 if __name__ == "__main__":

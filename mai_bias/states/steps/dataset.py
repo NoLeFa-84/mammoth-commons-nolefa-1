@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QThread, Signal, QMutex
 from mai_bias.backend.loaders import registry
 import traceback
-from mai_bias.states.step import Step, save_all_runs
+from mai_bias.states.step import Step, save_all_runs, InfoBox
 from mammoth_commons import integration_callback
 
 
@@ -84,9 +84,25 @@ class DatasetLoaderThread(QThread):
 
 
 class SelectDataset(Step):
+    def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
+        super().__init__(step_name, stacked_widget, dataset_loaders, runs, dataset)
+        info_box = InfoBox(
+            """
+        <p>
+        <b>Prefer diverse datasets and development teams.</b>
+        They should cover multiple dimensions (gender, race/ethnicity, age, disability status, socio-economic background, education, geographic origin, etc.).
+        Varied teams bring different values, assumptions, views of the world, and priorities.
+        This helps improve problem framing, data selection, feature design, evaluation criteria, and harm identification.
+        In the end, they reduce blind spots against inequitable outcomes.
+        </p>
+        """,
+            self,
+        )
+        self.layout().insertWidget(self.layout().count() - 2, info_box)
+
     def next(self):
         self.save("dataset")
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
 
         self.loading_message = QMessageBox(self)
         self.loading_message.setWindowTitle("Loading Dataset")
@@ -146,7 +162,7 @@ class SelectDataset(Step):
         self.save("dataset")
         self.runs[-1]["status"] = "saved"
         self.stacked_widget.slideToWidget(0)
-        save_all_runs("history.json", self.runs)
+        save_all_runs("history.json", self.dataset)
 
     def closeEvent(self, event):
         if hasattr(self, "thread") and self.thread.isRunning():

@@ -29,6 +29,12 @@ pip install mai-bias
 python -m mai_bias.app
 ```
 
+You can try this boostrapping command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_bias.sh -o mai_bias.sh && chmod +x mai_bias.sh && ./mai_bias.sh
+```
+
 Modules will install further missing dependencies they need to run. **This may take some time, especially for modules depending on torch or tensorflow.**
 
 ![App demo](docs/app_demo.gif)
