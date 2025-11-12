@@ -52,8 +52,8 @@ def Exposure_distance(
         )
         EDr = np.round(
             (
-                sum(ranking_position_protected_attribute[:Min_size])
-                - sum(ranking_position_non_protected_attribute[:Min_size])
+                sum(ranking_position_protected_attribute[:Min_size])/Min_size
+                - sum(ranking_position_non_protected_attribute[:Min_size])/Min_size
             ),
             2,
         )
