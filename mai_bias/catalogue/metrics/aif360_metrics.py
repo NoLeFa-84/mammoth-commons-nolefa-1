@@ -129,7 +129,7 @@ def render_metric_bars(rows, sensitive):
 
 @metric(
     namespace="mammotheu",
-    version="v0051",
+    version="v0052",
     python="3.13",
     packages=(
         "aif360",
@@ -137,7 +137,7 @@ def render_metric_bars(rows, sensitive):
         "scikit-learn",
         "onnxruntime",
         "ucimlrepo",
-        "pygrank"
+        "pygrank",
     ),
 )
 def aif360_metrics(
