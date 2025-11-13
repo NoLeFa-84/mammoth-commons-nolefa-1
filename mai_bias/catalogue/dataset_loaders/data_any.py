@@ -38,7 +38,7 @@ def data_local(raw_data, target: str = None) -> CSV:
 
 @loader(
     namespace="mammotheu",
-    version="v0049",
+    version="v0050",
     python="3.13",
     packages=("pandas",),
 )

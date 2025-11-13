@@ -58,7 +58,7 @@ def manual_install_wheel(wheel_url_or_path):
 
 @metric(
     namespace="mammotheu",
-    version="v0049",
+    version="v0050",
     python="3.11",
     packages=(
         "dbias --no-deps --upgrade",

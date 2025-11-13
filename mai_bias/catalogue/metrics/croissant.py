@@ -8,7 +8,7 @@ import json
 
 @metric(
     namespace="mammotheu",
-    version="v0049",
+    version="v0050",
     python="3.13",
     packages=(
         "fairbench",

@@ -14,7 +14,7 @@ class TrivialPredictor(Predictor):
         return Labels({l: ones((n,)) if l == const else zeros((n,)) for l in labels})
 
 
-@loader(namespace="mammotheu", version="v0049", python="3.13", packages=())
+@loader(namespace="mammotheu", version="v0050", python="3.13", packages=())
 def model_trivial_predictor() -> TrivialPredictor:
     """Creates a trivial predictor that returns the most common predictive label value among provided data.
     If the label is numeric, the median is computed instead. This model servers as an informed baseline

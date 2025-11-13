@@ -3,7 +3,7 @@ from mammoth_commons.integration import loader
 from mammoth_commons.externals import pd_read_csv
 
 
-@loader(namespace="mammotheu", version="v0049", python="3.13")
+@loader(namespace="mammotheu", version="v0050", python="3.13")
 def data_csv_rankings(path: str = "", delimiter: str = "|") -> CSV:
     """
     This is a Loader to load .csv files with information about researchers

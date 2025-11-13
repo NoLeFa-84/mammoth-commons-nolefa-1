@@ -1,4 +1,4 @@
-# MAI-BIAS modules
+ # MAI-BIAS modules
 
 [![Integration Tests](https://github.com/mammoth-eu/mammoth-commons/actions/workflows/integration.yml/badge.svg)](https://github.com/mammoth-eu/mammoth-commons/actions/workflows/integration.yml)
 ![Coverage](./coverage-badge.svg)
