@@ -61,11 +61,11 @@ jobs:
       - name: Compress yamls folder
         run: tar -czf module_yamls.tar.gz yamls
 
-      - name: Create GitHub Release
+      - name: Unstable module release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ github.run_number }}
-          name: Toolkit Modules Release v${{ github.run_number }}
+          name: Unstable module release v${{ github.run_number }}
           body: |
             This release contains the built module YAMLs.
           files: module_yamls.tar.gz
