@@ -1,4 +1,4 @@
-name: Toolkit Modules Build
+name: Release module images
 on:
   workflow_dispatch:
     inputs:

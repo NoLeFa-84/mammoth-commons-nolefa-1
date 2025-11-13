@@ -1,4 +1,4 @@
-name: Toolkit Unstable Modules Build
+name: Release unstable module images
 on:
   workflow_dispatch:
     inputs:

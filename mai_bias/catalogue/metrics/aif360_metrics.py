@@ -131,7 +131,14 @@ def render_metric_bars(rows, sensitive):
     namespace="mammotheu",
     version="v0051",
     python="3.13",
-    packages=("aif360", "pandas", "scikit-learn"),
+    packages=(
+        "aif360",
+        "pandas",
+        "scikit-learn",
+        "onnxruntime",
+        "ucimlrepo",
+        "pygrank"
+    ),
 )
 def aif360_metrics(
     dataset: Dataset,
