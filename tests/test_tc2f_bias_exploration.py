@@ -2,11 +2,11 @@ import os
 from mammoth_commons import testing
 from mai_bias.catalogue.dataset_loaders.custom_csv import data_custom_csv
 from mai_bias.catalogue.model_loaders.onnx import model_onnx
-from mai_bias.catalogue.metrics.aif360 import aif360
+from mai_bias.catalogue.metrics.aif360_metrics import aif360_metrics
 
 
 def test_bias_exploration():
-    with testing.Env(data_custom_csv, model_onnx, aif360) as env:
+    with testing.Env(data_custom_csv, model_onnx, aif360_metrics) as env:
         numeric = ["age", "duration", "campaign", "pdays", "previous"]
         categorical = [
             "job",
@@ -38,7 +38,7 @@ def test_bias_exploration():
         )  # e.g., file://localhost///home/maniospas/Documents/mammoth-commons/data/model.onnx
         model = env.model_onnx(model_path, trained_with_sensitive=True)
 
-        markdown_result = env.aif360(dataset, model, sensitive)
+        markdown_result = env.aif360_metrics(dataset, model, sensitive)
         markdown_result.show()
 
 

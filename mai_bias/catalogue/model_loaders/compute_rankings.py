@@ -2,7 +2,7 @@ from mammoth_commons.integration import loader
 from mammoth_commons.models.node_ranking import NodeRanking
 
 
-@loader(namespace="mammotheu", version="v0050", python="3.13")
+@loader(namespace="mammotheu", version="v0051", python="3.13")
 def model_normal_ranking(
     path: str,
 ) -> NodeRanking:

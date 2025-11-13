@@ -47,7 +47,7 @@ docker system prune -a --force --volumes
 kfp component build . --component-filepattern mai_bias/catalogue/model_loaders/trivial_predictor.py
 docker system prune -a --force --volumes
 
-kfp component build . --component-filepattern mai_bias/catalogue/metrics/aif360.py
+kfp component build . --component-filepattern mai_bias/catalogue/metrics/aif360_metrics.py
 docker system prune -a --force --volumes
 kfp component build . --component-filepattern mai_bias/catalogue/metrics/augmentation_report.py
 docker system prune -a --force --volumes

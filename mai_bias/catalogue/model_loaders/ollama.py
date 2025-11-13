@@ -2,7 +2,7 @@ from mammoth_commons.models import LLM
 from mammoth_commons.integration import loader
 
 
-@loader(namespace="mammotheu", version="v0050", python="3.13")
+@loader(namespace="mammotheu", version="v0051", python="3.13")
 def ollama_model(
     name: str = "llama3.2:latest", url: str = "http://localhost:11434"
 ) -> LLM:

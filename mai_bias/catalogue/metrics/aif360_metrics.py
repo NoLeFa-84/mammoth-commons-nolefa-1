@@ -129,11 +129,11 @@ def render_metric_bars(rows, sensitive):
 
 @metric(
     namespace="mammotheu",
-    version="v0050",
+    version="v0051",
     python="3.13",
     packages=("aif360", "pandas", "scikit-learn"),
 )
-def aif360(
+def aif360_metrics(
     dataset: Dataset,
     model: Predictor,
     sensitive: List[str],

@@ -6,7 +6,7 @@ from mammoth_commons.externals import safeexec
 
 @loader(
     namespace="mammotheu",
-    version="v0050",
+    version="v0051",
     python="3.13",
     packages=("numpy", "torch", "torchvision"),
 )

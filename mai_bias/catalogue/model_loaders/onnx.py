@@ -4,7 +4,7 @@ from mammoth_commons.externals import prepare
 
 
 @loader(
-    namespace="mammotheu", version="v0050", python="3.13", packages=("onnxruntime",)
+    namespace="mammotheu", version="v0051", python="3.13", packages=("onnxruntime",)
 )
 def model_onnx(path: str = "", trained_with_sensitive: bool = True) -> ONNX:
     """
