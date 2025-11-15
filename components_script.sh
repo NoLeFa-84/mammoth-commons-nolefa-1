@@ -83,6 +83,8 @@ kfp component build . --component-filepattern mai_bias/catalogue/metrics/xai_ana
 docker system prune -a --force --volumes
 kfp component build . --component-filepattern mai_bias/catalogue/metrics/xai_analysis.py
 docker system prune -a --force --volumes
+kfp component build . --component-filepattern mai_bias/catalogue/metrics/self_critic.py
+docker system prune -a --force --volumes
 
 mkdir yamls
 mkdir yamls/data

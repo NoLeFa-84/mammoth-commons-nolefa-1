@@ -57,6 +57,8 @@ def bias_scan(
     """
     import pandas as pd
     from aif360.sklearn.detectors import bias_scan as aif360bias_scan
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",")]
 
     predictions = pd.Series(model.predict(dataset, sensitive))
     dataset = dataset.to_csv(sensitive)

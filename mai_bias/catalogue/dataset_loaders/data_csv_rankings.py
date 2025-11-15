@@ -7,8 +7,9 @@ from mammoth_commons.externals import pd_read_csv
 def data_csv_rankings(path: str = "", delimiter: str = "|") -> CSV:
     """
     This is a Loader to load .csv files with information about researchers
-    The `Path` should be given relative to your locally running instance (e.g.: *./data/researchers/Top&#95;researchers.csv*)
-    The `Delimiter` should match the CSV file you have (e.g.: '|')
+    Args:
+        path: Url or path relative to your locally running instance (e.g.: *./data/researchers/Top&#95;researchers.csv*)
+        delimiter: Should match the separator of your CSV file columns (e.g.: '|')
     """
     try:
         raw_data = pd_read_csv(path, on_bad_lines="skip", delimiter=delimiter)
