@@ -8,7 +8,7 @@ from mammoth_commons.integration import metric
 
 @metric(
     namespace="mammotheu",
-    version="v0052",
+    version="v053",
     python="3.13",
     packages=(
         "aif360",
@@ -57,6 +57,7 @@ def bias_scan(
     """
     import pandas as pd
     from aif360.sklearn.detectors import bias_scan as aif360bias_scan
+
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",")]
 

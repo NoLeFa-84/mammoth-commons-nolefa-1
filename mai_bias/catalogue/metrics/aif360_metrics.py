@@ -129,7 +129,7 @@ def render_metric_bars(rows, sensitive):
 
 @metric(
     namespace="mammotheu",
-    version="v0052",
+    version="v053",
     python="3.13",
     packages=(
         "aif360",

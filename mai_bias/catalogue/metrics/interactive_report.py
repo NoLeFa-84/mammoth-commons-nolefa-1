@@ -8,7 +8,7 @@ from mammoth_commons.externals import fb_categories
 
 @metric(
     namespace="mammotheu",
-    version="v0052",
+    version="v053",
     python="3.13",
     packages=("fairbench", "pandas", "onnxruntime", "ucimlrepo", "pygrank"),
 )

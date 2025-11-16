@@ -3,7 +3,7 @@ from mammoth_commons.integration import loader
 
 
 @loader(
-    namespace="mammotheu", version="v0052", python="3.13", packages=("bs4", "requests")
+    namespace="mammotheu", version="v053", python="3.13", packages=("bs4", "requests")
 )
 def data_free_text(text: str = "") -> Text:
     """Sets a free text that can be used by text-based AI to perform various kinds of analysis,

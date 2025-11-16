@@ -6,7 +6,7 @@ import numpy as np
 
 @loader(
     namespace="mammotheu",
-    version="v0052",
+    version="v053",
     python="3.13",
     packages=("pandas", "networkx"),
 )

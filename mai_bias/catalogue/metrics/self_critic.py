@@ -7,7 +7,7 @@ from mammoth_commons.exports import HTML
 
 @metric(
     namespace="mammotheu",
-    version="v0052",
+    version="v053",
     python="3.13",
     packages=(),
 )

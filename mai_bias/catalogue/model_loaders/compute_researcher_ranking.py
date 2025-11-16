@@ -204,15 +204,13 @@ def model_normal_ranking() -> ResearcherRanking:
     This function initializes the normal ranking model and returns
     an instance of the ResearcherRanking class containing the ranking data.
 
-    Returns:
-        ResearcherRanking: An instance of the ResearcherRanking class
-        populated with normal ranking data.
+    Returns research rankings populated with normal ranking data.
     """
     return ResearcherRanking(normal_ranking)
 
 
 @loader(
-    namespace="csh", version="v003", python="3.11", packages=("networkx", "hyperfair")
+    namespace="csh", version="v053", python="3.11", packages=("networkx", "hyperfair")
 )
 def model_mitigation_ranking() -> ResearcherRanking:
     """
@@ -223,9 +221,8 @@ def model_mitigation_ranking() -> ResearcherRanking:
     across different groups by mitigating bias in the ranking process. Additionally, it compares
     the results of this fair ranking with a standard ranking derived from one of the numerical columns.
 
-    Returns:
-        ResearcherRanking: An instance of ResearcherRanking that contains both the mitigation-based
-        ranking and the standard ranking for comparison.
+    Creates an research rankings that contain both the mitigation-based
+    ranking and the standard ranking for comparison.
     """
     # Invoke the ResearcherRanking constructor with both mitigation and normal rankings.
     return ResearcherRanking(mitigation_ranking, normal_ranking)
@@ -233,9 +230,10 @@ def model_mitigation_ranking() -> ResearcherRanking:
 
 @loader(
     namespace="csh",
-    version="v003",
+    version="v053",
     python="3.11",
     packages=(
+        "networkx",
         "pandas",
         "numpy",
         "hyperfair",
@@ -248,7 +246,14 @@ def model_hyperfair_ranking(
     test_side: str = "lower",
     k_pc: float = 0.1,
 ) -> ResearcherRanking:
-    """HyperFair-based Ranking Loader"""
+    """HyperFair-based Ranking Loader
+
+    Args:
+        alpha: The model's alpha
+        n_exp: The model's n_exp
+        test_side: The model's test_side
+        k_pc: The model's k_pc
+    """
     import pandas as pd
     from hyperfair.hyperfair import (
         adjust_ranking,
@@ -325,12 +330,18 @@ def model_hyperfair_ranking(
 
 
 @loader(
-    namespace="csh", version="v003", python="3.11", packages=("networkx", "fairsearch")
+    namespace="csh", version="v053", python="3.11", packages=("networkx", "fairsearch")
 )
 def model_fair_ranking(
     alpha: float = 0.1, p: float = 0.25, k_pc: float = 0.1
 ) -> ResearcherRanking:
-    """FA*IR mitigation using for minimum protected group representation in top-k."""
+    """FA*IR mitigation using for minimum protected group representation in top-k.
+
+    Args:
+        alpha: The model's alpha
+        p: The model's p
+        k_pc: The model's k_pc
+    """
     from fairsearchcore import Fair
     from fairsearchcore.models import FairScoreDoc
     import pandas as pd
