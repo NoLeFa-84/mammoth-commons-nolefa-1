@@ -27,9 +27,10 @@ def multi_objective_report(
     model: ONNXEnsemble,
     sensitive: List[str],
 ) -> HTML:
-    """<img src="https://raw.githubusercontent.com/arjunroyihrpa/MMM_fair/main/images/mmm-fair.png" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 80px;"/>
+    """<img src="https://raw.githubusercontent.com/arjunroyihrpa/MMM_fair/main/images/mmm-fair.png" alt="Based
+    on MMM-Fair" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 80px;"/>
 
-    <p>This module presents an interactive <a href="https://plotly.com/python/3d-charts/" target="_blank">Plotly 3D plot</a>
+    <p>Presents an interactive <a href="https://plotly.com/python/3d-charts/" target="_blank">Plotly 3D plot</a>
     visualizing multiple objectives to evaluate model fairness and performance trade-offs. The report highlights three
     primary objectives: <b>accuracy loss</b>, <b>balanced accuracy loss</b>, and <b>discrimination (MMM-fairness)
     loss</b>. Each point plotted within the 3D space represents a <i>Pareto-optimal</i> solution, which achieves an

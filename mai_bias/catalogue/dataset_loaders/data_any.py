@@ -96,5 +96,5 @@ def data_read_any(
         return data_local(df, target)
     except Exception as e:
         raise ValueError(
-            f"Could not read data. Unsupported or invalid format for: {dataset_path}"
+            f"Could not read data. Unsupported or invalid format for {dataset_path}"
         )

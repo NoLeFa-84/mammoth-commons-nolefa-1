@@ -3,7 +3,7 @@ from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML
 from typing import Dict, List
 from mammoth_commons.integration import metric, Options
-from mammoth_commons.externals import fb_categories
+from mammoth_commons.externals import fb_categories, align_predictions
 
 
 @metric(
@@ -19,7 +19,8 @@ def interactive_report(
     intersectional: bool = False,
     compare_groups: Options("Pairwise", "To the total population") = None,
 ) -> HTML:
-    """<img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    """<img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench"
+    style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
 
     Creates an interactive report using the FairBench library. The report creates traceable evaluations that
     you can shift through to find actual sources of unfairness.
@@ -36,6 +37,8 @@ def interactive_report(
 
     # declare sensitive attributes
     labels = dataset.labels
+    predictions, labels = align_predictions(predictions, dataset.labels)
+    predictions = predictions.columns
     sensitive = fb.Fork(
         {attr + " ": fb_categories(dataset.df[attr]) for attr in sensitive}
     )

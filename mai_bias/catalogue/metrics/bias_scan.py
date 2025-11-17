@@ -77,13 +77,12 @@ def bias_scan(
             if len(cats) == 0 and text:
                 text += f"<i>All categorical attributes are already considered sensitive</i>"
                 break
-            assert (
-                len(cats) != 0
-            ), "All categorical attributes are already considered sensitive"
-            if sensitive:
-                text += f"<i>Already known sensitive attributes to be ignored: {', '.join(sensitive)}</i>"
-            else:
-                text += f"<i>No attributes to be ignored (scanning everything)</i>"
+            assert len(cats), "All categorical attributes already known as sensitive"
+            text += (
+                f"<i>Already known sensitive attributes to be ignored: {', '.join(sensitive)}</i>"
+                if sensitive
+                else f"<i>No attributes to be ignored (scanning everything)</i>"
+            )
             X = dataset.df[cats]
             ret = aif360bias_scan(
                 X=X,

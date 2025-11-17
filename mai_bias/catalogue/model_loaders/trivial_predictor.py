@@ -1,17 +1,5 @@
-from mammoth_commons.datasets import Labels
-from mammoth_commons.models import Predictor
+from mammoth_commons.models import TrivialPredictor
 from mammoth_commons.integration import loader
-from numpy import ones, zeros, sum
-
-
-class TrivialPredictor(Predictor):
-    def predict(self, dataset, sensitive: list[str]):
-        dataset = dataset.to_csv(sensitive)
-        labels = dataset.labels
-        counts = {label: sum(labels[label]) for label in labels}
-        const = max(counts, key=counts.get)
-        n = len(labels[const])
-        return Labels({l: ones((n,)) if l == const else zeros((n,)) for l in labels})
 
 
 @loader(namespace="mammotheu", version="v053", python="3.13", packages=())

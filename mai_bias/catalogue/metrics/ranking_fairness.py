@@ -716,6 +716,7 @@ def exposure_distance_comparison(
     Compute the exposure distance between the protected and non-protected groups in the dataset and ranking.
     Sensitive attributes is a comma-separated list of the attributes relevant for fairness analysis. Currently,
     only *Gender* is supported.
+
     Args:
         n_runs: Choose a natural number between 1 and 100.
         sampling_attribute: The value by which we group the analysis for finer-grained results. One of *Nationality&#95;IncomeGroup* or *Nationality&#95;Region*.
