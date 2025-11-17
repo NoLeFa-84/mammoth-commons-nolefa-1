@@ -1,6 +1,6 @@
 echo "Building unstable components"
 
-pip install --upgrade -r requirements_gh_build.txt
+pip install --upgrade -r config/requirements_gh_build.txt
 pip install -e .
 
 
