@@ -31,7 +31,7 @@ def get_import_list(code):
 
 
 def safeexec(code: str, out: str = "commons", whitelist: list[str] = None):
-    code = pathlib.Path(code).read_text() if code.endswith(".py") else code
+    code = pathlib.Path(prepare(code)).read_text() if code.endswith(".py") else code
     whitelist = () if whitelist is None else set(whitelist)
     for module_name in get_import_list(code):
         assert (

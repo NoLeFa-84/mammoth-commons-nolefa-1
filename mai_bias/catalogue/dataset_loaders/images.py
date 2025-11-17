@@ -40,7 +40,6 @@ def data_images(
     batch_size = int(batch_size)
     num_workers = int(num_workers)
     premature_data = pd_read_csv(path, nrows=1)  # just read one row for verification
-
     data_transform = safeexec(
         data_transform_path,
         out=transform_variable,
