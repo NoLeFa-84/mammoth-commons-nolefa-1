@@ -210,7 +210,7 @@ def model_normal_ranking() -> ResearcherRanking:
 
 
 @loader(
-    namespace="csh", version="v053", python="3.11", packages=("networkx", "hyperfair")
+    namespace="csh", version="v054", python="3.11", packages=("networkx", "hyperfair")
 )
 def model_mitigation_ranking() -> ResearcherRanking:
     """
@@ -230,7 +230,7 @@ def model_mitigation_ranking() -> ResearcherRanking:
 
 @loader(
     namespace="csh",
-    version="v053",
+    version="v054",
     python="3.11",
     packages=(
         "networkx",
@@ -330,7 +330,7 @@ def model_hyperfair_ranking(
 
 
 @loader(
-    namespace="csh", version="v053", python="3.11", packages=("networkx", "fairsearch")
+    namespace="csh", version="v054", python="3.11", packages=("networkx", "fairsearch")
 )
 def model_fair_ranking(
     alpha: float = 0.1, p: float = 0.25, k_pc: float = 0.1

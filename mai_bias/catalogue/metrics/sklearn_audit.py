@@ -10,7 +10,7 @@ from mammoth_commons.externals import fb_categories
 
 @metric(
     namespace="mammotheu",
-    version="v053",
+    version="v054",
     python="3.13",
     packages=(
         "fairbench",

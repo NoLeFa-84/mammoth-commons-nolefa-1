@@ -3,7 +3,7 @@ from mammoth_commons.integration import loader
 from mammoth_commons.externals import prepare
 
 
-@loader(namespace="mammotheu", version="v053", python="3.13", packages=("onnxruntime",))
+@loader(namespace="mammotheu", version="v054", python="3.13", packages=("onnxruntime",))
 def model_onnx(path: str = "", trained_with_sensitive: bool = True) -> ONNX:
     """
     <img src="https://onnx.ai/images/ONNX-Logo.svg" alt="Based on ONNX" style="background-color: #000055; float: left; margin-right: 15px; margin-top: 5px; margin-bottom: 5px; height: 40px;"/>

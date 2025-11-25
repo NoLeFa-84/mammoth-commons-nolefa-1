@@ -16,6 +16,7 @@ requirements[deployment].txt
 LICENSE
 CONTRIBUTING.md
 README.md
+.DS_Store
 fairbench.log
 setup.py
 .git

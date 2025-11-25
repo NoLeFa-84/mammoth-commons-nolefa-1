@@ -12,7 +12,7 @@ class ManualPredictor(Predictor):
         return self.predictions
 
 
-@loader(namespace="mammotheu", version="v053", python="3.13", packages=("pandas",))
+@loader(namespace="mammotheu", version="v054", python="3.13", packages=("pandas",))
 def model_manual_predictor(path_or_predictions: str = "") -> ManualPredictor:
     """Lets you input comma-separated list of predictions that correspond to the data you are processing.
     This is useful so that you can export the predictions directly from your testing code. If there are no

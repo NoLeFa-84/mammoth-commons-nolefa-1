@@ -2,13 +2,13 @@ import io
 import os
 from mammoth_commons.models.pytorch2onnx import ONNX
 from mammoth_commons.integration import loader
-from mammoth_commons.externals import safeexec
+from mammoth_commons.externals import safeexec, prepare
 import tempfile
 
 
 @loader(
     namespace="mammotheu",
-    version="v053",
+    version="v054",
     python="3.13",
     packages=("numpy", "torch", "torchvision", "onnxscript"),
 )
@@ -40,6 +40,9 @@ def model_torch2onnx(
         multiclass_threshold: A decision threshold that treats outputs as separate classes. If this is set to zero (default), a softmax is applied to outputs. For binary classification, this is equivalent to setting the decision threshold at 0.5. Otherwise, each output is thresholded separately.
     """
     import torch
+
+    state_path = prepare(state_path)
+    model_path = prepare(model_path)
 
     input_width = int(input_width)
     input_height = int(input_height)

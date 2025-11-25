@@ -27,7 +27,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install coverage black
+        python -m pip install coverage black radon
         python -m pip install -r config/requirements[mai].txt
 
     - name: Run tests
@@ -68,3 +68,19 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs
+
+    - name: Radon complexity report
+      run: |
+          echo "Running Radon cyclomatic complexity analysis..."
+          radon cc mai_bias/catalogue/ -s -a
+          AVG_LINE=$(radon cc mai_bias/catalogue/ -s -a | tail -n 1)
+          GRADE=$(echo "$AVG_LINE" | awk '{print $3}')
+          case "$GRADE" in
+           A|B|C)
+             echo "Complexity grade acceptable: $GRADE"
+             ;;
+           *)
+             echo "Complexity grade too low: $GRADE"
+             exit 1
+             ;;
+          esac

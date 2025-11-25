@@ -8,7 +8,7 @@ import zipfile
 
 @loader(
     namespace="mammotheu",
-    version="v053",
+    version="v054",
     python="3.13",
     packages=("onnxruntime", "mmm-fair-cli", "skl2onnx"),
 )
@@ -29,6 +29,7 @@ def model_onnx_ensemble(path: str = "") -> ONNXEnsemble:
     models = []
     model_names = []
     params = None
+    path = prepare(path)
 
     def myk(name):
         return int(re.findall(r"[+-]?\d+", name)[0])

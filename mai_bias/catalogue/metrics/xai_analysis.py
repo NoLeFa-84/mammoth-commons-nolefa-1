@@ -9,7 +9,7 @@ from mammoth_commons.integration import metric
 
 @metric(
     namespace="mammotheu",
-    version="v053",
+    version="v054",
     python="3.13",
     packages=("torch", "torchvision", "timm", "facextool", "numpy"),
 )

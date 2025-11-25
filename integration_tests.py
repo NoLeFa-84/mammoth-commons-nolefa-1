@@ -2,10 +2,12 @@
 # This is so that GitHub action results remain comprehensive and the respective
 # test's developer can see that further action is needed.
 #
-# To run the tests, you need to install all module requirements with `pip install -r config/requirements[mai].txt`
+# To run the tests, you need to install all module requirements with
+# `pip install -r config/requirements[mai].txt`
 #
 # After running the file locally, run  `coverage report` to see a console summary and `coverage html codecov`
 # to generate interactive html for exploring tracked files from the `mammoth/` and `catalogue/` directories.
+
 import os
 import io
 import sys

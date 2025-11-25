@@ -5,7 +5,7 @@ from mammoth_commons.externals import safeexec
 
 @loader(
     namespace="mammotheu",
-    version="v053",
+    version="v054",
     python="3.13",
     packages=("torch", "torchvision", "pandas"),
 )
@@ -41,10 +41,11 @@ def data_image_pairs(
         num_workers: Number of subprocesses to use for data loading.
         safe_libraries: A comma-separated list of safe libraries that are allowed in the transformation code. As a safety measure against code injection attacks, an error will be created if libraries other than those are encountered.
     """
-    from mammoth_commons.externals import pd_read_csv
+    from mammoth_commons.externals import pd_read_csv, prepare
 
     batch_size = int(batch_size)
     num_workers = int(num_workers)
+    path = prepare(path)
     premature_data = pd_read_csv(path, nrows=1)  # just read one row for verification
 
     data_transform = safeexec(

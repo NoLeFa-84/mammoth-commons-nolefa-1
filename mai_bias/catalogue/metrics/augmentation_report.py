@@ -625,7 +625,7 @@ def apply_class_ratio_sampling(df, protected_attribute, target_column):
 
 @metric(
     namespace="mammotheu",
-    version="v053",
+    version="v054",
     python="3.13",
     packages=(
         "fairbench",

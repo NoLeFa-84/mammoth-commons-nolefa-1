@@ -698,7 +698,7 @@ def plot_network(
 
 @metric(
     namespace="mammotheu",
-    version="v053",
+    version="v054",
     python="3.11",
     packages=("matplotlib", "statistics", "seaborn"),
 )
