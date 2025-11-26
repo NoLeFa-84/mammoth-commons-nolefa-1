@@ -4,6 +4,9 @@ from numpy import ones, zeros, sum
 
 
 class TrivialPredictor(Predictor):
+    def __init__(self):
+        super().__init__()
+
     def predict(self, dataset, sensitive: list[str]):
         dataset = dataset.to_csv(sensitive)
         labels = dataset.labels

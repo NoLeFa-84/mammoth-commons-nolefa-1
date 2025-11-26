@@ -63,12 +63,6 @@ class Dashboard(Styled):
         top_row_layout = QHBoxLayout()
         top_row_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # top_row_layout.addWidget(logo_button, alignment=Qt.AlignmentFlag.AlignTop)
-
-        # Spacer to push buttons to the right
-        # top_row_layout.addStretch()
-
-        # Buttons on the right
         search_field = QLineEdit(self)
         search_field.setPlaceholderText("Search for title or module...")
         search_field.setFixedSize(200, 30)
@@ -80,45 +74,19 @@ class Dashboard(Styled):
             Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter
         )
         button_layout.addWidget(search_field)
-
-        def make_link_button(text, url, tooltip=None):
-            btn = QPushButton(text, self)
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setFixedSize(40, 30)
-            btn.setStyleSheet(
-                """
-                QPushButton {
-                    background: white;
-                    color: #0369a1;
-                    font-weight: 600;
-                    border: 0px solid #0369a1;
-                    border-radius: 8px;
-                    text-align: center;
-                    font-size:20px;
-                }
-                QPushButton:hover {
-                    background: #d3ecfa;
-                }
-            """
-            )
-            if tooltip:
-                btn.setToolTip(tooltip)
-            btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
-            return btn
-
-        # --- Sidebar links ---
-        # button_layout.addWidget(make_link_button("📘", "https://github.com/mammoth-eu/mammoth-commons"))
-        # button_layout.addWidget(make_link_button("📖", "https://github.com/mammoth-eu/FairnessDefinitionGuide"))
         button_layout.addWidget(
-            make_link_button("🌐", "https://mammoth-eu.github.io/mammoth-commons/")
+            self.new_action(
+                "🌐",
+                "#0369a1",
+                "Module catalogue",
+                lambda: QDesktopServices.openUrl(
+                    QUrl("https://mammoth-eu.github.io/mammoth-commons/")
+                ),
+            )
         )
-
-        # Wrap buttons in a widget so layout behaves properly
         button_widget = QWidget()
         button_widget.setLayout(button_layout)
         top_row_layout.addWidget(button_widget, alignment=Qt.AlignmentFlag.AlignTop)
-
-        # Add everything to the main layout
         self.main_layout.addLayout(top_row_layout)
 
         self.scroll_area = QScrollArea(self)
@@ -126,18 +94,10 @@ class Dashboard(Styled):
         self.scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.scroll_area.setStyleSheet(
             """
-            QScrollArea {
-                border: none;
-                background: transparent;
-            }
-            QScrollArea QWidget {
-                background: transparent;
-            }
-            QScrollBar:vertical, QScrollBar:horizontal {
-                border: none;
-                background: transparent;
-            }
-        """
+            QScrollArea {border: none; background: transparent;}
+            QScrollArea QWidget {background: transparent;}
+            QScrollBar:vertical, QScrollBar:horizontal {border: none;background: transparent;}
+            """
         )
 
         # Content Widget
@@ -201,7 +161,7 @@ class Dashboard(Styled):
 
         # 1️⃣ Fairness is multi-layered
         fairness_html = """
-                <p>Fairness is multi-layered in that it needs to account for various aspects, 
+                <p><b>Fairness is multi-layered</b> in that it needs to account for various aspects, 
                 such as technical, social, legal, and ethical. MAI-BIAS is meant for AI system creators, 
                 so it focuses on the technical aspects. However, these make up only a part of the problem; 
                 we recommend close cooperation with other disciplines to properly address the issue of fairness:
@@ -237,7 +197,7 @@ class Dashboard(Styled):
         self.setLayout(self.main_layout)
         self.tag_descriptions = tag_descriptions
 
-        self.invisible_runs = set()
+        self.hidden = set()
         self.refresh_dashboard()
 
     def resizeEvent(self, event):
@@ -247,8 +207,8 @@ class Dashboard(Styled):
     def filter_runs(self, text):
         if not self.runs:
             return
-        prev = self.invisible_runs
-        self.invisible_runs = set()
+        prev = self.hidden
+        self.hidden = set()
         for index, run in enumerate(self.runs):
             fields = [
                 run["description"].lower(),
@@ -259,12 +219,9 @@ class Dashboard(Styled):
             ]
             if any(text.lower() in field for field in fields):
                 continue
-            self.invisible_runs.add(index)
+            self.hidden.add(index)
         # refresh but only if something changed
-        if (
-            len(prev - self.invisible_runs) == 0
-            and len(self.invisible_runs - prev) == 0
-        ):
+        if len(prev - self.hidden) == 0 and len(self.hidden - prev) == 0:
             return
         self.refresh_dashboard()
 
@@ -305,28 +262,36 @@ class Dashboard(Styled):
         self.stacked_widget.slideToWidget(1)
         self.refresh_dashboard()
 
-    def delete_item(self, index):
-        reply = QMessageBox.question(
-            self,
-            "Delete?",
-            f"The analysis will be permanently deleted.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if reply != QMessageBox.StandardButton.Yes:
+    def delete_item(self, index, confirm=True):
+        if (
+            confirm
+            and QMessageBox.question(
+                self,
+                "Delete?",
+                f"The analysis will be permanently deleted.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
             return
         self.runs.pop(index)
+        self.notify_delete(index)
         self.refresh_dashboard()
         save_all_runs("history.json", self.runs)
 
+    def notify_delete(self, index):
+        self.hidden = {i - 1 if i > index else i for i in self.hidden if i != index}
+
     def clear_layout(self, layout):
-        if layout is not None:
-            while layout.count():
-                child = layout.takeAt(0)
-                if child.widget():
-                    child.widget().deleteLater()
-                elif child.layout():
-                    self.clear_layout(child.layout())
+        if not layout:
+            return
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+            elif child.layout():
+                self.clear_layout(child.layout())
 
     def showEvent(self, event):
         self.refresh_dashboard()
@@ -340,7 +305,7 @@ class Dashboard(Styled):
 
         groups = defaultdict(list)
         for i, run in enumerate(self.runs):
-            if i in self.invisible_runs:
+            if i in self.hidden:
                 continue
             group_key = (
                 run["description"],
@@ -381,17 +346,9 @@ class Dashboard(Styled):
         logo_card.clicked.connect(self.create_new_item)
         logo_card.setStyleSheet(
             f"""
-            QPushButton {{
-                background-color: white;
-                border: 2px dashed #0369a1;
-                border-radius: 10px;
-                padding: 0px;
-            }}
-            QPushButton:hover {{
-                background-color: #d3ecfa;
-                border: 2px solid #0369a1;
-            }}
-        """
+            QPushButton {{background-color: white; border: 2px dashed #0369a1; border-radius: 10px; padding: 0px;}}
+            QPushButton:hover {{background-color: #d3ecfa; border: 2px solid #0369a1;}}
+            """
         )
 
         # Centered logo image
@@ -419,7 +376,7 @@ class Dashboard(Styled):
             logo_pixmap.width(),
             logo_pixmap.height(),
         )
-        if not self.invisible_runs:
+        if not self.hidden:
             grid_layout.addWidget(logo_card, row, col)
             col += 1
         if col >= max_cols:
@@ -493,7 +450,7 @@ class Dashboard(Styled):
             for key in ["dataset", "model", "analysis"]:
                 mod = latest_run.get(key, {}).get("module", "")
                 if mod:
-                    tag_btn = self.create_tag_button(
+                    tag_btn = self.new_tag(
                         f"{mod}",
                         "Module info",
                         partial(lambda mod=mod: self.show_tag_description(mod)),
@@ -551,7 +508,7 @@ class Dashboard(Styled):
 
                 def make_on_history(indices):
                     def on_history():
-                        self.invisible_runs = set(range(len(self.runs))) - set(indices)
+                        self.hidden = set(range(len(self.runs))) - set(indices)
                         self.refresh_dashboard()
 
                     return on_history
@@ -561,7 +518,7 @@ class Dashboard(Styled):
 
             if latest_run["status"] == "completed":
                 card_layout.addWidget(
-                    self.create_icon_button(
+                    self.new_action(
                         "+",
                         "#007bff",
                         "New variation",
@@ -571,7 +528,7 @@ class Dashboard(Styled):
                 )
 
             card_layout.addWidget(
-                self.create_icon_button(
+                self.new_action(
                     "🗑",
                     "#dc3545",
                     "Delete",
@@ -634,7 +591,7 @@ class Dashboard(Styled):
             row += 1
 
         if (
-            len(latest_per_group) <= 1  # and len(self.invisible_runs) > 0
+            len(latest_per_group) <= 1  # and len(self.hidden) > 0
         ):  # or (len(latest_per_group) == 1 and len(runs) > 1):
             # --- Clear Search Button ---
             clear_search_btn = QPushButton("Back", self)
@@ -660,7 +617,7 @@ class Dashboard(Styled):
 
             def on_clear_search():
                 self.search_field.setText("")
-                self.invisible_runs = set()
+                self.hidden = set()
                 self.refresh_dashboard()
 
             clear_search_btn.clicked.connect(on_clear_search)
@@ -740,11 +697,11 @@ class Dashboard(Styled):
                     "border: none; background: none; font-size: 12px; margin-top: 2px;"
                 )
                 narrow_layout.addWidget(info_label, 0, 0)
-                delete_button = self.create_icon_button(
+                delete_button = self.new_action(
                     "🗑",
                     "#dc3545",
                     "Delete",
-                    partial(lambda i=index: self.delete_item(i)),
+                    partial(lambda i=index: self.delete_item(i, confirm=False)),
                     size=25,
                 )
                 narrow_layout.addWidget(
@@ -786,35 +743,23 @@ class Dashboard(Styled):
     def show_tag_description(self, tag):
         dialog = QDialog(self)
         dialog.setWindowTitle("Module info")
+        dialog.setStyleSheet("background-color: white;")
         layout = QVBoxLayout(dialog)
 
         browser = QWebEngineView(dialog)
-        browser.setFixedHeight(300)
+        browser.setFixedHeight(800)
         browser.setFixedWidth(800)
 
         html = self.tag_descriptions.get(tag, "No description available.")
         html = f"""
         <html>
         <head>
-        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                font-size: 14px;
-                color: #333;
-                background-color: #fafafa;
-                padding: 10px;
-            }}
-            h1 {{
-                font-size: 18px;
-                color: #0055aa;
-            }}
-            img {{
-                max-width: 100%;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-            }}
-        </style>
+            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body {{font-family: Arial, sans-serif;font-size: 14px;color: #333; background-color: white; padding: 10px;}}
+                h1   {{font-size: 18px; color: #0055aa;}}
+                img  {{max-width: 100%; border: 1px solid #ccc; border-radius: 4px;}}
+            </style>
         </head>
         <body>
             {html}

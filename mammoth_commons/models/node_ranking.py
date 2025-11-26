@@ -4,6 +4,7 @@ from mammoth_commons.models.predictor import Predictor
 
 class NodeRanking(Predictor):
     def __init__(self, diffusion: float = 0.9, redistribution: str = "none"):
+        super().__init__()
         self.redistribution = redistribution
         self.params = {"alpha": diffusion, "tol": 1.0e-9, "max_iters": 3000}
 

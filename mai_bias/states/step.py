@@ -1,32 +1,30 @@
 from PySide6.QtWidgets import (
     QPushButton,
-    QLabel,
-    QVBoxLayout,
-    QWidget,
     QHBoxLayout,
     QComboBox,
     QFormLayout,
     QLineEdit,
     QMessageBox,
-    QFrame,
     QCheckBox,
     QFileDialog,
     QDialog,
     QListWidget,
     QScrollArea,
 )
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
 from PySide6.QtWidgets import QSizePolicy
 from PySide6.QtCore import Qt, QLocale
-from PySide6.QtGui import QIntValidator, QDoubleValidator, QIcon
+from PySide6.QtGui import QIntValidator, QDoubleValidator
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWebEngineCore import QWebEnginePage
+
 import json
 import os
 import csv
-from mammoth_commons.externals import pd_read_csv
 import mammoth_commons.externals
-from .style import Styled
+
+from mammoth_commons.externals import pd_read_csv
 from mai_bias.states.cache import ExternalLinkPage
+from .style import Styled
 
 
 def save_all_runs(path, runs):
@@ -69,11 +67,6 @@ def format_name(name):
     return name.replace("_", " ").capitalize()
 
 
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
-from PySide6.QtCore import Qt
-
-
 class InfoBox(QFrame):
     """Reusable informational box matching Dashboard style."""
 
@@ -83,32 +76,13 @@ class InfoBox(QFrame):
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setStyleSheet(
             """
-            QFrame#InfoBox {
-                background-color: #dddddd;
-                border: 1px solid #e2e8f0;
-                border-radius: 10px;
-                padding: 14px 18px;
-            }
-            QLabel {
-                color: #334155;
-                font-size: 13px;
-                line-height: 1.4em;
-            }
-            a {
-                color: #0369a1;
-                text-decoration: none;
-                font-weight: 600;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-            ul {
-                margin-left: 16px;
-            }
-            li {
-                margin: 4px 0;
-            }
-        """
+            QFrame#InfoBox {background-color: #dddddd; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px;}
+            QLabel {color: #334155; font-size: 13px; line-height: 1.4em;}
+            a {color: #0369a1; text-decoration: none; font-weight: 600;}
+            a:hover {text-decoration: underline;}
+            ul {margin-left: 16px;}
+            li {margin: 4px 0;}
+            """
         )
 
         label = QLabel(html_content, self)
@@ -187,31 +161,18 @@ class Step(Styled):
         self.next_button = QPushButton("Next", self)
         self.next_button.setStyleSheet(
             f"""
-            QPushButton {{
-                background-color: #007bff; 
-                color: white; 
-                border-radius: 5px;
-                padding: 6px; 
-            }}
-            QPushButton:hover {{
-                background-color: {self.highlight_color('#007bff')};
-            }}
-        """
+            QPushButton {{background-color: #007bff; color: white; border-radius: 5px; padding: 6px; }}
+            QPushButton:hover {{background-color: {self.highlight_color('#007bff')};}}
+            """
         )
         self.next_button.clicked.connect(self.next)
 
         self.cancel_button = QPushButton("Cancel", self)
         self.cancel_button.setStyleSheet(
             f"""
-            QPushButton {{
-                background-color: #dc3545; 
-                color: white; 
-                border-radius: 5px;
-            }}
-            QPushButton:hover {{
-                background-color: {self.highlight_color('#dc3545')};
-            }}
-        """
+            QPushButton {{background-color: #dc3545; color: white; border-radius: 5px;}}
+            QPushButton:hover {{background-color: {self.highlight_color('#dc3545')};}}
+            """
         )
         self.cancel_button.setFixedSize(80, 30)
         self.cancel_button.clicked.connect(self.switch_to_dashboard)
@@ -312,6 +273,7 @@ class Step(Styled):
         prev_selection = set(prev_value.split(","))
 
         dialog = QDialog(self)
+        dialog.setStyleSheet("background-color: white;")
         dialog.setWindowTitle(title)
         dialog.setModal(True)
 

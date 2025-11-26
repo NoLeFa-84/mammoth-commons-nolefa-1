@@ -4,6 +4,7 @@ from mammoth_commons.models.predictor import Predictor
 
 class ONNX(Predictor):
     def __init__(self, model_bytes, includes_sensitive=False):
+        super().__init__()
         self.model_bytes = model_bytes
         self.includes_sensitive = includes_sensitive
 

@@ -15,6 +15,7 @@ class ONNXEnsemble(Predictor):
         sensitives=None,
         **kwargs,
     ):
+        super().__init__()
         from mmm_fair_cli.onnx_utils import ONNX_MMM
 
         assert (

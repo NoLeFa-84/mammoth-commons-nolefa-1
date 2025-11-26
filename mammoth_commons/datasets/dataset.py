@@ -41,7 +41,7 @@ class Dataset:
         raise Exception(f"Dataset {self.__class__.__name__} cannot be treated as a csv")
 
     def to_description(self):
-        if self.description is None:
+        if not self.description:
             return ""
         desc = "<h1>Dataset</h1>"
         if isinstance(self.description, str):
