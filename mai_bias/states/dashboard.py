@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QTimer
 from PySide6.QtCore import Qt, QUrl
 from datetime import datetime
-from mammoth_commons.externals import prepare
+from mammoth_commons.externals import prepare, prepare_html
 from PySide6.QtGui import QPixmap, QDesktopServices
 from functools import partial
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -767,7 +767,7 @@ class Dashboard(Styled):
         </html>
         """
         browser.setPage(ExternalLinkPage(browser))
-        browser.setHtml(html)
+        browser.setHtml(prepare_html(html), QUrl("file:///"))
         layout.addWidget(browser)
         ok_button = QPushButton("OK")
         ok_button.clicked.connect(dialog.accept)

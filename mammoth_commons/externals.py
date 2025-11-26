@@ -214,6 +214,32 @@ def prepare(url, cache=".cache"):
     return path
 
 
+def to_file_url(path: str) -> str:
+    path = os.path.abspath(path)
+    encoded = urllib.parse.quote(path)
+    return f"file:///{encoded}"
+
+
+def prepare_html(html: str) -> str:
+    pattern = r'(src|href)=(["\'])([^"\']+)\2'
+
+    def repl(match):
+        attr = match.group(1)  # src or href
+        quote = match.group(2)  # ' or "
+        url = match.group(3)  # the URL value
+        if url.startswith("http://") or url.startswith("https://"):
+            try:
+                cached_path = prepare(url)
+                file_url = to_file_url(cached_path)
+                return f"{attr}={quote}{file_url}{quote}"
+            except Exception as e:
+                print("prepare_html WARNING:", e)
+                return match.group(0)  # keep original
+        return match.group(0)
+
+    return re.sub(pattern, repl, html)
+
+
 def pd_read_csv(url, **kwargs):
     import pandas as pd
     import csv

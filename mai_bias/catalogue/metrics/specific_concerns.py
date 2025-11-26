@@ -134,15 +134,10 @@ def specific_concerns(
     dataset_description = dataset.to_description().split("Args:")[0]
     model_description = model.to_description().split("Args:")[0]
     outcome = (
-        (
-            "Report"
-            if problematic_deviation == 0
-            else (
-                "Fair" if report.flatten(True)[0] < problematic_deviation else "Biased"
-            )
-        )
-        + f" {base_measure.lower()} in {len(sensitive.branches())} protected groups"
-    )
+        "Report"
+        if problematic_deviation == 0
+        else ("Fair" if report.flatten(True)[0] < problematic_deviation else "Biased")
+    ) + f" {base_measure.lower()} in {len(sensitive.branches())} protected groups"
 
     html_content = f"""
     <style>

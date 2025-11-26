@@ -58,7 +58,7 @@ def model_card(
         min_group_size: The minimum number of samples per group that should be considered during analysis - groups with less memers are ignored.
         presentation: Whether to focus on showing numbers or showing accompanying bars for easier comparison. Prefer a number comparison to avoid being influenced by comparisons between incomparable measure values.
     """
-    #fb = importlib.import_module("fairbench")
+    # fb = importlib.import_module("fairbench")
     import fairbench as fb
 
     reps = fb.reports
@@ -71,7 +71,9 @@ def model_card(
     reject = not bool(show_non_problematic)
     predictions = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
-    sensitive = fb.Dimensions({s: fb_categories(dataset.df[s]) for s in sensitive}, _separator=" ")
+    sensitive = fb.Dimensions(
+        {s: fb_categories(dataset.df[s]) for s in sensitive}, _separator=" "
+    )
     if intersections != "Base":
         sensitive = sensitive.intersectional(min_size=min_group_size, delimiter=" - ")
     if intersections == "Subgroups":
@@ -83,15 +85,20 @@ def model_card(
     labels = labels.columns if labels else None
     report = report_type(predictions=predictions, labels=labels, sensitive=sensitive)
     problematic = set()
-    for col in report.filter(fb.investigate.DeviationsOver(prob, prune=True)).depends.values():
+    for col in report.filter(
+        fb.investigate.DeviationsOver(prob, prune=True)
+    ).depends.values():
         for col2 in col.depends.values():
             for value in col2.depends.values():
-                #problematic.add(col2.descriptor.details+" of "+value.descriptor.details+" for "+col.descriptor.details)
-                problematic.add("<b>"+value.descriptor.name+"</b>: "+value.descriptor.prototype.details)
+                # problematic.add(col2.descriptor.details+" of "+value.descriptor.details+" for "+col.descriptor.details)
+                problematic.add(
+                    "<b>"
+                    + value.descriptor.name
+                    + "</b>: "
+                    + value.descriptor.prototype.details
+                )
     if prob != 0:
         report = report.filter(fb.investigate.DeviationsOver(prob, prune=reject))
-
-
 
     views = {
         "Summary": report.show(env=presentation(view=False, filename=None)),
@@ -115,7 +122,8 @@ def model_card(
         f'<button class="tablinks" data-tab="{key}">{key}</button>' for key in views
     )
     expert_tabs_body = "".join(
-        f'<div id="{key}" class="tabcontent">{value}</div>' for key, value in views.items()
+        f'<div id="{key}" class="tabcontent">{value}</div>'
+        for key, value in views.items()
     )
 
     dataset_description = dataset.to_description().split("Args:")[0]

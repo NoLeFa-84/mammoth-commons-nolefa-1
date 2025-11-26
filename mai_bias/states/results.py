@@ -8,9 +8,10 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QDialog,
 )
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QUrl
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from datetime import datetime
+from mammoth_commons.externals import prepare_html
 from .step import save_all_runs
 from .style import Styled
 from .cache import ExternalLinkPage
@@ -132,7 +133,12 @@ class Results(Styled):
             self.update_tags(run)
         else:
             html_content = "<p>No results available.</p>"
-        QTimer.singleShot(1, lambda: self.results_viewer.setHtml(html_content))
+        QTimer.singleShot(
+            1,
+            lambda: self.results_viewer.setHtml(
+                prepare_html(html_content), QUrl("file:///")
+            ),
+        )
         self.results_viewer.show()
 
     def update_tags(self, run):
@@ -183,7 +189,7 @@ class Results(Styled):
         </html>
         """
         browser.setPage(ExternalLinkPage(browser))
-        browser.setHtml(html)
+        browser.setHtml(prepare_html(html), QUrl("file:///"))
 
         layout.addWidget(browser)
         ok_button = QPushButton("OK")
