@@ -2,7 +2,8 @@ from mammoth_commons.datasets.dataset import Dataset
 
 
 class Graph_CSH(Dataset):
-    def __init__(self, papers_df, affiliations_df, sensitive_columns=[]):
+    def __init__(self, papers_df, affiliations_df, sensitive_columns=()):
+        super().__init__(None)
         self.papers_df = papers_df
         self.affiliations_df = affiliations_df
         self.G = None

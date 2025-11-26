@@ -44,6 +44,7 @@ class Image(ImageLike):
             shuffle (bool): Set to True to have the data reshuffled every time they are obtained.
             num_workers (int): Number of subprocesses to use for data loading.
         """
+        super().__init__(None)
         target = str(target)
         cols = [str(col) for col in cols]
 

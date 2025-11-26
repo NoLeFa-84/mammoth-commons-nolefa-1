@@ -36,7 +36,7 @@ def specific_concerns(
         "Standard deviation x2",
         "Gini coefficient",
     ] = "Min",
-    problematic_deviation: float = 0.1,
+    problematic_deviation: float = 0.05,
 ) -> HTML:
     """
     <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
@@ -58,7 +58,7 @@ def specific_concerns(
 
     <p>If intersectional subgroup analysis is enabled, separate subgroups are created for each combination of sensitive
     attribute values. However, if there are too many attributes, some groups will be small or empty. Empty groups are
-    ignored in the analysis. The report may also include information about built-in datasets.</p>
+    ignored in the analysis.</p>
 
     Args:
         intersections: Whether to consider only the provided groups (Base), all non-empty group intersections (All), or all non-empty intersections while ignoring larger groups during analysis (Subgroups). For example, the last option may not contain a `White` dimension if `White Men` is an existing dimension. This does nothing if there is only one sensitive attribute. It could be computationally intensive if too many group intersections are selected.
@@ -134,10 +134,15 @@ def specific_concerns(
     dataset_description = dataset.to_description().split("Args:")[0]
     model_description = model.to_description().split("Args:")[0]
     outcome = (
-        "Report"
-        if problematic_deviation == 0
-        else ("Fair" if report.flatten(True)[0] < problematic_deviation else "Biased")
-    ) + f" {base_measure.lower()} across {len(sensitive.branches())} protected groups"
+        (
+            "Report"
+            if problematic_deviation == 0
+            else (
+                "Fair" if report.flatten(True)[0] < problematic_deviation else "Biased"
+            )
+        )
+        + f" {base_measure.lower()} in {len(sensitive.branches())} protected groups"
+    )
 
     html_content = f"""
     <style>
@@ -146,7 +151,7 @@ def specific_concerns(
         .banner.fair {{ background: #2e8b57; }}
         .banner.biased {{ background: #c0392b; }}
         .banner.report {{ background: #7f8c8d; }}
-        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; font-size: 14px; transition: background 0.2s;}}
+        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
         .pill-btn:hover {{ background: #e0e0e0; }}
         .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
         .section-panel {{ display: none; border: 0px solid #ddd; padding: 0px; border-radius: 8px; background: white; }}
@@ -174,10 +179,18 @@ def specific_concerns(
     <div>
         <h1 class="banner {outcome.split(' ')[0].lower()}">{outcome}</h1>
         <div class="pill-buttons">
-            <div class="pill-btn" data-target="whatis">What's this?</div>
-            <div class="pill-btn" data-target="process">Analysis methodology</div>
-            <div class="pill-btn" data-target="pipeline">Data pipeline</div>
-            <div class="pill-btn" data-target="details">For experts</div>
+            <div class="pill-btn" data-target="whatis">What is this?
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="process">Analysis methodology
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="pipeline">Data pipeline
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="details">For experts
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
+            </div>
         </div>
         <div id="whatis" class="section-panel">
             We analysed how {getattr(fb.measures, fb_measures[base_measure]).descriptor.details.lower()} is 

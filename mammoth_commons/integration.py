@@ -274,6 +274,7 @@ def loader(
         @wraps(method)
         def wrapper_with_installation_outiside_kfp(*args, **kwargs):
             from mammoth_commons.externals import notify_progress, notify_end
+
             original_doc = method.__doc__
 
             for i, package in enumerate(packages):
@@ -286,8 +287,10 @@ def loader(
             ret = method(*args, **kwargs)
             if not ret.description:
                 ret.description = original_doc
-                for k,v in kwargs.items():
-                    ret.description += "<br><b>"+k.lower().replace("_", " ")+"</b>: "+str(v)
+                for k, v in kwargs.items():
+                    ret.description += (
+                        "<br><b>" + k.lower().replace("_", " ") + "</b>: " + str(v)
+                    )
             notify_end()
             return ret
 
