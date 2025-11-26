@@ -233,7 +233,7 @@ def model_card(
               'These biases occurred in at least one prediction class and at least one way of aggregating the comparison '
               'among multiple groups. Expert assessment is needed to help understand which biases may be considered unfair. ')
             if problematic else 'No biases were found.'}
-            <br>
+            <br><br>
             <i>{'<br>'.join(problematic)}</i>
         </div>
 

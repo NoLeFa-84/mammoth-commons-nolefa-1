@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
 from PySide6.QtWidgets import QSizePolicy
-from PySide6.QtCore import Qt, QLocale
+from PySide6.QtCore import Qt, QLocale, QUrl
 from PySide6.QtGui import QIntValidator, QDoubleValidator
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from mammoth_commons.externals import prepare_html

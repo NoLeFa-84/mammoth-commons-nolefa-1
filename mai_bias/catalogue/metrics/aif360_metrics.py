@@ -1,6 +1,5 @@
 import math
-
-from mammoth_commons.datasets import Dataset, Labels
+from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML
 from typing import List
@@ -11,6 +10,7 @@ import json
 
 
 def render_metric_bars(rows, sensitive):
+    # (unchanged original function)
     constant_metrics = []
     varying_metrics = []
     for row in rows:
@@ -27,6 +27,7 @@ def render_metric_bars(rows, sensitive):
             constant_metrics.append({"Metric": metric, "Value": numeric_values[0]})
         else:
             varying_metrics.append(row)
+
     chart_data = []
     for row in varying_metrics:
         metric = row["Metric"]
@@ -36,20 +37,16 @@ def render_metric_bars(rows, sensitive):
                 val = float(val)
             except:
                 val = None
-            chart_data.append(
-                {
-                    "metric": metric,
-                    "group": attr,
-                    "value": val,
-                }
-            )
+            chart_data.append({"metric": metric, "group": attr, "value": val})
+
     data_json = json.dumps(chart_data)
 
     def render_constant_table():
         if not constant_metrics:
             return ""
         rows = "".join(
-            f"<tr><td>{entry['Metric']}</td><td><code>{round(entry['Value'], 3):.3f}</code></td></tr>"
+            f"<tr><td>{entry['Metric']}</td>"
+            f"<td><code>{round(entry['Value'], 3):.3f}</code></td></tr>"
             for entry in constant_metrics
         )
         return f"""
@@ -60,13 +57,14 @@ def render_metric_bars(rows, sensitive):
         </table>
         """
 
-    d3_script = f"""
+    return (
+        render_constant_table()
+        + f"""
 <div id="chart-container"></div>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 (function() {{
     const data = {data_json};
-
     const grouped = d3.group(data.filter(d => d.value !== null), d => d.metric);
     const container = d3.select("#chart-container");
 
@@ -76,13 +74,12 @@ def render_metric_bars(rows, sensitive):
         const width = 600;
         const barHeight = 25;
         const margin = {{ top: 10, right: 70, bottom: 10, left: 150 }};
-
         const actualMax = d3.max(values, d => Math.abs(d.value));
         const maxVal = actualMax <= 1 ? 1 : actualMax;
 
         const x = d3.scaleLinear()
-                    .domain([0, maxVal])
-                    .range([0, width - margin.left - margin.right]);
+            .domain([0, maxVal])
+            .range([0, width - margin.left - margin.right]);
 
         const svg = container.append("svg")
             .attr("width", width)
@@ -123,8 +120,8 @@ def render_metric_bars(rows, sensitive):
     }});
 }})();
 </script>
-    """
-    return render_constant_table() + d3_script
+"""
+    )
 
 
 @metric(
@@ -146,9 +143,10 @@ def aif360_metrics(
     sensitive: List[str],
     favorable_label: int = 1,
     unfavorable_label: int = 0,
+    bias_threshold: float = 0.05,
 ) -> HTML:
     """
-    <img src="https://ai-fairness-360.org/" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
     <p>This module evaluates fairness using IBM's <a href="https://aif360.readthedocs.io" target="_blank">AIF360</a> library.
     It computes standard group fairness metrics for each sensitive attribute provided. If attributes are non-binary, they are
     binarized into one-hot encoded columns. Only categorical attributes are allowed.</p>
@@ -162,23 +160,30 @@ def aif360_metrics(
     Args:
         favorable_label: The prediction label value which is considered favorable (i.e. "positive"). Default is 1 for binary classifiers.
         unfavorable_label: The prediction label value which is considered unfavorable (i.e. "negative"). Default is 0 for binary classifiers.
+        bias_threshold: The maximum value of bias assessment. Common literature default is 0.1 or 0.2, but stakeholder engagement in the MAMMOth project suggests that this value should be lower for measures of bias that matter. Hence a more conservative default of 0.05 is used.
     """
 
-    from aif360.metrics import BinaryLabelDatasetMetric, ClassificationMetric
+    from aif360.metrics import ClassificationMetric
     import numpy as np
 
-    assert len(sensitive) > 0, "You must specify at least one sensitive attribute"
+    threshold = float(bias_threshold)
+
+    # -----------------------------------------
+    # PREP + AIF360 DATA
+    # -----------------------------------------
     if isinstance(sensitive, str):
-        sensitive = [sens.strip() for sens in sensitive.split(",")]
-    original_sensitive_len = len(sensitive)
+        sensitive = [s.strip() for s in sensitive.split(",")]
+    assert len(sensitive) > 0, "Must specify at least one sensitive attribute"
 
     y_pred = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
     y_pred, y_true = align_predictions(y_pred, dataset.labels)
-    label_col = list(y_true.columns)[0]
+
     pred_col = list(y_pred.columns)[0]
+    label_col = list(y_true.columns)[0]
 
     dataset.df["label"] = y_true[label_col]
+
     aif_dataset_true, sensitive = dataset.to_aif360(
         label_col="label",
         sensitive_cols=sensitive,
@@ -191,8 +196,9 @@ def aif360_metrics(
     aif_dataset_pred = aif_dataset_true.copy()
     aif_dataset_pred.labels = df[["y_pred"]].values
 
-    metrics_by_group = {}
-    all_metric_names = set()
+    # -----------------------------------------
+    # METRIC COMPUTATION
+    # -----------------------------------------
     classification_metrics = {
         "Accuracy": "accuracy",
         "Average Abs Odds Difference": "average_abs_odds_difference",
@@ -254,141 +260,202 @@ def aif360_metrics(
         "True Positive Rate": "true_positive_rate",
         "True Positive Rate Difference": "true_positive_rate_difference",
     }
+
+    metrics_by_group = {}
+    all_metric_names = set()
     prog = 0
+
     for attr in sensitive:
         privileged = [{attr: 1}]
         unprivileged = [{attr: 0}]
-
-        # bmetric = BinaryLabelDatasetMetric(aif_dataset_true, unprivileged, privileged)
         metric_obj = ClassificationMetric(
             aif_dataset_true, aif_dataset_pred, unprivileged, privileged
         )
-        metrics = dict()
+
+        metrics = {}
         for label, method in classification_metrics.items():
             notify_progress(
                 float(prog) / len(classification_metrics) / len(sensitive),
-                f"Analyzing attribute {attr} under metric {label}",
+                f"Analyzing {attr}: {label}",
             )
             prog += 1
             try:
-                value = getattr(metric_obj, method)()
-                if isinstance(value, (int, float, np.number)):
-                    metrics[label] = abs(float(value))
-                elif isinstance(value, np.ndarray) and value.ndim == 0:
-                    metrics[label] = abs(float(value))
+                v = getattr(metric_obj, method)()
+                if isinstance(v, (int, float, np.number)):
+                    metrics[label] = abs(float(v))
+                elif isinstance(v, np.ndarray) and v.ndim == 0:
+                    metrics[label] = abs(float(v))
                 else:
                     metrics[label] = math.nan
             except Exception:
                 metrics[label] = math.nan
+
         metrics_by_group[attr] = metrics
-        all_metric_names.update(metrics_by_group[attr].keys())
+        all_metric_names.update(metrics.keys())
+
     notify_end()
-    all_metric_names = sorted(all_metric_names)
+
+    # -----------------------------------------
+    # BUILD TABLE
+    # -----------------------------------------
     rows = []
-    for metric in all_metric_names:
-        row = {"Metric": metric}
+    for metric_name in sorted(all_metric_names):
+        row = {"Metric": metric_name}
         for attr in sensitive:
-            row[attr] = metrics_by_group.get(attr, {}).get(metric, math.nan)
+            row[attr] = metrics_by_group[attr].get(metric_name, math.nan)
         rows.append(row)
 
-    # html = f"""
-    # <h1>AIF360 Fairness Report</h1>
-    # <p>This report shows metric distributions across sensitive groups.</p>
-    # <p>See <a href="https://aif360.readthedocs.io/en/latest/modules/generated/aif360.metrics.ClassificationMetric.html" target="_blank">AIF360 metric documentation</a> for metric definitions.</p>
-    #
-    # <details><summary>In total {len(sensitive)} protected groups were analysed. </summary><i>{', '.join(sensitive).replace('_', ' ')}</i><br></details>
-    # <details><summary>Metrics</summary><i>{'<table class="table table-sm"><tr><th>Function</th><th>Report Name</th></tr>' + ''.join(f'<tr><td>{method.replace('_', ' ')}</td><td>{label}</td></tr>' for label, method in classification_metrics.items()) + '</table>'}</i><br></details>
-    # {'<p class="text-warning"><i>Some sensitive attributes that were not binary have been automatically expanded via one-hot encoding.</i></p>' if original_sensitive_len != len(sensitive) else ''}
-    #
-    # {render_metric_bars(rows, sensitive)}
-    #
-    # <div class="mt-4">{dataset.to_description()}</div>
-    # """
+    # -----------------------------------------
+    # THRESHOLD CHECK WITH DIRECTIONAL DEVIATIONS
+    # -----------------------------------------
 
-    # Build the metrics table separately
-    metrics_table = (
-        '<table class="table table-sm"><tr><th>Function</th><th>Report Name</th></tr>'
-        + "".join(
-            f"<tr><td>{method.replace('_', ' ')}</td><td>{label}</td></tr>"
-            for label, method in classification_metrics.items()
+    # bias metrics and their ideal targets
+    IDEAL_VALUES = {
+        "Disparate Impact": 1.0,  # DI close to 1
+        "Statistical Parity Difference": 0.0,
+        "Equal Opportunity Difference": 0.0,
+        "Equalized Odds Difference": 0.0,
+        "Average Odds Difference": 0.0,
+        "Average Abs Odds Difference": 0.0,
+        "False Positive Rate Difference": 0.0,
+        "False Negative Rate Difference": 0.0,
+        "Error Rate Difference": 0.0,
+        "False Discovery Rate Ratio": 1.0,
+        "False Omission Rate Ratio": 1.0,
+        "False Omission Rate Difference": 0.0,
+        "False Positive Rate Ratio": 0.0,
+    }
+
+    def deviation(metric, value):
+        ideal = IDEAL_VALUES[metric]
+        return abs(value - ideal)
+
+    biases = {
+        r["Metric"].lower()
+        for r in rows
+        if r["Metric"] in IDEAL_VALUES
+        for attr, v in r.items()
+        if attr != "Metric"
+        and v is not None
+        and not math.isnan(v)
+        and deviation(r["Metric"], float(v)) > threshold
+    }
+
+    if len(biases) == 1:
+        verdict = (
+            list(biases)[0][0].upper()
+            + list(biases)[0][1:]
+            + f" bias in {len(sensitive)} groups"
         )
-        + "</table>"
+    else:
+        verdict = (
+            f"{len(biases)} types of bias in {len(sensitive)} groups"
+            if len(biases)
+            else f"Fairness among {len(sensitive)} groups"
+        )
+    bias_list_html = (
+        "<i>" + "<br>".join(biases) + "</i>" if biases else "the system is likely fair"
     )
 
-    faq_style = """
-        <style>
-        .faq-container {
-          max-width: 600px;
-          margin: 20px auto;
-          font-family: Arial, sans-serif;
-        }
-        
-        .faq-box {
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          padding: 16px;
-          margin-bottom: 16px;
-          box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-          background: #fff;
-        }
-        
-        .faq-box h3 {
-          margin-top: 0;
-          font-size: 1.2em;
-          color: #333;
-        }
-        
-        .faq-box p {
-          margin: 0;
-          color: #555;
-        }
-        </style>
-    """
-
-    html = f"""
-    <div class="container">
-    <h1>AIF360 Fairness Report</h1>
-    {faq_style}
-    <hr/>
-    <div class="faq-container">
-        <div class="faq-box">
-              <h3>❓ What is this?</h3>
-              <p>This is a fairness report compiled with a MAI-BIAS module using the AIF360 library. 
-              Results correspond to specific dataset and model loaders and parameters.</p>
-              <br/>
-              <p>You can see various metrics, grouped into those that assess the overall 
-              model, and those that are computed for each protected group, each corresponding to
-              a sensitive attribute value (see summary). Metric values should ideally be 
-              similar across groups for models to be considered fair. Do not neglect performance, 
-              and, after looking at everything, focus only on equalizing measures 
-              that matter for your application context
-              - it is impossible to optimize for everything.</p>
-        </div>
-        <div class="faq-box">
-              <h3>❗ Summary</h3>
-                <p>This report shows metric distributions across sensitive groups. See
-                <a href="https://aif360.readthedocs.io/en/latest/modules/generated/aif360.metrics.ClassificationMetric.html" 
-                target="_blank">AIF360 metric documentation</a> for metric definitions. Some fairness
-                metrics are computed for each group by comparing it with the rest of the population.</p>
-                <br/>
-                <details>
-                  <summary>In total {len(sensitive)} protected groups were analysed.</summary>
-                  <i>{', '.join(sensitive).replace('_', ' ')}</i><br>
-                </details>
-                <details>
-                  <summary>Computed metrics</summary>
-                  <i>{metrics_table}</i><br>
-                </details>
-                {('<p class="text-warning"><br><i>Some sensitive attributes that were not '
-                  'binary have been automatically expanded to their one-hot encoding.'
-                  '</i></p>'if original_sensitive_len != len(sensitive) else '')}
-                <br>
-                <p><b>Results require manual inspection to identify problematic values or imbalances.</b></p>
-        </div>
-    </div>
-    <hr/>
+    # -----------------------------------------
+    # EXPERT PANEL
+    # -----------------------------------------
+    expert_html = f"""
     {render_metric_bars(rows, sensitive)}
     <div class="mt-4">{dataset.to_description()}</div>
+    """
+
+    # -----------------------------------------
+    # FINAL UI OUTPUT
+    # -----------------------------------------
+    banner_color = "#2e8b57" if "fair" in verdict.lower() else "#c0392b"
+    html_content = f"""
+    <style>
+        .banner {{
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 42px;
+            font-weight: 700;
+            text-align: center;
+            color: white;
+            border-radius: 12px;
+            background: {banner_color};
+            margin-bottom: 25px;
+        }}
+        .pill-buttons {{ display: flex; gap: 12px; margin-bottom: 25px; }}
+        .pill-btn {{
+            width: 100%; text-align:center; padding: 10px 18px;
+            background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc;
+            cursor: pointer; font-size: 18px; transition: 0.2s;
+        }}
+        .pill-btn:hover {{ background: #e0e0e0; }}
+        .pill-btn.active {{
+            background: #d0d0d0; border-color: #999;
+        }}
+        .section-panel {{ display: none; }}
+        .section-panel.active {{ display: block; }}
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {{
+            const buttons = document.querySelectorAll(".pill-btn");
+            const sections = document.querySelectorAll(".section-panel");
+            buttons.forEach(btn => {{
+                btn.addEventListener("click", () => {{
+                    let t = btn.getAttribute("data-target");
+                    buttons.forEach(b => b.classList.remove("active"));
+                    sections.forEach(s => s.classList.remove("active"));
+                    btn.classList.add("active");
+                    document.getElementById(t).classList.add("active");
+                }});
+            }});
+            buttons[0].classList.add("active");
+            sections[0].classList.add("active");
+        }});
+    </script>
+
+    <div>
+        <h1 class="banner">{verdict}</h1>
+
+        <div class="pill-buttons">
+            <div class="pill-btn" data-target="whatis">
+                What is this?<br>
+                <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="methodology">
+                Analysis methodology<br>
+                <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="pipeline">
+                Data pipeline<br>
+                <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="experts">
+                For experts<br>
+                <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
+            </div>
+        </div>
+
+        <div id="whatis" class="section-panel">
+            <p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>
+            {bias_list_html}
+        </div>
+
+        <div id="methodology" class="section-panel">
+            <p>Each fairness metric provided by AIF360 is compared across all groups (though not intersections). 
+            We take the absolute value of each metric and check whether it exceeds <b>{threshold}</b>.</p>
+        </div>
+
+        <div id="pipeline" class="section-panel">
+            {dataset.to_description().split("Args:")[0]}
+            <br><br>
+            {model.to_description().split("Args:")[0]}
+        </div>
+
+        <div id="experts" class="section-panel">
+            {expert_html}
+        </div>
     </div>
     """
-    return HTML(html)
+
+    return HTML(html_content)
