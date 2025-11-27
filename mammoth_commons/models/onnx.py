@@ -33,22 +33,17 @@ class ONNX(Predictor):
             }
             onnx_type = inputs[0].type
             np_type = onnx_type_to_np.get(onnx_type, None)
-            if not np_type:
-                raise Exception(
-                    f"ONNX model expects an unsupported input type: {onnx_type}"
-                )
+            assert np_type, f"ONNX model expects an unsupported input type: {onnx_type}"
             x = x.astype(np_type)
             inp = inputs[0]
             assert len(inp.shape) == 2, "ONNX model expects a 2D input"
             expected_cols = (
                 inp.shape[1] if isinstance(inp.shape[1], int) else x.shape[1]
             )
-            if expected_cols != x.shape[1]:
-                raise Exception(
-                    f"ONNX model expects {expected_cols} columns but dataset has {x.shape[1]}. "
-                    f"Sensitive attributes mismatch? Input name={inp.name}"
-                )
-
+            assert expected_cols == x.shape[1], (
+                f"ONNX model expects {expected_cols} columns but dataset has {x.shape[1]}. "
+                f"Sensitive attributes mismatch? Input name={inp.name}"
+            )
             feed = {inp.name: x}
         else:
             # convert dataset to csv format to get the underlying dataframe
@@ -62,11 +57,9 @@ class ONNX(Predictor):
                 df = df.drop(columns=sensitive, errors="ignore")
             onnx_inputs = [inp.name for inp in inputs]
             missing = [c for c in onnx_inputs if c not in df.columns]
-            if missing:
-                raise Exception(
-                    f"The dataset is missing required columns for the ONNX model: {missing}"
-                )
-
+            assert (
+                not missing
+            ), f"The dataset is missing required columns for the ONNX model: {missing}"
             x = df[onnx_inputs].to_numpy()
             assert x.ndim == 2, f"Dataset must be 2D, got shape {x.shape}"
             assert (

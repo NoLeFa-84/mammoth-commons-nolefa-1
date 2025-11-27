@@ -80,6 +80,8 @@ def sklearn_audit(
     from sklearn import model_selection
 
     min_group_size = int(min_group_size)
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",")]
     assert len(sensitive) != 0, "Set at least one sensitive attribute"
     presentation = fb.export.HtmlBars if presentation == "Bars" else fb.export.HtmlTable
     reject = not bool(show_non_problematic)

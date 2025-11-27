@@ -63,23 +63,19 @@ class Pytorch(Predictor):
                         for j in range(len(sens)):
                             all_sensitive[i] += sens[i]
                     is_numerical = False
-                elif torch.is_tensor(sens[0]):
+                else:
+                    assert torch.is_tensor(
+                        sens[0]
+                    ), "dataloader should return tensors (for numerical sensitive values) or tuples (for categorical sensitive values)"
                     for i in range(len(sensitive)):
                         all_sensitive[i] += [sens[i].cpu() for i in range(len(sens))]
                     is_numerical = True
-                else:
-                    raise ValueError(
-                        "dataloader should return tensors (for numerical sensitive values) or tuples (for categorical sensitive values)"
-                    )
         all_predictions = torch.cat(all_predictions)
         all_labels = torch.cat(all_labels)
         dataset.labels = {"0": 1 - all_labels, "1": all_labels}
-        if is_numerical:
-            dataset.data = {
-                name: torch.cat(value) for name, value in zip(sensitive, all_sensitive)
-            }
-        else:
-            dataset.data = {
-                name: value for name, value in zip(sensitive, all_sensitive)
-            }
+        dataset.data = (
+            {name: torch.cat(value) for name, value in zip(sensitive, all_sensitive)}
+            if is_numerical
+            else {name: value for name, value in zip(sensitive, all_sensitive)}
+        )
         return all_predictions

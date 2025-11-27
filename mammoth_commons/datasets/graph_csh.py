@@ -106,8 +106,8 @@ class Graph_CSH(Dataset):
 
         self.G = Couthorship_network
 
-    def return_num_nodes(self):
-        return self.papers_df.shape[0]
-
-    def return_num_edges(self):
-        return self.affiliations_df.shape[0]
+    # def return_num_nodes(self):
+    #     return self.papers_df.shape[0]
+    #
+    # def return_num_edges(self):
+    #     return self.affiliations_df.shape[0]

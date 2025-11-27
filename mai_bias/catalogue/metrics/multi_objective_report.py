@@ -53,10 +53,11 @@ def multi_objective_report(
     # obtain predictions
     if hasattr(model, "mmm"):
         model = model.mmm
-    if hasattr(model, "pareto") and model.pareto is not None:
-        thetas = model.pareto
-    else:
-        thetas = np.arange(2, len(model.models))
+    thetas = (
+        model.pareto
+        if hasattr(model, "pareto") and model.pareto is not None
+        else np.arange(2, len(model.models))
+    )
     O_1, O_2, O_3 = [], [], []
     labs = list(dataset.labels.__iter__())[-1]
     labs = labs.to_numpy() if hasattr(labs, "to_numpy") else np.array(labs)

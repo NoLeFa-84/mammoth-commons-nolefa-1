@@ -37,6 +37,8 @@ def croissant(
     are working with, or using publicly hosted data by providing https links for files.
     Metadata are displayed as HTML to help you get an overview and are presented as a copy-able block of json.
     """
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",")]
     if isinstance(qualitative_creators, str):
         qualitative_creators = qualitative_creators.split(",")
     if isinstance(distribution, str):

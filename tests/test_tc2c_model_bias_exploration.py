@@ -10,17 +10,21 @@ def test_bias_exploration():
 
         dataset = env.data_custom_csv(
             path="https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv",
-            categorical=[
-                "job",
-                "marital",
-                "education",
-                "default",
-                "housing",
-                "loan",
-                "contact",
-                "poutcome",
-            ],
-            numeric=["age", "duration", "campaign", "pdays", "previous"],
+            categorical=",".join(
+                [  # robustness test of comma separated string instead of proper list
+                    "job",
+                    "marital",
+                    "education",
+                    "default",
+                    "housing",
+                    "loan",
+                    "contact",
+                    "poutcome",
+                ]
+            ),
+            numeric=",".join(
+                ["age", "duration", "campaign", "pdays", "previous"]
+            ),  # robustness test
             label="y",
             delimiter=";",
         )
@@ -31,7 +35,7 @@ def test_bias_exploration():
         env.sklearn_audit(
             dataset,
             model,
-            sensitive=["marital", "age"],
+            sensitive="marital, age",  # again robustness test (list is preferable)
             predictor="Logistic regression",
         ).show()
 

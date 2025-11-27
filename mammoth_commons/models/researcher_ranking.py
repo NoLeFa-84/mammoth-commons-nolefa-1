@@ -8,6 +8,7 @@ class ResearcherRanking(Model):
         self.baseline_rank = baseline_ranking_function
 
     def predict(self, dataset, sensitive):
-        if len(sensitive) != 1:
-            raise Exception("Researcher ranking data cannot have ")
+        assert (
+            len(sensitive) == 1
+        ), "Researcher ranking accepts only one sensitive attribute"
         return self.rank(dataset, sensitive[0])

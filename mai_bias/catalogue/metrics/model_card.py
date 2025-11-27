@@ -64,6 +64,8 @@ def model_card(
     reps = fb.reports
     prob = float(problematic_deviation)
     min_group_size = int(min_group_size)
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",")]
     assert len(sensitive) != 0, "At least one sensitive attribute should be provided"
     assert 0 <= prob <= 1, "Problematic deviation should be in [0,1]"
     presentation = fb.export.HtmlBars if presentation == "Bars" else fb.export.HtmlTable

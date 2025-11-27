@@ -68,6 +68,8 @@ def specific_concerns(
         problematic_deviation: Sets up a threshold of when to consider deviation from ideal values as problematic. If nothing is considered problematic fairness is not necessarily achieved, but this is a good way to identify the most prominent biases. If value of 0 is set, all report values are shown, including those that have no ideal value.
     """
     fb = importlib.import_module("fairbench")
+    if isinstance(sensitive, str):
+        sensitive = sensitive.split(",")
     assert len(sensitive) != 0, "At least one sensitive attribute should be selected"
     predictions = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)

@@ -167,38 +167,26 @@ def aif360_metrics(
     import numpy as np
 
     threshold = float(bias_threshold)
-
-    # -----------------------------------------
-    # PREP + AIF360 DATA
-    # -----------------------------------------
     if isinstance(sensitive, str):
         sensitive = [s.strip() for s in sensitive.split(",")]
     assert len(sensitive) > 0, "Must specify at least one sensitive attribute"
-
     y_pred = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
     y_pred, y_true = align_predictions(y_pred, dataset.labels)
-
     pred_col = list(y_pred.columns)[0]
     label_col = list(y_true.columns)[0]
-
     dataset.df["label"] = y_true[label_col]
-
     aif_dataset_true, sensitive = dataset.to_aif360(
         label_col="label",
         sensitive_cols=sensitive,
         favorable_label=favorable_label,
         unfavorable_label=unfavorable_label,
     )
-
     df = dataset.df.copy()
     df["y_pred"] = y_pred[pred_col]
     aif_dataset_pred = aif_dataset_true.copy()
     aif_dataset_pred.labels = df[["y_pred"]].values
 
-    # -----------------------------------------
-    # METRIC COMPUTATION
-    # -----------------------------------------
     classification_metrics = {
         "Accuracy": "accuracy",
         "Average Abs Odds Difference": "average_abs_odds_difference",
@@ -264,14 +252,12 @@ def aif360_metrics(
     metrics_by_group = {}
     all_metric_names = set()
     prog = 0
-
     for attr in sensitive:
         privileged = [{attr: 1}]
         unprivileged = [{attr: 0}]
         metric_obj = ClassificationMetric(
             aif_dataset_true, aif_dataset_pred, unprivileged, privileged
         )
-
         metrics = {}
         for label, method in classification_metrics.items():
             notify_progress(
@@ -292,12 +278,8 @@ def aif360_metrics(
 
         metrics_by_group[attr] = metrics
         all_metric_names.update(metrics.keys())
-
     notify_end()
 
-    # -----------------------------------------
-    # BUILD TABLE
-    # -----------------------------------------
     rows = []
     for metric_name in sorted(all_metric_names):
         row = {"Metric": metric_name}
@@ -305,13 +287,8 @@ def aif360_metrics(
             row[attr] = metrics_by_group[attr].get(metric_name, math.nan)
         rows.append(row)
 
-    # -----------------------------------------
-    # THRESHOLD CHECK WITH DIRECTIONAL DEVIATIONS
-    # -----------------------------------------
-
-    # bias metrics and their ideal targets
     IDEAL_VALUES = {
-        "Disparate Impact": 1.0,  # DI close to 1
+        "Disparate Impact": 1.0,
         "Statistical Parity Difference": 0.0,
         "Equal Opportunity Difference": 0.0,
         "Equalized Odds Difference": 0.0,
@@ -341,34 +318,22 @@ def aif360_metrics(
         and deviation(r["Metric"], float(v)) > threshold
     }
 
-    if len(biases) == 1:
-        verdict = (
+    verdict = (
+        (
             list(biases)[0][0].upper()
             + list(biases)[0][1:]
             + f" bias in {len(sensitive)} groups"
         )
-    else:
-        verdict = (
+        if len(biases) == 1
+        else (
             f"{len(biases)} types of bias in {len(sensitive)} groups"
             if len(biases)
             else f"Fairness among {len(sensitive)} groups"
         )
+    )
     bias_list_html = (
         "<i>" + "<br>".join(biases) + "</i>" if biases else "the system is likely fair"
     )
-
-    # -----------------------------------------
-    # EXPERT PANEL
-    # -----------------------------------------
-    expert_html = f"""
-    {render_metric_bars(rows, sensitive)}
-    <div class="mt-4">{dataset.to_description()}</div>
-    """
-
-    # -----------------------------------------
-    # FINAL UI OUTPUT
-    # -----------------------------------------
-    banner_color = "#2e8b57" if "fair" in verdict.lower() else "#c0392b"
     html_content = f"""
     <style>
         .banner {{
@@ -379,7 +344,7 @@ def aif360_metrics(
             text-align: center;
             color: white;
             border-radius: 12px;
-            background: {banner_color};
+            background: {"#2e8b57" if "fair" in verdict.lower() else "#c0392b"};
             margin-bottom: 25px;
         }}
         .pill-buttons {{ display: flex; gap: 12px; margin-bottom: 25px; }}
@@ -453,7 +418,8 @@ def aif360_metrics(
         </div>
 
         <div id="experts" class="section-panel">
-            {expert_html}
+            {render_metric_bars(rows, sensitive)}
+            <div class="mt-4">{dataset.to_description()}</div>
         </div>
     </div>
     """

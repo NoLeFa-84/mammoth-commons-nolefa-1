@@ -4,8 +4,8 @@ if os.getcwd().endswith(r"mammoth\tests"):
     import warnings
 
     warnings.warn(
-        "\nThere was an attempt to import mammoth from within its `tests` folder."
-        "\nThis could fail to import components from the `catalogue` folder for the tests,"
+        "\nThere was likely an attempt to import mammoth from within its `...mammoth/tests/` folder."
+        "\nThis could fail to import modules from the `...mammoth/mai_bias/catalogue/` folder for the tests,"
         "\nso `os.chdir('..')` command was applied first. If this still fails, make `import mammoth` "
         "\nyour first import. This message will not appear if you correctly set up a run configuration "
         "\nthat uses the top level of mammoth as a working directory when running tests."

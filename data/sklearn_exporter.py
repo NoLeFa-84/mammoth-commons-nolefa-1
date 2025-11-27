@@ -21,19 +21,35 @@ X = df.drop("y", axis=1)
 y = (df["y"] == "yes").astype(int)
 
 # Detect column groups
-numeric_features = ['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'previous']
-categorical_features = ['job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome']
+numeric_features = [
+    "age",
+    "balance",
+    "day",
+    "duration",
+    "campaign",
+    "pdays",
+    "previous",
+]
+categorical_features = [
+    "job",
+    "marital",
+    "education",
+    "default",
+    "housing",
+    "loan",
+    "contact",
+    "month",
+    "poutcome",
+]
 
 # --------------------
 # Preprocessing WITHOUT IMPUTERS (needed for ONNX)
 # --------------------
-numeric_transformer = Pipeline(steps=[
-    ("scaler", StandardScaler())
-])
+numeric_transformer = Pipeline(steps=[("scaler", StandardScaler())])
 
-categorical_transformer = Pipeline(steps=[
-    ("onehot", OneHotEncoder(handle_unknown="ignore"))
-])
+categorical_transformer = Pipeline(
+    steps=[("onehot", OneHotEncoder(handle_unknown="ignore"))]
+)
 
 preprocessor = ColumnTransformer(
     transformers=[
@@ -42,10 +58,9 @@ preprocessor = ColumnTransformer(
     ]
 )
 
-clf = Pipeline(steps=[
-    ("preprocessor", preprocessor),
-    ("model", LogisticRegression(max_iter=200))
-])
+clf = Pipeline(
+    steps=[("preprocessor", preprocessor), ("model", LogisticRegression(max_iter=200))]
+)
 
 clf.fit(X, y)
 

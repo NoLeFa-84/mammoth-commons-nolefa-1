@@ -6,7 +6,7 @@ from mammoth_commons.integration import metric
 from mammoth_commons.integration_callback import notify_progress, notify_end
 
 
-def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
+def generate_nested_pie_chart(df, columns, title=None):
     """
     Generate a nested pie chart (sunburst) where the same values in the same ring
     have the same color while ensuring distinct colors between rings.
@@ -15,42 +15,31 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
     import plotly.graph_objects as go
     import plotly.express as px
 
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("df must be a pandas DataFrame")
-    if not isinstance(columns, list) or len(columns) < 1:
-        raise TypeError("columns must be a list with at least 1 column name")
+    assert isinstance(df, pd.DataFrame), "df must be a pandas DataFrame"
+    assert (
+        isinstance(columns, list) and len(columns) >= 1
+    ), "columns must be a list containing at least 1 column name"
     for col in columns:
-        if col not in df.columns:
-            raise ValueError(f"Column '{col}' not found in DataFrame")
-
-    # Determine a numeric column to use as values
+        assert col in df.columns, f"Column '{col}' not found in DataFrame"
     value_col = None
     for col in df.columns:
         if col not in columns and pd.api.types.is_numeric_dtype(df[col]):
             value_col = col
             break
-
-    # List of color maps to use for each column
     color_palettes = [
         px.colors.qualitative.Set1,
         px.colors.qualitative.Set2,
-        # px.colors.qualitative.Set3,
-        # px.colors.qualitative.Plotly,
-        # px.colors.qualitative.D3
-    ]  # Add more palettes if needed
+    ]
 
-    # Create a color mapping for each level
     color_map = {}
     for j, col in enumerate(columns):
         unique_values = df[col].unique()
-        # Select a color palette for the current column, cycling through available palettes
         color_palette = color_palettes[j % len(color_palettes)]
         color_map[col] = {
             val: color_palette[i % len(color_palette)]
             for i, val in enumerate(unique_values)
         }
 
-    # Create the sunburst chart
     fig = px.sunburst(
         df,
         path=columns,
@@ -60,7 +49,6 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
     )
 
     global_color_map = {}
-
     for level in columns:
         if level in color_map:  # Make sure the level has a color map
             for val, color in color_map[level].items():
@@ -68,24 +56,14 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
                     global_color_map[str(val)] = color
 
     for i, trace in enumerate(fig.data):
-        # Initialize the 'colors' list for the trace if it's None
         if trace.marker.colors is None:
             trace.marker.colors = []
-
-        # Initialize an empty list to store colors for each label
         colors = []
-
-        # For each segment, apply the color based on its label
         for j, label in enumerate(trace.labels):
-            color = global_color_map.get(
-                str(label), "#000000"
-            )  # Default to black if not found
+            color = global_color_map.get(str(label), "#000000")
             colors.append(color)
-
-        # Assign the list of colors to the trace's marker colors
         trace.marker.colors = colors
 
-    # Create dummy traces for the custom legend
     legend_entries = []
     for col, col_map in color_map.items():
         # Add feature label entry (i.e., 'Feature 1', 'Feature 2')
@@ -142,24 +120,16 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
             x=+1.05,  # Position the legend below the chart
             tracegroupgap=10,  # Spacing between legend items
         ),
-        # Set background color of plot and chart area to transparent
-        plot_bgcolor="rgba(0,0,0,0)",  # Transparent plot background
-        paper_bgcolor="rgba(0,0,0,0)",  # Transparent paper background
-        # Disable grid and axes lines
-        xaxis=dict(
-            showgrid=False, zeroline=False, showticklabels=False
-        ),  # No grid or ticks on x-axis
-        yaxis=dict(
-            showgrid=False, zeroline=False, showticklabels=False
-        ),  # No grid or ticks on y-axis
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
     )
 
     customdata = [
         " → ".join([f"{columns[i]}: {val}" for i, val in enumerate(i.split("/"))])
         for i in trace.ids
     ]
-
-    # Pass the full path information as custom data
     fig.update_traces(
         branchvalues="total",
         customdata=customdata,  # Full path data as customdata
@@ -168,64 +138,35 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
         insidetextorientation="radial",
         texttemplate="%{label}<br>%{percentRoot:.1%}",
     )
-
-    # Add the legend entries for custom color patches
     for legend_entry in legend_entries:
         fig.add_trace(legend_entry)
-
     return fig
 
 
 def plot_sampling_strategies(
-    df, protected_attribute, target_column, width=1000, height=400
+    df: "DataFrame",
+    protected: str,
+    target_column: str,
+    width: int = 1000,
+    height: int = 400,
 ):
-    """
-    Create a visualization of class and group balances across different sampling strategies using Plotly.
-
-    Parameters:
-    -----------
-    df : pandas.DataFrame
-        The dataset to analyze
-    protected_attribute : str
-        Column name of the protected attribute (e.g., 'sex')
-    target_column : str
-        Column name of the target class (e.g., 'income')
-    width : int, optional
-        Width of the figure, default is 1000
-    height : int, optional
-        Height of the figure, default is 400
-    """
-    import pandas as pd
-    import plotly.graph_objects as go
-    import plotly.express as px
     from plotly.subplots import make_subplots
 
-    # Create a copy of the dataframe
     data = df.copy()
-
-    # Original names for later reference
     most_common_value = None
-
-    # Convert to binary if not already
-    if data[protected_attribute].nunique() > 2:
-        # For demonstration purposes, convert to binary (most frequent vs rest)
-        most_common = data[protected_attribute].value_counts().index[0]
+    if data[protected].nunique() > 2:
+        most_common = data[protected].value_counts().index[0]
         most_common_value = most_common
-        data[protected_attribute] = (data[protected_attribute] == most_common).astype(
-            int
-        )
+        data[protected] = (data[protected] == most_common).astype(int)
 
     if data[target_column].nunique() > 2:
-        # For demonstration purposes, convert to binary (most frequent vs rest)
         most_common = data[target_column].value_counts().index[0]
-        # Create clear mapping for target values
         target_values_map = {
             1: f"Most common: {most_common}",
             0: f"Other {target_column} values",
         }
         data[target_column] = (data[target_column] == most_common).astype(int)
 
-    # Create subplot titles
     subplot_titles = [
         "Original data",
         "Class",
@@ -233,38 +174,21 @@ def plot_sampling_strategies(
         "Protected",
         "Class (ratio)",
     ]
-
-    # Create a figure with 5 subplots in a row
     fig = make_subplots(rows=1, cols=5, subplot_titles=subplot_titles)
+    add_plot_distribution(fig, data, protected, target_column, 1, 1)
 
-    # First subplot: Original data distribution
-    add_plot_distribution(fig, data, protected_attribute, target_column, 1, 1)
+    class_data = class_sampling(data, protected, target_column)
+    add_plot_distribution(fig, class_data, protected, target_column, 1, 2)
 
-    # Second subplot: 'class' strategy
-    class_data = apply_class_sampling(data, protected_attribute, target_column)
-    add_plot_distribution(fig, class_data, protected_attribute, target_column, 1, 2)
+    class_protected_data = class_protected_sampling(data, protected, target_column)
+    add_plot_distribution(fig, class_protected_data, protected, target_column, 1, 3)
 
-    # Third subplot: 'class & protected' strategy
-    class_protected_data = apply_class_protected_sampling(
-        data, protected_attribute, target_column
-    )
-    add_plot_distribution(
-        fig, class_protected_data, protected_attribute, target_column, 1, 3
-    )
+    protected_data = protected_sampling(data, protected, target_column)
+    add_plot_distribution(fig, protected_data, protected, target_column, 1, 4)
 
-    # Fourth subplot: 'protected' strategy
-    protected_data = apply_protected_sampling(data, protected_attribute, target_column)
-    add_plot_distribution(fig, protected_data, protected_attribute, target_column, 1, 4)
+    class_ratio_data = apply_class_ratio_sampling(data, protected, target_column)
+    add_plot_distribution(fig, class_ratio_data, protected, target_column, 1, 5)
 
-    # Fifth subplot: 'class (ratio)' strategy
-    class_ratio_data = apply_class_ratio_sampling(
-        data, protected_attribute, target_column
-    )
-    add_plot_distribution(
-        fig, class_ratio_data, protected_attribute, target_column, 1, 5
-    )
-
-    # Update subplot title with augmentation ratio
     for i, ax_title in enumerate(subplot_titles):
         if i > 0:  # Skip the first plot (original data)
             # Calculate augmentation ratio
@@ -293,7 +217,7 @@ def plot_sampling_strategies(
     )
 
     # Update all x-axes with the appropriate title
-    x_title = protected_attribute
+    x_title = protected
 
     for i in range(1, 6):
         fig.update_xaxes(title_text=x_title, row=1, col=i)
@@ -392,7 +316,7 @@ def add_plot_distribution(fig, df, protected_attribute, target_column, row, col)
     return fig
 
 
-def apply_class_sampling(df, protected_attribute, target_column):
+def class_sampling(df, protected_attribute, target_column):
     """
     Separately for each group (0/1 in protected attribute) sample instances
     for the minority class to match the number in the majority class.
@@ -433,7 +357,7 @@ def apply_class_sampling(df, protected_attribute, target_column):
     return result
 
 
-def apply_class_protected_sampling(df, protected_attribute, target_column):
+def class_protected_sampling(df, protected_attribute, target_column):
     """
     For the largest group, sample instances for the minority class to match
     the number in the majority class. For all other groups, sample for both classes
@@ -475,81 +399,49 @@ def apply_class_protected_sampling(df, protected_attribute, target_column):
     # For each other group, sample both classes to match largest group's majority class size
     for group in other_groups:
         group_data = df[df[protected_attribute] == group]
-
         for class_val in df[target_column].unique():
             class_samples = group_data[group_data[target_column] == class_val]
             n_samples = len(class_samples)
             n_to_generate = n_majority - n_samples
-            if n_samples == 0:
-                raise Exception(
-                    f"Group {group} has no members in prediction class {target_column}"
-                )
-
+            assert (
+                n_samples
+            ), f"Group {group} has no members in prediction class {target_column}"
             if n_to_generate > 0:
                 synthetic_samples = class_samples.sample(n_to_generate, replace=True)
                 result = pd.concat([result, synthetic_samples])
-
     return result
 
 
-def apply_protected_sampling(df, protected_attribute, target_column):
-    """
-    Do not sample for the largest group, but only for all other groups
-    to match the number in the largest group, without considering class labels.
-    """
+def protected_sampling(df, protected_attribute, target_column):
     import pandas as pd
-    import plotly.graph_objects as go
-    import plotly.express as px
-    from plotly.subplots import make_subplots
 
     result = df.copy()
-
-    # Find the largest group
     group_counts = df[protected_attribute].value_counts()
     largest_group = group_counts.idxmax()
     largest_group_size = group_counts[largest_group]
     other_groups = [g for g in df[protected_attribute].unique() if g != largest_group]
-
-    # For each other group, sample to match the size of the largest group
     for group in other_groups:
         group_data = df[df[protected_attribute] == group]
         n_samples = len(group_data)
         n_to_generate = largest_group_size - n_samples
-
         if n_to_generate > 0:
             synthetic_samples = group_data.sample(n_to_generate, replace=True)
             result = pd.concat([result, synthetic_samples])
-
     return result
 
 
 def apply_class_ratio_sampling(df, protected_attribute, target_column):
-    """
-    Do not sample for the largest group, but only for all other groups to match
-    the class ratio of the largest group.
-
-    This implementation follows the approach described in the prompt.
-    """
     import pandas as pd
-    import plotly.graph_objects as go
-    import plotly.express as px
-    from plotly.subplots import make_subplots
 
     result = df.copy()
-
-    # Find the largest group
     group_counts = df[protected_attribute].value_counts()
     largest_group = group_counts.idxmax()
     largest_group_data = df[df[protected_attribute] == largest_group]
-
-    # Calculate class percentages in largest group
     largest_group_class_counts = largest_group_data[target_column].value_counts()
     largest_group_total_count = len(largest_group_data)
     largest_group_class_percentages = (
         largest_group_class_counts / largest_group_total_count
     )
-
-    # Process other groups
     other_groups = [g for g in df[protected_attribute].unique() if g != largest_group]
 
     for group in other_groups:
@@ -582,12 +474,9 @@ def apply_class_ratio_sampling(df, protected_attribute, target_column):
                     size = int(additional_instances)
 
                 if size > 0:
-                    # Get samples of this class in this group
                     class_group_samples = group_data[
                         group_data[target_column] == class_label
                     ]
-
-                    # Simple oversampling with replacement
                     synthetic_samples = class_group_samples.sample(size, replace=True)
                     result = pd.concat([result, synthetic_samples])
 
@@ -617,7 +506,6 @@ def apply_class_ratio_sampling(df, protected_attribute, target_column):
                     # Set protected attribute to current group
                     synthetic_samples = synthetic_samples.copy()
                     synthetic_samples[protected_attribute] = group
-
                     result = pd.concat([result, synthetic_samples])
 
     return result

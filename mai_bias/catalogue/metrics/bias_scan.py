@@ -57,7 +57,7 @@ def bias_scan(
     from aif360.sklearn.detectors import bias_scan as aif360bias_scan
 
     if isinstance(sensitive, str):
-        sensitive = [sens.strip() for sens in sensitive.split(",")]
+        sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
 
     predictions = pd.Series(model.predict(dataset, sensitive))
     dataset = dataset.to_csv(sensitive)
@@ -106,8 +106,9 @@ def bias_scan(
             counts = max(counts, len(ret))
             if not discovery:
                 break
-            else:
-                text += f'<h4 class="text-warning">Rerunning for new sensitive attributes</h4>'
+            text += (
+                f'<h4 class="text-warning">Rerunning for new sensitive attributes</h4>'
+            )
 
     outcome = (
         "No attribute concerns detected"
@@ -115,20 +116,16 @@ def bias_scan(
         else f"Scan revealed {counts} attribute biases"
     )
     outcome_class = "fair" if counts == 0 else "biased"
-
     dataset_description = dataset.to_description().split("Args:")[0]
     model_description = model.to_description().split("Args:")[0]
 
     html_content = f"""
     <style>
         .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
-        .banner {{width: 100%;  padding: 18px 24px; font-size: 42px; font-weight: 700;
-                 text-align: center; color: white; border-radius: 12px; margin-bottom: 25px;}}
+        .banner {{width: 100%;  padding: 18px 24px; font-size: 42px; font-weight: 700; text-align: center; color: white; border-radius: 12px; margin-bottom: 25px;}}
         .banner.fair {{ background: #2e8b57; }}
         .banner.biased {{ background: #c0392b; }}
-        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5;
-                     border-radius: 10px; border: 1px solid #ccc; cursor: pointer; font-size: 18px;
-                     transition: background 0.2s;}}
+        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
         .pill-btn:hover {{ background: #e0e0e0; }}
         .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
         .section-panel {{ display: none; border: 0px solid #ddd; padding: 0px; border-radius: 8px; background: white; }}
@@ -187,20 +184,12 @@ def bias_scan(
             <b>{scoring}</b> statistical model. A penalty parameter <b>{penalty}</b> controls the complexity of
             discovered intersections: higher penalty → simpler intersections.
             {'In discovery mode, detected suspicious attributes are added to the ignored list and the scan repeated until no more intersections are detected.'
-    if discovery else
-    'Only the top suspicious attribute combination is reported; further combinations may exist.'}
+            if discovery else
+            'Only the top suspicious attribute combination is reported; further combinations may exist.'}
             </p>
         </div>
-
-        <div id="pipeline" class="section-panel">
-            {dataset_description}
-            <br><br>
-            {model_description}
-        </div>
-
-        <div id="details" class="section-panel">
-            {text}
-        </div>
+        <div id="pipeline" class="section-panel">{dataset_description} <br><br> {model_description}</div>
+        <div id="details" class="section-panel">{text}</div>
     </div>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
