@@ -279,14 +279,12 @@ def aif360_metrics(
         metrics_by_group[attr] = metrics
         all_metric_names.update(metrics.keys())
     notify_end()
-
     rows = []
     for metric_name in sorted(all_metric_names):
         row = {"Metric": metric_name}
         for attr in sensitive:
             row[attr] = metrics_by_group[attr].get(metric_name, math.nan)
         rows.append(row)
-
     IDEAL_VALUES = {
         "Disparate Impact": 1.0,
         "Statistical Parity Difference": 0.0,
@@ -302,11 +300,6 @@ def aif360_metrics(
         "False Omission Rate Difference": 0.0,
         "False Positive Rate Ratio": 0.0,
     }
-
-    def deviation(metric, value):
-        ideal = IDEAL_VALUES[metric]
-        return abs(value - ideal)
-
     biases = {
         r["Metric"].lower()
         for r in rows
@@ -315,9 +308,8 @@ def aif360_metrics(
         if attr != "Metric"
         and v is not None
         and not math.isnan(v)
-        and deviation(r["Metric"], float(v)) > threshold
+        and abs(IDEAL_VALUES[r["Metric"]] - float(v)) > threshold
     }
-
     verdict = (
         (
             list(biases)[0][0].upper()
@@ -360,7 +352,6 @@ def aif360_metrics(
         .section-panel {{ display: none; }}
         .section-panel.active {{ display: block; }}
     </style>
-
     <script>
         document.addEventListener("DOMContentLoaded", function() {{
             const buttons = document.querySelectorAll(".pill-btn");
@@ -378,10 +369,8 @@ def aif360_metrics(
             sections[0].classList.add("active");
         }});
     </script>
-
     <div>
         <h1 class="banner">{verdict}</h1>
-
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">
                 What is this?<br>
@@ -400,26 +389,18 @@ def aif360_metrics(
                 <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
             </div>
         </div>
-
         <div id="whatis" class="section-panel">
-            <p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>
-            {bias_list_html}
+            <p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>{bias_list_html}
         </div>
-
         <div id="methodology" class="section-panel">
             <p>Each fairness metric provided by AIF360 is compared across all groups (though not intersections). 
             We take the absolute value of each metric and check whether it exceeds <b>{threshold}</b>.</p>
         </div>
-
         <div id="pipeline" class="section-panel">
-            {dataset.to_description().split("Args:")[0]}
-            <br><br>
-            {model.to_description().split("Args:")[0]}
+            {dataset.to_description().split("Args:")[0]}<br><br>{model.to_description().split("Args:")[0]}
         </div>
-
         <div id="experts" class="section-panel">
             {render_metric_bars(rows, sensitive)}
-            <div class="mt-4">{dataset.to_description()}</div>
         </div>
     </div>
     """

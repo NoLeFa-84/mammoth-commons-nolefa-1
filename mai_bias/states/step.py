@@ -178,6 +178,18 @@ class Step(Styled):
         self.cancel_button.setFixedSize(80, 30)
         self.cancel_button.clicked.connect(self.switch_to_dashboard)
 
+        if hasattr(self, "switch_to_restart"):
+            self.restart_button = QPushButton("Edit pipeline", self)
+            self.restart_button.setStyleSheet(
+                f"""
+                QPushButton {{background-color: #dc3545; color: white; border-radius: 5px;}}
+                QPushButton:hover {{background-color: {self.highlight_color('#dc3545')};}}
+                """
+            )
+            self.restart_button.setFixedSize(80, 30)
+            self.restart_button.clicked.connect(self.switch_to_restart)
+            button_layout.addWidget(self.restart_button)
+
         button_layout.addWidget(self.next_button)
         button_layout.addWidget(self.cancel_button)
         layout.addLayout(button_layout)

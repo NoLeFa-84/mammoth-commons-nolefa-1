@@ -115,6 +115,9 @@ class Results(Styled):
     def switch_to_dashboard(self):
         self.stacked_widget.slideToWidget(0)
 
+    def switch_to_restart(self):
+        self.stacked_widget.slideToWidget(1)
+
     def showEvent(self, event):
         super().showEvent(event)
         self.results_viewer.setHtml(

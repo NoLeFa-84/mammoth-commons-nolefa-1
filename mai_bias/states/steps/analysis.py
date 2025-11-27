@@ -193,6 +193,12 @@ biases that were not accounted for during system creation, like historical racis
         self.stacked_widget.slideToWidget(0)
         save_all_runs("history.json", self.dataset)
 
+    def switch_to_restart(self):
+        self.save("analysis")
+        self.runs[-1]["status"] = "saved"
+        self.stacked_widget.slideToWidget(1)
+        save_all_runs("history.json", self.dataset)
+
     def closeEvent(self, event):
         if hasattr(self, "thread") and self.thread.isRunning():
             self.thread.cancel()

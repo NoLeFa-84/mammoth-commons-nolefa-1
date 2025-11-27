@@ -286,11 +286,12 @@ def loader(
             notify_progress(0.99, "Running module...")
             ret = method(*args, **kwargs)
             if not ret.description:
-                ret.description = original_doc
+                param_description = ""
                 for k, v in kwargs.items():
-                    ret.description += (
-                        "<br><b>" + k.lower().replace("_", " ") + "</b>: " + str(v)
+                    param_description += (
+                        "<b>" + k.lower().replace("_", " ") + "</b>: " + str(v) + "<br>"
                     )
+                ret.description = param_description + original_doc
             notify_end()
             return ret
 
@@ -422,9 +423,10 @@ def kfp_method(
     ret = method(**parameters)
     assert isinstance(ret, return_type)
     if not ret.description:
-        ret.description = original_doc
-        for k,v in parameters.items():
-            ret.description += "<br><b>"+k.lower().replace("_", " ")+"</b>: "+str(v)
+        param_description = ""
+        for k, v in parameters.items():
+            param_description += "<b>" + k.lower().replace("_", " ") + "</b>: " + str(v) + "<br>"
+        ret.description = param_description+original_doc  
     with open(output.path, "wb") as file:
         pickle.dump(ret, file)
             """,
