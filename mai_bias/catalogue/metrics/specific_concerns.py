@@ -139,7 +139,7 @@ def specific_concerns(
         "Report"
         if problematic_deviation == 0
         else ("Fair" if report.flatten(True)[0] < problematic_deviation else "Biased")
-    ) + f" {base_measure.lower()} in {len(sensitive.branches())} protected groups"
+    ) + f" {base_measure.lower()}"  # " in {len(sensitive.branches())} protected groups"
 
     html_content = f"""
     <style>

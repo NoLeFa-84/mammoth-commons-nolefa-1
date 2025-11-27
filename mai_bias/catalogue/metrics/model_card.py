@@ -94,10 +94,7 @@ def model_card(
             for value in col2.depends.values():
                 # problematic.add(col2.descriptor.details+" of "+value.descriptor.details+" for "+col.descriptor.details)
                 problematic.add(
-                    "<b>"
-                    + value.descriptor.name
-                    + "</b>: "
-                    + value.descriptor.prototype.details
+                    f"{value.descriptor.prototype.details} ({value.descriptor.name})"
                 )
     if prob != 0:
         report = report.filter(fb.investigate.DeviationsOver(prob, prune=reject))
@@ -115,10 +112,10 @@ def model_card(
     }
     if problematic:
         outcome_class = "biased"
-        outcome_label = f"{len(problematic)} biased metrics in {len(sensitive.branches())} protected groups"
+        outcome_label = f"Biases in {len(problematic)} types of benefits"  # " in {len(sensitive.branches())} protected groups"
     else:
         outcome_class = "fair"
-        outcome_label = "Fully fair system"
+        outcome_label = "No concerns"
 
     expert_tabs_header = "".join(
         f'<button class="tablinks" data-tab="{key}">{key}</button>' for key in views
@@ -228,12 +225,11 @@ def model_card(
         </div>
 
         <div id="whatis" class="section-panel">
-            <p>This model card investigates many kinds of fairness definitions across <b>{len(sensitive.branches())}</b> 
-            protected groups, by comparing them {compare_groups.lower()}. 
-            {('The following system performance metrics, which indicate obtained benefits like correct or favorable'
+            <p>{('Some system performance metrics, which indicate obtained benefits like correct or favorable ' 
               'operation, were found unevenly distributed across the population. '
               'These biases occurred in at least one prediction class and at least one way of aggregating the comparison '
-              'among multiple groups. Expert assessment is needed to help understand which biases may be considered unfair. ')
+              'among multiple groups. Expert assessment is needed to help understand which biases may be considered unfair. '
+              'The biased metrics are:')
             if problematic else 'No biases were found.'}
             <br><br>
             <i>{'<br>'.join(problematic)}</i>
@@ -258,6 +254,8 @@ def model_card(
         </div>
 
         <div id="details" class="section-panel">
+            <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
+            <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>     
             <div id="expert-tab-header">{expert_tabs_header}</div>
             <div id="expert-tab-body">{expert_tabs_body}</div>
         </div>

@@ -110,11 +110,7 @@ def bias_scan(
                 f'<h4 class="text-warning">Rerunning for new sensitive attributes</h4>'
             )
 
-    outcome = (
-        "No attribute concerns detected"
-        if counts == 0
-        else f"Scan revealed {counts} attribute biases"
-    )
+    outcome = "No concerns" if counts == 0 else f"{counts} attribute biases"
     outcome_class = "fair" if counts == 0 else "biased"
     dataset_description = dataset.to_description().split("Args:")[0]
     model_description = model.to_description().split("Args:")[0]

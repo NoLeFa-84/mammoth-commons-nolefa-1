@@ -159,7 +159,9 @@ class Step(Styled):
         layout.addWidget(self.description_input)
 
         button_layout = QHBoxLayout()
-        self.next_button = QPushButton("Next", self)
+        self.next_button = QPushButton(
+            "Run" if hasattr(self, "switch_to_restart") else "Next", self
+        )
         self.next_button.setStyleSheet(
             f"""
             QPushButton {{background-color: #007bff; color: white; border-radius: 5px; padding: 6px; }}
@@ -177,6 +179,7 @@ class Step(Styled):
         )
         self.cancel_button.setFixedSize(80, 30)
         self.cancel_button.clicked.connect(self.switch_to_dashboard)
+        button_layout.addWidget(self.next_button)
 
         if hasattr(self, "switch_to_restart"):
             self.restart_button = QPushButton("Edit pipeline", self)
@@ -190,7 +193,6 @@ class Step(Styled):
             self.restart_button.clicked.connect(self.switch_to_restart)
             button_layout.addWidget(self.restart_button)
 
-        button_layout.addWidget(self.next_button)
         button_layout.addWidget(self.cancel_button)
         layout.addLayout(button_layout)
 

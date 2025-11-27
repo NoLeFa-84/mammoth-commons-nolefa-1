@@ -314,13 +314,13 @@ def aif360_metrics(
         (
             list(biases)[0][0].upper()
             + list(biases)[0][1:]
-            + f" bias in {len(sensitive)} groups"
+            + f" bias"  # " in {len(sensitive)} groups"
         )
         if len(biases) == 1
         else (
-            f"{len(biases)} types of bias in {len(sensitive)} groups"
+            f"{len(biases)} types of bias"  # " in {len(sensitive)} groups"
             if len(biases)
-            else f"Fairness among {len(sensitive)} groups"
+            else f"No concerns"  # " among {len(sensitive)} groups"
         )
     )
     bias_list_html = (
@@ -393,8 +393,11 @@ def aif360_metrics(
             <p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>{bias_list_html}
         </div>
         <div id="methodology" class="section-panel">
-            <p>Each fairness metric provided by AIF360 is compared across all groups (though not intersections). 
-            We take the absolute value of each metric and check whether it exceeds <b>{threshold}</b>.</p>
+            <p>Each fairness metric provided by AIF360 is computed across <b>{len(sensitive)}</b> groups, each of which 
+            is compared to the rest of the population. No group intersections are accounted for. 
+            We check whether notions of bias exceed <b>{threshold}</b> in a scale 0-1 where 0 represents biased systems, 
+            or whether notions of fairness are lesser than <b>{1-threshold}</b> in a scale 0-1 where 1 represents fair systems.</p>
+            Considered groups are: <i><br>{"<br>".join(sens.replace('_', ' ') for sens in sensitive)}</i>
         </div>
         <div id="pipeline" class="section-panel">
             {dataset.to_description().split("Args:")[0]}<br><br>{model.to_description().split("Args:")[0]}

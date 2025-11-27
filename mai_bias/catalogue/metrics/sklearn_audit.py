@@ -1,7 +1,7 @@
 from mammoth_commons.datasets import CSV
 from mammoth_commons.models import EmptyModel
 from mammoth_commons.exports import HTML
-from typing import Dict, List
+from typing import Dict, List, Literal
 from mammoth_commons.integration import metric, Options
 import numpy as np
 from mammoth_commons.integration_callback import notify_progress, notify_end
@@ -25,14 +25,16 @@ def sklearn_audit(
     dataset: CSV,
     model: EmptyModel,
     sensitive: List[str],
-    predictor: Options("Logistic regression", "Gaussian naive Bayes") = None,
-    intersections: Options("Base", "All", "Subgroups") = "Base",
-    compare_groups: Options("Pairwise", "To the total population") = None,
-    problematic_deviation: float = 0.1,
-    show_non_problematic: bool = True,
+    predictor: Literal[
+        "Logistic regression", "Gaussian naive Bayes"
+    ] = "Gaussian naive Bayes",
+    intersections: Literal["Base", "All", "Subgroups"] = "Subgroups",
+    compare_groups: Literal["Pairwise", "To the total population"] = "Pairwise",
+    problematic_deviation: float = 0.05,
+    show_non_problematic: bool = False,
     top_recommendations: int = 3,
     min_group_size: int = 1,
-    presentation: Options("Numbers", "Bars") = "Numbers",
+    presentation: Literal["Numbers", "Bars"] = "Numbers",
 ) -> HTML:
     """
     <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
@@ -88,6 +90,7 @@ def sklearn_audit(
     X = dataset.to_pred(sensitive)
     y = dataset.labels
     y = y[list(y.__iter__())[0]]
+    original_model = model
 
     (
         X_train,
@@ -156,148 +159,178 @@ def sklearn_audit(
         report = report.filter(
             fb.investigate.DeviationsOver(problematic_deviation, prune=reject)
         )
+    problematic = set()
+    for col in report.filter(
+        fb.investigate.DeviationsOver(problematic_deviation, prune=True)
+    ).depends.values():
+        for value in col.depends.values():
+            problematic.add(
+                f"{value.descriptor.prototype.details} ({value.descriptor.name})"
+            )
 
     views = {
         "Summary": report.show(env=presentation(view=False, filename=None)),
         "Stamps": report.filter(fb.investigate.Stamps).show(
-            env=fb.export.Html(view=False, filename=None), depth=1
+            env=fb.export.Html(view=False, filename=None),
+            depth=2 if isinstance(predictions, dict) else 1,
         ),
-        "Full report": report.show(
-            env=presentation(view=False, filename=None), depth=2
+        "Distribution per group": report.show(
+            env=presentation(view=False, filename=None),
+            depth=3 if isinstance(predictions, dict) else 2,
         ),
     }
-    # Generate tabbed HTML content
-    tab_headers = "".join(
+    if problematic:
+        outcome_class = "biased"
+        outcome_label = f"{len(problematic)} dataset biases"  # " in {len(sensitive.branches())} protected groups"
+    else:
+        outcome_class = "fair"
+        outcome_label = "No dataset concerns"
+
+    expert_tabs_header = "".join(
         f'<button class="tablinks" data-tab="{key}">{key}</button>' for key in views
     )
-    tab_contents = "".join(
+    expert_tabs_body = "".join(
         f'<div id="{key}" class="tabcontent">{value}</div>'
         for key, value in views.items()
     )
 
-    dataset_desc = ""
-    if dataset.description is not None:
-        dataset_desc += "<h1>Dataset</h1>"
-        if isinstance(dataset.description, str):
-            dataset_desc += dataset.description + "<br>"
-        elif isinstance(dataset.description, dict):
-            for key, value in dataset.description.items():
-                dataset_desc += f"<h3>{key}</h3>" + value.replace("\n", "<br>") + "<br>"
-        else:
-            raise Exception(
-                f"Dataset description must be a string or a dictionary, not {type(dataset.description)}."
-            )
-
-    faq_style = """
-        <style>
-        .faq-container {
-          max-width: 600px;
-          margin: 20px auto;
-          font-family: Arial, sans-serif;
-        }
-
-        .faq-box {
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          padding: 16px;
-          margin-bottom: 16px;
-          box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-          background: #fff;
-        }
-
-        .faq-box h3 {
-          margin-top: 0;
-          font-size: 1.2em;
-          color: #333;
-        }
-
-        .faq-box p {
-          margin: 0;
-          color: #555;
-        }
-        </style>
-    """
+    dataset_description = dataset.to_description().split("Args:")[0]
+    model_description = original_model.to_description().split("Args:")[0]
 
     html_content = f"""
-       {faq_style}
-       <style>
-           .tablinks {{
-               background-color: #ddd;
-               padding: 10px;
-               cursor: pointer;
-               border: none;
-               border-radius: 5px;
-               margin: 5px;
-           }}
-           .tablinks:hover {{ background-color: #bbb; }}
-           .tablinks.active {{ background-color: #aaa; }}
-
-           .tabcontent {{
-               display: none;
-               padding: 10px;
-               border: 1px solid #ccc;
-           }}
-           .tabcontent.active {{ display: block; }}
-       </style>
-       <div class="container">
-       <h1>Audit of {len(sensitive.branches())} groups</h1>
-       <hr/>
-       <div class="faq-container">
-           <div class="faq-box">
-                  <h3>❓ What is this?</h3>
-                  <p>This is an audit of your dataset using deliberately weak models from scikit-learn
-                  (either Logistic Regression or Gaussian Naive Bayes). These simple models are chosen
-                  to surface strong correlations that may reveal biases. If such models exhibit bias,
-                  more complex models (e.g., deep learning) will likely also carry or amplify them.</p>
-                  <br/>
-                  <p>The goal is to provide a fairness perspective across sensitive attributes,
-                  using the FairBench library for reporting.</p>
-            </div>
-            <div class="faq-box">
-                  <h3>❗ Summary</h3>
-                   <p>A fairness report was generated by training and testing a {predictor} classifier on the dataset.
-                   Results were computed across {len(sensitive.branches())} protected groups, considering both classification
-                   and top-{top_recommendations} recommendation performance.
-                   {'Set a problematic deviation parameter for this analysis to simplify what is shown or control coloring thresholds.' if problematic_deviation == 0 else f'Only those that differ at least {problematic_deviation:.3f} from their ideal values are {"shown" if reject else "highlighted in orange or red"}; this is the problematic deviation threshold of the analysis.'}
-                   Ideal targets are 0 for metrics that need to be minimized and 1 for those that need to be maximized.
-                   </p>
-                   <br>
-                   <p>
-                   Presented values combine a base performance measure, computed on each group or subgroup with at least {min_group_size} members, and an aggregated value across all data samples.
-                   Switch to "Details" to see full descriptions of the measures as well as the distributions across groups.
-                   Results may not give the full picture, and not all biases may be harmful to the social context. Switch to "Stamps" so see popular
-                   literature definitions alongside caveats and recommendations.
-                   </p>
-                   <br>
-                   <details><summary>In total {len(sensitive.branches())} protected groups were analysed. </summary><i>{', '.join(sensitive.branches().keys())}</i><br></details>
-                   <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
-                   <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>
-                   <br><p><b>Results require manual inspection to determine which values are socially or contextually problematic.</b></p>
-            </div>
-       </div>
-       <hr/>
-       <div id="tab-header-container">{tab_headers}</div>
-       <div id="tab-content-container">{tab_contents}</div>
-       <script>
-        document.addEventListener("DOMContentLoaded", function() {{
-            const tabContainer = document.getElementById("tab-header-container");
-            tabContainer.addEventListener("click", function(event) {{
-                if (event.target.classList.contains("tablinks")) {{
-                    let tabName = event.target.getAttribute("data-tab");
-                    document.querySelectorAll(".tablinks").forEach(tab => tab.classList.remove("active"));
-                    document.querySelectorAll(".tabcontent").forEach(content => content.classList.remove("active"));
-                    event.target.classList.add("active");
-                    document.getElementById(tabName).classList.add("active");
+            <style>
+                .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
+                .banner {{
+                    width: 100%;
+                    padding: 18px 24px;
+                    font-size: 42px;
+                    font-weight: 700;
+                    text-align: center;
+                    color: white;
+                    border-radius: 12px;
+                    margin-bottom: 25px;
                 }}
-            }});
-            // Show the first tab by default
-            let firstTab = document.querySelector(".tablinks");
-            if (firstTab) {{
-                firstTab.classList.add("active");
-                document.getElementById(firstTab.getAttribute("data-tab")).classList.add("active");
-            }}
-        }});
-        </script>
-        </div>
-       """
+                .banner.fair {{ background: #2e8b57; }}
+                .banner.biased {{ background: #c0392b; }}
+                .banner.report {{ background: #7f8c8d; }}
+                .pill-btn {{
+                    width:100%; text-align:center; padding: 10px 18px;
+                    background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc;
+                    cursor: pointer; font-size: 18px; transition: background 0.2s;
+                }}
+                .pill-btn:hover {{ background: #e0e0e0; }}
+                .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
+                .section-panel {{ display: none; padding: 0px; background: white; }}
+                .section-panel.active {{ display: block; }}
+
+                /* expert inner tabs */
+                .tablinks {{
+                    background-color: #ddd;
+                    padding: 10px;
+                    cursor: pointer;
+                    border: none;
+                    border-radius: 5px;
+                    margin: 5px;
+                }}
+                .tablinks.active {{ background-color: #aaa; }}
+                .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
+                .tabcontent.active {{ display: block; }}
+            </style>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {{
+                    // main pill tabs
+                    const buttons = document.querySelectorAll(".pill-btn");
+                    const sections = document.querySelectorAll(".section-panel");
+
+                    buttons.forEach(btn => {{
+                        btn.addEventListener("click", () => {{
+                            let target = btn.getAttribute("data-target");
+                            buttons.forEach(b => b.classList.remove("active"));
+                            sections.forEach(s => s.classList.remove("active"));
+                            btn.classList.add("active");
+                            document.getElementById(target).classList.add("active");
+                        }});
+                    }});
+                    document.querySelector(".pill-btn").classList.add("active");
+                    document.querySelector(".section-panel").classList.add("active");
+
+                    // expert inner tabs
+                    const tabContainer = document.getElementById("expert-tab-header");
+                    if (tabContainer) {{
+                        tabContainer.addEventListener("click", function(event) {{
+                            if (event.target.classList.contains("tablinks")) {{
+                                let tabName = event.target.getAttribute("data-tab");
+                                document.querySelectorAll(".tablinks").forEach(tab => tab.classList.remove("active"));
+                                document.querySelectorAll(".tabcontent").forEach(content => content.classList.remove("active"));
+                                event.target.classList.add("active");
+                                document.getElementById(tabName).classList.add("active");
+                            }}
+                        }});
+                        let first = tabContainer.querySelector(".tablinks");
+                        if (first) {{
+                            first.classList.add("active");
+                            document.getElementById(first.getAttribute("data-tab")).classList.add("active");
+                        }}
+                    }}
+                }});
+            </script>
+
+            <h1 class="banner {outcome_class}">{outcome_label}</h1>
+
+            <div class="pill-buttons">
+                <div class="pill-btn" data-target="whatis">What is this?
+                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
+                </div>
+                <div class="pill-btn" data-target="method">Analysis methodology
+                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
+                </div>
+                <div class="pill-btn" data-target="pipeline">Data pipeline
+                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
+                </div>
+                <div class="pill-btn" data-target="details">For experts
+                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
+                </div>
+            </div>
+    
+            <div id="whatis" class="section-panel">
+                <p>This is a dataset audit using a {predictor} model trained on-the-fly. The model is deliberately simple,
+                so that, if it exhibits bias, more complex ones (e.g., deep learning) will likely also carry or 
+                amplify those biases.
+                {('Some system performance metrics, which indicate obtained benefits like correct or favorable '
+                  'operation, were found unevenly distributed across the population. '
+                  'These biases occurred in at least one prediction class and at least one way of aggregating the comparison '
+                  'among multiple groups. Expert assessment is needed to help understand which biases may be considered unfair. '
+                  'The biased metrics are:')
+                if problematic else 'No biases were found.'}
+                <br><br>
+                <i>{'<br>'.join(problematic)}</i>
+            </div>
+
+            <div id="method" class="section-panel">
+                <p>Groups were compared <b>{compare_groups.lower()}</b>.
+                Values deviating more than <b>{problematic_deviation:.3f}</b> from their ideal target
+                were counted as problematic. These deviations guide where deeper inspection is needed.
+                The result is considered biased if it lays <b>{problematic_deviation:.3f}</b> away from its ideal target 
+                that would indicate fairness. For example, the ideal target is 0 for differences between measure values, 
+                and 1 for values that should be large (e.g., the minimum accuracy across all groups).
+                Some metrics have no known ideal values.</p>
+                <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
+                <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p></p>
+            </div>
+
+            <div id="pipeline" class="section-panel">
+                {dataset_description}
+                <br><br>
+                {model_description}
+            </div>
+
+            <div id="details" class="section-panel">
+                <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
+                <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>
+                <div id="expert-tab-header">{expert_tabs_header}</div>
+                <div id="expert-tab-body">{expert_tabs_body}</div>
+            </div>
+            """
+
     return HTML(html_content)
