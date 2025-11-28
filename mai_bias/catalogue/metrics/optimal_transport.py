@@ -1,7 +1,7 @@
 from mammoth_commons.datasets import Dataset, ImageLike
 from mammoth_commons.externals import align_predictions
 from mammoth_commons.models import Predictor
-from mammoth_commons.exports import HTML
+from mammoth_commons.exports import HTML, simplified_formatter
 from typing import List
 from mammoth_commons.integration import metric
 
@@ -100,33 +100,39 @@ def optimal_transport(
             text += f"<td>{distances.get(label_name, 'N/A'):.3f}</td>"
         text += "</tr>"
     text += "</tbody></table></div>"
-    offenders = (
-        (
-            f"<h2 class='text-danger'>Distances over threshold</h2>-"
-            + "<br>-".join(set(offenders))
-        )
-        if offenders
-        else "<i>No bias concerns found (this does not mean that there are none)</i>"
-    )
-    message = f"Bias detected" if worst_distance > threshold else f"No concern"
-    text = (
-        f"""
-    <div class="container mt-4">
-        <h1 class={"text-danger" if worst_distance>=threshold else "text-primary"}>{message}</h1>
-        <p>
-            The normalized Wasserstein distance is computed for each group based on optimal transport theory. 
-            Higher values (maximum is 1, minimum is 0) indicate greater 
-            distribution differences between each group and the rest of the population. 
-            Differences more than the manually provided threshold {threshold:.3f} are considered to indicate bias.
-        </p>
-    </div>
-    """
-        + text
-        + f""""<div class="container">{offenders}</div>"""
-        + """
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    """
-    )
 
-    return HTML(text)
+    return HTML(
+        """
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        """
+        + simplified_formatter(
+            outcome="biased" if worst_distance >= threshold else "fair",
+            title=(
+                f"{len(offenders)} biased distributions"
+                if worst_distance >= threshold
+                else "No concerns about discrimination"
+            ),
+            technology='<div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360\'s optimal transport</h1></div>',
+            about=f"""
+                <p>We searched for potentially biased attribute values, or intersections of attribute values.
+                We employed IBM's AIF360 bias scan detector, and ignored already known sensitive attributes during 
+                scanning. Remaining attributes (including non-sensitive ones) are tested for imbalances that could 
+                contribute to unfair predictions.</p>
+                The following problematic data distributions were found:
+                <br><i>{'<br>'.join(offenders) if offenders else 'No concerns.'}</i>
+            """,
+            methodology=f"""
+                The normalized Wasserstein distance is computed for each group based on optimal transport theory. 
+                Higher values (maximum is 1, minimum is 0) indicate greater 
+                distribution differences between each group and the rest of the population. 
+                Differences more than the manually provided threshold <b>{threshold:.3f}</b> are considered to 
+                indicate bias.
+                </p>
+                The following attributes were examined for imbalances:
+                <br><i>{'<br>'.join(sensitive)}</i>
+            """,
+            pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+            experts=text,
+        )
+    )

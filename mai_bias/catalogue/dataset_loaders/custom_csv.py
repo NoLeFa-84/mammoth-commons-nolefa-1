@@ -23,7 +23,8 @@ def data_custom_csv(
     skip_invalid_lines: bool = True,
 ) -> CSV:
     """
-    <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; margin-bottom: 5px; height: 60px;"/>
+    <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; height: 36px;"/>
+    <h3>powered by <a href="https://pandas.pydata.org/">pandas</a> CSV loading</h3>
 
     Loads a CSV file that contains numeric, categorical, and predictive data columns
     separated by a user-defined delimiter. Each row corresponds to a different data sample,
@@ -31,7 +32,6 @@ def data_custom_csv(
     To use all data in the file and automate discovery of numerical and categorical columns,
     as well as of delimiters, use the `auto csv` loader instead. Otherwise, set here all loading
     parameters.
-    A <a href="https://pandas.pydata.org/">pandas</a> CSV reader is employed internally.
 
     Args:
         path: The local file path or a web URL of the file.

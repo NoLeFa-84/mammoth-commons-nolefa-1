@@ -37,7 +37,7 @@ def sklearn_audit(
     presentation: Literal["Numbers", "Bars"] = "Numbers",
 ) -> HTML:
     """
-    <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
 
     <p>One way to evaluate the fairness of a dataset is by testing for biases using simple models with limited
     degrees of freedom. This module audits datasets by training such models provided by the
@@ -277,7 +277,7 @@ def sklearn_audit(
             </script>
 
             <h1 class="banner {outcome_class}">{outcome_label}</h1>
-
+            <div><img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on FairBench reporting</h1></div>
             <div class="pill-buttons">
                 <div class="pill-btn" data-target="whatis">What is this?
                 <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>

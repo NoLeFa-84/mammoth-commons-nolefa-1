@@ -1,7 +1,7 @@
 from mammoth_commons.datasets import ImageLike
 from mammoth_commons.models import EmptyModel
 from mammoth_commons.exports import HTML, Markdown
-from typing import List
+from typing import List, Literal
 from mammoth_commons.integration import metric, Options
 
 
@@ -15,7 +15,7 @@ def image_bias_analysis(
     dataset: ImageLike,
     model: EmptyModel,
     sensitive: List[str],
-    task: Options("face verification", "image classification") = None,
+    task: Literal["face verification", "image classification"] = None,
 ) -> Markdown:
     """
     This module provides a comprehensive solution for analyzing image bias and recommending effective

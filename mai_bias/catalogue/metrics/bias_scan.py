@@ -1,7 +1,7 @@
 import mammoth_commons.integration
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
-from mammoth_commons.exports import HTML
+from mammoth_commons.exports import HTML, simplified_formatter
 from typing import List, Literal
 from mammoth_commons.integration import metric
 
@@ -110,86 +110,34 @@ def bias_scan(
                 f'<h4 class="text-warning">Rerunning for new sensitive attributes</h4>'
             )
 
-    outcome = "No concerns" if counts == 0 else f"{counts} attribute biases"
-    outcome_class = "fair" if counts == 0 else "biased"
-    dataset_description = dataset.to_description().split("Args:")[0]
-    model_description = model.to_description().split("Args:")[0]
-
-    html_content = f"""
-    <style>
-        .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
-        .banner {{width: 100%;  padding: 18px 24px; font-size: 42px; font-weight: 700; text-align: center; color: white; border-radius: 12px; margin-bottom: 25px;}}
-        .banner.fair {{ background: #2e8b57; }}
-        .banner.biased {{ background: #c0392b; }}
-        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
-        .pill-btn:hover {{ background: #e0e0e0; }}
-        .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
-        .section-panel {{ display: none; border: 0px solid #ddd; padding: 0px; border-radius: 8px; background: white; }}
-        .section-panel.active {{ display: block; }}
-        .overview-title {{font-size: 32px; font-weight: 700; margin-top: 0; margin-bottom: 10px; }}
-        .overview-sub {{ font-size: 18px; opacity: 0.8; margin-bottom: 20px; }}
-    </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {{
-            const buttons = document.querySelectorAll(".pill-btn");
-            const sections = document.querySelectorAll(".section-panel");
-            buttons.forEach(btn => {{
-                btn.addEventListener("click", () => {{
-                    let target = btn.getAttribute("data-target");
-                    buttons.forEach(b => b.classList.remove("active"));
-                    sections.forEach(s => s.classList.remove("active"));
-                    btn.classList.add("active");
-                    document.getElementById(target).classList.add("active");
-                }});
-            }});
-            document.querySelector(".pill-btn").classList.add("active");
-            document.querySelector(".section-panel").classList.add("active");
-        }});
-    </script>
-
-    <div>
-        <h1 class="banner {outcome_class}">{outcome}</h1>
-
-        <div class="pill-buttons">
-            <div class="pill-btn" data-target="whatis">What is this?
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="process">Analysis methodology
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="pipeline">Data pipeline
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="details">For experts
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
-            </div>
-        </div>
-
-        <div id="whatis" class="section-panel">
-            <p>This module identifies potentially biased intersections of attributes using 
-            IBM's AIF360 bias scan detector. Already-known sensitive attributes are ignored during scanning. Remaining 
-            attributes (including non-sensitive ones) are tested for imbalances that may 
-            contribute to unfair predictions. There is a separate analysis for each prediction class.</p>
-            {'The following' if sensitive else 'No'} attributes exhibited biases in some of their values or during the 
-            intersection with other attributes{':' if sensitive else '.'}  
-            <br><i>{'<br>'.join(sensitive)}</i>
-        </div>
-
-        <div id="process" class="section-panel">
-            <p>The scan evaluates attribute combinations by computing p-values under a
-            <b>{scoring}</b> statistical model. A penalty parameter <b>{penalty}</b> controls the complexity of
-            discovered intersections: higher penalty → simpler intersections.
-            {'In discovery mode, detected suspicious attributes are added to the ignored list and the scan repeated until no more intersections are detected.'
-            if discovery else
-            'Only the top suspicious attribute combination is reported; further combinations may exist.'}
-            </p>
-        </div>
-        <div id="pipeline" class="section-panel">{dataset_description} <br><br> {model_description}</div>
-        <div id="details" class="section-panel">{text}</div>
-    </div>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    """
-
-    return HTML(html_content)
+    return HTML(
+        simplified_formatter(
+            outcome="fair" if counts == 0 else "biased",
+            technology='<div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360\'s bias scan</h1></div>',
+            title=(
+                "No concerns in attributes"
+                if counts == 0
+                else f"{counts} attribute biases"
+            ),
+            about=f"""
+                <p>This module identifies potentially biased intersections of attributes using 
+                IBM's AIF360 bias scan detector. Already-known sensitive attributes are ignored during scanning. Remaining 
+                attributes (including non-sensitive ones) are tested for imbalances that may 
+                contribute to unfair predictions. There is a separate analysis for each prediction class.</p>
+                {'The following' if sensitive else 'No'} attributes exhibited biases in some of their values or during the 
+                intersection with other attributes{':' if sensitive else '.'}  
+                <br><i>{'<br>'.join(sensitive)}</i>
+            """,
+            methodology=f"""
+                <p>The scan evaluates attribute combinations by computing p-values under a
+                <b>{scoring}</b> statistical model. A penalty parameter <b>{penalty}</b> controls the complexity of
+                discovered intersections: higher penalty → simpler intersections.
+                {'In discovery mode, detected suspicious attributes are added to the ignored list and the scan repeated until no more intersections are detected.'
+                if discovery else
+                'Only the top suspicious attribute combination is reported; further combinations may exist.'}
+                </p>
+            """,
+            pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+            experts=text,
+        )
+    )

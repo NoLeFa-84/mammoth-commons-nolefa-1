@@ -371,6 +371,7 @@ def aif360_metrics(
     </script>
     <div>
         <h1 class="banner">{verdict}</h1>
+        <div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360 metrics</h1></div>
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">
                 What is this?<br>

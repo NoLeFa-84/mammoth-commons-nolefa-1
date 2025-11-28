@@ -12,17 +12,18 @@ from mammoth_commons.externals import pd_read_csv
 )
 def data_auto_csv(path: str = "", max_discrete: int = 10) -> CSV:
     """
-    <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; margin-bottom: 5px; height: 60px;"/>
+    <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; height: 36px;"/>
+    <h3>powered by <a href="https://pandas.pydata.org/">pandas</a> CSV loading</h3>
 
     Loads a CSV file that contains numeric, categorical, and predictive data columns.
     This automatically detects the characteristics of the dataset being loaded,
     namely the delimiter that separates the columns, and whether each column contains
-    numeric or categorical data. A <a href="https://pandas.pydata.org/">pandas</a>
-    CSV reader is employed internally.
-    The last categorical column is used as the dataset label. To load the file using
-    different options (e.g., a subset of columns, a different label column) use the
+    numeric or categorical data.
+    The last categorical column is used as the dataset label. To load the file maintaining
+    more control over options (e.g., a subset of columns, a different label column) use the
     custom csv loader instead.
 
+    <details><summary><i>How to replicate this data loader during AI creation?</i></summary>
     If you want to train a model while using the same loading mechanism as this dataset,
     run the following Python script. This uses supporting methods from the lightweight
     mammoth-commons core to retrieve <a href="https://numpy.org/">numpy</a>
@@ -53,7 +54,7 @@ def data_auto_csv(path: str = "", max_discrete: int = 10) -> CSV:
     y = df[cat[-1]]
     </pre>
     </small>
-
+    </details>
 
     Args:
         path: The local file path or a web URL of the file.

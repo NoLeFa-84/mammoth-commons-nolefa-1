@@ -19,7 +19,7 @@ def interactive_report(
     intersectional: bool = False,
     compare_groups: Literal["Pairwise", "To the total population"] = "Pairwise",
 ) -> HTML:
-    """<img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench"
+    """<img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
     style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
 
     Creates an interactive report using the FairBench library. The report creates traceable evaluations that
@@ -65,6 +65,7 @@ def interactive_report(
                 for label in labels
             }
         )
+
     return HTML(
         "<div class='container'><h1>Interactive report</h1>\n"
         + fb.interactive_html(report, show=False, name="Classes")

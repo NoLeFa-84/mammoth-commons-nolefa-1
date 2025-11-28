@@ -63,6 +63,7 @@ def simplified_formatter(
     methodology: str,
     pipeline: str,
     experts: str,
+    technology: str = "",
 ):
     return f"""
         <style>
@@ -137,6 +138,7 @@ def simplified_formatter(
             }});
         </script>
         <h1 class="banner {outcome}">{title}</h1>
+        {technology}
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">What is this?
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>

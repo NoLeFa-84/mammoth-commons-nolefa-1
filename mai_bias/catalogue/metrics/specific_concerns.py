@@ -39,7 +39,7 @@ def specific_concerns(
     problematic_deviation: float = 0.05,
 ) -> HTML:
     """
-    <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
 
     <p>Computes a fairness or bias measure that matches a specific type of numerical
     evaluation using the <a href="https://github.com/mever-team/FairBench">FairBench</a>
@@ -175,6 +175,7 @@ def specific_concerns(
     </script>
     <div>
         <h1 class="banner {outcome.split(' ')[0].lower()}">{outcome}</h1>
+        <div><img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="logo" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on specific concerns by FairBench</h1></div>
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">What is this?
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>

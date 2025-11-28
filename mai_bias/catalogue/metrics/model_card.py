@@ -26,7 +26,7 @@ def model_card(
     presentation: Literal["Numbers", "Bars"] = "Numbers",
 ) -> HTML:
     """
-    <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench"
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
     style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
 
     <p>Generates a fairness and bias report using the <a href="https://github.com/mever-team/FairBench">FairBench</a>
@@ -116,6 +116,7 @@ def model_card(
                 if problematic
                 else "no concerns"
             ),
+            technology='<div><img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="logo" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on FairBench reporting</h1></div>',
             about=f"""
                 <p>{('Some system performance metrics, which indicate obtained benefits like correct or favorable '
                   'operation, were found unevenly distributed across the population. '
