@@ -9,7 +9,7 @@ class Model:
             return ""
         desc = "<h1>Model</h1>"
         if isinstance(self.description, str):
-            desc += self.description + "<br>"
+            desc += self.description.split("Args:")[0] + "<br>"
         elif isinstance(self.description, dict):
             for key, value in self.description.items():
                 desc += f"<h3>{key}</h3>" + value.replace("\n", "<br>") + "<br>"

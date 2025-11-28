@@ -1,7 +1,7 @@
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML
-from typing import Dict, List
+from typing import Dict, List, Literal
 from mammoth_commons.integration import metric, Options
 from mammoth_commons.externals import fb_categories, align_predictions
 
@@ -17,7 +17,7 @@ def interactive_report(
     model: Predictor,
     sensitive: List[str],
     intersectional: bool = False,
-    compare_groups: Options("Pairwise", "To the total population") = None,
+    compare_groups: Literal["Pairwise", "To the total population"] = "Pairwise",
 ) -> HTML:
     """<img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench"
     style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>

@@ -18,7 +18,7 @@ def specific_concerns(
     dataset: Dataset,
     model: Predictor,
     sensitive: List[str],
-    intersections: Literal["Base", "All", "Subgroups"] = "Base",
+    intersections: Literal["Base", "All", "Subgroups"] = "Subgroups",
     base_measure: Literal[
         "Accuracy",
         "True positive rate",
@@ -35,7 +35,7 @@ def specific_concerns(
         "Max betweeness area",
         "Standard deviation x2",
         "Gini coefficient",
-    ] = "Min",
+    ] = "Max relative difference",
     problematic_deviation: float = 0.05,
 ) -> HTML:
     """
