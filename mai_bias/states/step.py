@@ -247,8 +247,6 @@ class Step(Styled):
             can_be_hidden = name != "sensitive" and default != "" and default != "None"
             if can_be_hidden:
                 self.count_hidden_params += 1
-                if not self.show_all_params:
-                    continue
             default = self.defaults.get(name, default)
             if name == "dataset" or name == "model":
                 continue
@@ -256,6 +254,8 @@ class Step(Styled):
             param_widget = self.create_input_widget(
                 name, param_type, default, description, param_options
             )
+            if can_be_hidden and not self.show_all_params:
+                param_widget.hide()
             self.param_form.addRow(param_widget)
         if self.count_hidden_params:
             self.param_toggle_button.show()
@@ -264,7 +264,7 @@ class Step(Styled):
         self.param_toggle_button.setText(
             "Hide details"
             if self.show_all_params
-            else f"Show {self.count_hidden_params} expert configs"
+            else f"Show {self.count_hidden_params} expert options"
         )
 
     def toggle_param_visibility(self):
