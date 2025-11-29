@@ -8,7 +8,7 @@ def model_onnx(path: str = "", trained_with_sensitive: bool = True) -> ONNX:
     """
     <img src="https://onnx.ai/images/ONNX-Logo.svg" alt="Based on ONNX" style="background-color: #000055; float: left; margin-right: 15px; height: 32px;"/>
 
-    <h3>powered by ONNx</h3>
+    <h3>an ONNx model</h3>
 
     Loads an inference model stored in the <a href="https://onnx.ai/">ONNx</a> format,
     which is a generic cross-platform way of representing AI models with a common set of operations.

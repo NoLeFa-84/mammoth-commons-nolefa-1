@@ -5,7 +5,7 @@ from mammoth_commons.integration import loader
 @loader(namespace="mammotheu", version="v054", python="3.13")
 def no_model() -> EmptyModel:
     """
-    <div><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/donut.png?raw=true" alt="dataset focus" style="float: left; margin-right: 15px; height: 36px;"/>
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/donut.png?raw=true" alt="dataset focus" style="float: left; margin-right: 15px; height: 36px;"/>
 
     <h3>focus on dataset bias</h3>
     Signifies that the analysis should focus solely on the bias/fairness of the dataset. Different means are used

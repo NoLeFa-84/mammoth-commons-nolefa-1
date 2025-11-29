@@ -18,7 +18,7 @@ def model_manual_predictor(path_or_predictions: str = "") -> ManualPredictor:
 
     <div><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/list.png?raw=true" alt="dataset focus" style="float: left; margin-right: 15px; height: 36px;"/>
 
-    <h3>Load manual predictions</h3>
+    <h3>manual predictions</h3>
 
     Manually loaded predictions may have been produced by workflows external to the toolkit.
 

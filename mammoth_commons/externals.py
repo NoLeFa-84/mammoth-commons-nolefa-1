@@ -146,7 +146,7 @@ def _download(url, path):
         )
         total_size = int(total_size) if total_size else None
         with open(path, "wb") as out_file:
-            chunk_size = 1024
+            chunk_size = 4096 * 8  # 32kbps rate updates each second
             downloaded = 0
             chunk = True
             while chunk:

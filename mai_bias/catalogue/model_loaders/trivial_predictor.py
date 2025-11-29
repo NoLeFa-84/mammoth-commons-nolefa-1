@@ -7,7 +7,7 @@ def model_trivial_predictor() -> TrivialPredictor:
     """
     <div><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/nofeats.png?raw=true" alt="bias focus" style="float: left; margin-right: 15px; height: 36px;"/>
 
-    <h3>uncovers on biases obtained from representation</h3>
+    <h3>uncovers representation-related biases</h3>
     This is a deliberately biased predictor that ignores dataset features and decides on a fixed prediction based on
     the majority.
 
