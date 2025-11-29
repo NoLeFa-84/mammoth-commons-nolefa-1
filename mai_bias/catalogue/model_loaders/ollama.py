@@ -9,7 +9,7 @@ def ollama_model(
     """
         <img src="https://ollama.com/public/ollama.png" alt="logo" style="float: left; margin-right: 15px; height: 36px;"/>
 
-        <h3>interact with an ollama LLM</h3>
+        <h3>interacts with an ollama LLM</h3>
         Allows interaction with a locally hosted <a href="https://ollama.com" target="_blank">ollama</a> large
         language model (LLM). The interaction can either aim to assess biases of that model, or to use it as an
         aid in discovering qualitative biases in text.

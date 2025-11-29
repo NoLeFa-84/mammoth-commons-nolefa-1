@@ -27,12 +27,17 @@ def model_card(
 ) -> HTML:
     """
     <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
-    style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+
+    <h3>cover a broad picture of imbalances</h3>
 
     <p>Generates a fairness and bias report using the <a href="https://github.com/mever-team/FairBench">FairBench</a>
     library. This explores many kinds of bias to paint a broad picture and help you decide on what is problematic
-    and what is acceptable behavior.
-    The generated report can be viewed in three different formats, where the model card contains a subset of
+    and what is acceptable behavior. Imbalanced distributions of benefits are uncovered to serve as points of
+    discussion of real-world impact. </p>
+
+    <details><summary><i>Details for experts</i></summary>
+    <p>The generated report can be viewed in three different formats, where the model card contains a subset of
     results but attaches to these socio-technical concerns to be taken into account:</p>
     <ol>
         <li>A summary table of results.</li>
@@ -49,6 +54,7 @@ def model_card(
     <p>If intersectional subgroup analysis is enabled, separate subgroups are created for each combination of sensitive
     attribute values. However, if there are too many attributes, some groups will be small or empty. Empty groups are
     ignored in the analysis.</p>
+    </details>
 
     Args:
         intersections: Whether to consider only the provided groups, all non-empty group intersections, or all non-empty intersections while ignoring larger groups during analysis. This does nothing if there is only one sensitive attribute. It could be computationally intensive if too many group intersections are selected. As an example of intersectional bias <b>[1]</b> race and gender together affect algorithmic performance of commercial facial-analysis systems; worst performance for darker-skinned women demonstrates a compounded disparity that would be missed if the analysis looked only at race or only at gender. <br><br><b>[1]</b> <i>Buolamwini, J., & Gebru, T. (2018, January). Gender shades Intersectional accuracy disparities in commercial gender classification. In Conference on fairness, accountability and transparency (pp. 77-91). PMLR.</p>

@@ -146,7 +146,10 @@ def aif360_metrics(
     bias_threshold: float = 0.05,
 ) -> HTML:
     """
-    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+
+    <h3>look into popular types of bias</h3>
+
     <p>This module evaluates fairness using IBM's <a href="https://aif360.readthedocs.io" target="_blank">AIF360</a> library.
     It computes standard group fairness metrics for each sensitive attribute provided. If attributes are non-binary, they are
     binarized into one-hot encoded columns. Only categorical attributes are allowed.</p>

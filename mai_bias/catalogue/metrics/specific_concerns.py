@@ -39,7 +39,10 @@ def specific_concerns(
     problematic_deviation: float = 0.05,
 ) -> HTML:
     """
-    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
+    style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+
+    <h3>focus on a specific definition of fairness</h3>
 
     <p>Computes a fairness or bias measure that matches a specific type of numerical
     evaluation using the <a href="https://github.com/mever-team/FairBench">FairBench</a>
@@ -50,6 +53,8 @@ def specific_concerns(
     This computes a specific fairness concerns and does not paint a broad enough picture. Make sure that
     you explore prospective biases with other modules first, like <i>model card</i>.</span>
 
+    <details><summary><i>Technical details.</i></summary>
+
     <p>The assessment is conducted over sensitive attributes like gender, age, and race. Each attribute can have
     multiple values, such as several genders or races. Numeric attributes, like age, are normalized to the range [0,1]
     and treated as fuzzy values, where 0 indicates membership to a fuzzy group of "small" values, and 1 indicates
@@ -59,6 +64,7 @@ def specific_concerns(
     <p>If intersectional subgroup analysis is enabled, separate subgroups are created for each combination of sensitive
     attribute values. However, if there are too many attributes, some groups will be small or empty. Empty groups are
     ignored in the analysis.</p>
+    </details>
 
     Args:
         intersections: Whether to consider only the provided groups (Base), all non-empty group intersections (All), or all non-empty intersections while ignoring larger groups during analysis (Subgroups). For example, the last option may not contain a `White` dimension if `White Men` is an existing dimension. This does nothing if there is only one sensitive attribute. It could be computationally intensive if too many group intersections are selected.
