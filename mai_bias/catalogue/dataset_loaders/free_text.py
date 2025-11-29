@@ -6,13 +6,17 @@ from mammoth_commons.integration import loader
     namespace="mammotheu", version="v054", python="3.13", packages=("bs4", "requests")
 )
 def data_free_text(text: str = "") -> Text:
-    """Sets a free text that can be used by text-based AI to perform various kinds of analysis,
+    """<div><img src="https://ollama.com/public/ollama.png" alt="logo" style="float: left; margin-right: 15px; height: 36px;"/>
+
+    <h3>input text or document URL</h3>
+
+    Sets a free text that can be used by text-based AI to perform various kinds of analysis,
     such as detecting biases and sentiment. Some modules may also use this text as a prompt
     to feed into large language models (LLMs). You may optionally provide a website's URL (starting
-    with http: or https: to retrieve its textual contents.
+    with <i>http:</i> or <i>https:</i>) to retrieve its textual contents.
 
     Args:
-        text: The text to be analyzed.
+        text: The text to be analyzed or its URL.
     """
     import requests
 
