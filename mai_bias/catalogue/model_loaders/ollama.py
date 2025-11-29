@@ -7,7 +7,7 @@ def ollama_model(
     name: str = "llama3.2:latest", url: str = "http://localhost:11434"
 ) -> LLM:
     """
-        <div><img src="https://ollama.com/public/ollama.png" alt="logo" style="float: left; margin-right: 15px; height: 36px;"/>
+        <img src="https://ollama.com/public/ollama.png" alt="logo" style="float: left; margin-right: 15px; height: 36px;"/>
 
         <h3>interact with ollama</h3>
         Allows interaction with a locally hosted <a href="https://ollama.com" target="_blank">ollama</a> large

@@ -24,9 +24,10 @@ def data_custom_csv(
 ) -> CSV:
     """
     <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; height: 36px;"/>
-    <h3>powered by <a href="https://pandas.pydata.org/">pandas</a> CSV loading</h3>
+    <h3>load a CSV file with pandas</a></h3>
 
-    Loads a CSV file that contains customly-specified numeric, categorical, and predictive data columns.
+    Uses <a href="https://pandas.pydata.org/">pandas</a> to load
+    a CSV file that contains customly-specified numeric, categorical, and predictive data columns.
     Each row corresponds to a different data sample, with the first one sometimes holding column names
     (this is automatically detected).
 

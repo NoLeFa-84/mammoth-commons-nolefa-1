@@ -20,14 +20,23 @@ def data_image_pairs(
     num_workers: int = 0,
     safe_libraries="numpy,torch,torchvision,PIL,io,requests,urllib",
 ) -> ImagePairs:
-    """
-    Loads image pairs declared in a CSV file.
+    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/images.png?raw=true" alt="text" style="float: left; margin-right: 15px; height: 36px;"/>
+
+    <h3>pairs of images with metadata</h3>
+
+    Loads image pairs and tabular metadata declared in a CSV file. Images are stored in an independent location
+    (to not move around large swathes of data), and must be accompanied by their preprocessing transformation. Metadata
+    include prediction targets for the pair, such as the prediction labels for face verification or whether
+    at least one of the images exhibits a sensitive attribute.
+
+    <details><summary><i>How to construct an image pair file?</i></summary>
     The expected format is to have the first image's identifier in the first column,
     and the second image's identifier in the second column, Sensitive attributes
     can be selected from the rest of the columns. The images identifiers read from the columns
     are transformed to loading paths by string specifications that can contain the
     symbols: {root} to refer to the root directory, {col} to refer to the column name, and {id}
     to refer to the column entry.
+    </details>
 
     Args:
         path: The path to the CSV file containing information about the dataset.

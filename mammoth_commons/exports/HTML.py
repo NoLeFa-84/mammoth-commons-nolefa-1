@@ -160,6 +160,20 @@ def simplified_formatter(
         """
 
 
+def get_description_header(text: str):
+    pos = text.find("</h1>")
+    if pos == -1:
+        pos = text.find("</h2>")
+    if pos == -1:
+        pos = text.find("</h3>")
+    if pos == -1:
+        return ""
+    start = text.rfind("<img", 0, pos - 1)
+    if start == -1:
+        start = text.rfind("<", 0, pos - 1)
+    return text[start : (pos + 5)]
+
+
 class HTML:
     integration = "dsl.HTML"
 

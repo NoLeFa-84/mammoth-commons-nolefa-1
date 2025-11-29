@@ -6,7 +6,7 @@ from mammoth_commons.integration import loader
     namespace="mammotheu", version="v054", python="3.13", packages=("bs4", "requests")
 )
 def data_free_text(text: str = "") -> Text:
-    """<div><img src="https://ollama.com/public/ollama.png" alt="logo" style="float: left; margin-right: 15px; height: 36px;"/>
+    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/text.png?raw=true" alt="text" style="float: left; margin-right: 15px; height: 36px;"/>
 
     <h3>input text or document URL</h3>
 

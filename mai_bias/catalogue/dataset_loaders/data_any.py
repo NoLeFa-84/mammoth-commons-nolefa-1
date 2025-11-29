@@ -49,12 +49,12 @@ def data_read_any(
     """
     <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
 
-    <h3>replicates <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a>'s tabular data loading</h3>
+    <h3>flexible tabular data loading</h3>
 
     Loads a dataset for analysis from either a pre-loaded pandas DataFrame or a file in one of the supported formats:
     `.csv`, `.xls`, `.xlsx`, `.xlsm`, `.xlsb`, `.odf`, `.ods`, `.json`, `.html`, or `.htm`.
-    The module accepts either a raw DataFrame or a file path (local or URL). If a file path is provided, the data is
-    automatically loaded using the appropriate pandas function based on the file extension. Basic preprocessing is applied
+    The module is derived from  <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a>
+    to support several data formats. Basic preprocessing is applied
     to infer column types, and the specified target column is treated as the predictive label.
 
     Args:

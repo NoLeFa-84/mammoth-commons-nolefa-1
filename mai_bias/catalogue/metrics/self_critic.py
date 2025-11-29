@@ -14,15 +14,18 @@ from mammoth_commons.exports import HTML
 def llm_audit(
     dataset: Text, model: LLM, sensitive: list[str], chain_of_votes: int = 10
 ) -> HTML:
-    """
-    This assessment methodology sets an LLM at the role of fairness auditory and asks it to provide
+    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/ai.png?raw=true" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>
+
+    <h3>use the LLM as text auditor</h3>
+
+    This assessment methodology sets an LLM at the role of fairness auditor and asks it to provide
     a sequence of votes, obtaining an assessment of whether given text is biased or neutral.
     Then, it follows a chain-of-thought approach for summarizing the reasoning associated with all
     valid votes (some votes may be invalid due to erroneous formatting) and eventually identifying
     actionable insights or explanations.
 
     Args:
-        chain_of_votes: How many votes should be casted.
+        chain_of_votes: How many votes should be cast.
     """
     from mammoth_commons.externals import notify_progress, notify_end
 
@@ -68,103 +71,112 @@ def llm_audit(
         prompt="Input:" + dataset.text + "\n" + str(commentary),
     )
     notify_end()
-    faq_html = f"""
+
+    html = f"""
     <style>
-    .faq-container {{
-      max-width: 600px;
-      margin: 20px auto;
-      font-family: Arial, sans-serif;
-    }}
-    .faq-box {{
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-      background: #fff;
-    }}
-    .faq-box h3 {{
-      margin-top: 0;
-      font-size: 1.2em;
-      color: #333;
-    }}
-    .faq-box p {{
-      margin: 0;
-      color: #555;
-    }}
+        .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
+        .banner {{
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 42px;
+            font-weight: 700;
+            text-align: center;
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }}
+        .banner.fair {{ background: #2e8b57; }}
+        .banner.biased {{ background: #c0392b; }}
+        .banner.report {{ background: #7f8c8d; }}
+        .pill-btn {{
+            width:100%; text-align:center; padding: 10px 18px;
+            background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc;
+            cursor: pointer; font-size: 18px; transition: background 0.2s;
+        }}
+        .pill-btn:hover {{ background: #e0e0e0; }}
+        .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
+        .section-panel {{ display: none; padding: 0px; background: white; }}
+        .section-panel.active {{ display: block; }}
+
+        .tablinks {{
+            background-color: #ddd;
+            padding: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+        }}
+        .tablinks.active {{ background-color: #aaa; }}
+        .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
+        .tabcontent.active {{ display: block; }}
     </style>
 
-    <div class="faq-container">
-        <div class="faq-box">
-            <h3>❓ What is this?</h3>
-            <p>This module uses a large language model (LLM) as a fairness auditor of a free text snippet. 
-            The model is prompted to cast multiple votes on whether the input text is biased or neutral. 
-            Each vote includes reasoning, and valid votes are aggregated to capture a common perspective.</p>
-            <br/>
-            <p>Through this chain-of-votes methodology, the LLM provides both a verdict and a narrative explanation. 
-            This helps uncover hidden patterns of bias in text and yields actionable insights for improvement.</p>
-        </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {{
+        const buttons = document.querySelectorAll(".pill-btn");
+        const sections = document.querySelectorAll(".section-panel");
 
-        <div class="faq-box">
-            <h3>❗ Summary</h3>
-            
-            <p><b>The input has been classified as {title}</b> after being subjected to {chain_of_votes} 
-            independent LLM assessments. The reasoning highlights which aspects of the text contribute to this 
-            judgement and  offers {'mitigation steps to address biases' if title.startswith('Biased') else 'an explanation of why the text is considered neutral'}.</p>
-            <br/>
-            <p>There are reasoning outputs and action points to improve fairness.
-            However, these should be used as guidance rather than definitive answers or course of action. 
-            Remember that LLM auditors may reflect the biases of their training or finetuning corpora. 
-            Manual inspection is recommended to validate findings.</p>
+        buttons.forEach(btn => {{
+            btn.addEventListener("click", () => {{
+                let target = btn.getAttribute("data-target");
+
+                buttons.forEach(b => b.classList.remove("active"));
+                sections.forEach(s => s.classList.remove("active"));
+
+                btn.classList.add("active");
+                document.getElementById(target).classList.add("active");
+            }});
+        }});
+
+        // Activate first section
+        document.querySelector(".pill-btn").classList.add("active");
+        document.querySelector(".section-panel").classList.add("active");
+    }});
+    </script>
+
+    <h1 class="banner {'biased' if title.startswith('Biased') else 'fair'}">{title}</h1>
+    
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/ai.png?raw=true" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>
+
+    <h3>used an LLM to audit text biases</h3>
+    <div class="pill-buttons">
+        <div class="pill-btn" data-target="whatis">What is this?
+        <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
+        </div>
+        <div class="pill-btn" data-target="method">Analysis methodology
+        <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
+        </div>
+        <div class="pill-btn" data-target="pipeline">Data pipeline
+        <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
+        </div>
+        <div class="pill-btn" data-target="reasoning">Reasoning
+        <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/ai.png?raw=true" height="128px"/>
+        </div>
+        <div class="pill-btn" data-target="actions">{'Action points' if title.startswith('Biased') else 'Explanation'}
+        <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/checklist.png?raw=true" height="128px"/>
         </div>
     </div>
+    <div id="whatis" class="section-panel">
+        <p>This module uses a large language model (LLM) as a fairness auditor of provided text.
+        A voting technique is used to make its verdict and explanations more robust.</p>
+    </div>
+    <div id="method" class="section-panel">
+        <p>The input was subjected to <b>{chain_of_votes}</b>
+        independent LLM assessments. 
+        {'It focused on '+','.join(sensitive)+' as sensitive attributes.' if sensitive else 'There was no particular focus on a potentially sensitive attributes.'} 
+        These cast votes on whether the text is biased or not.
+        The reasoning highlights which aspects of the text contribute to this
+        judgement and offers {'mitigation steps to address biases' if title.startswith('Biased') else 'an explanation of why the text is considered neutral'}.</p>
+        There are reasoning outputs and action points to improve fairness.
+        However, these should be used as guidance rather than definitive answers.
+        Manual inspection is recommended.</p>
+        
+        <details><summary><i>Full text</i></summary>
+        <small>{dataset.text}</small>
+        </details>
+    </div>
+    <div id="pipeline" class="section-panel">{dataset.to_description()}<br><br>{model.to_description()}</div>
+    <div id="reasoning" class="section-panel">{markdown2.markdown(commentary)}</div>
+    <div id="actions" class="section-panel">{markdown2.markdown(result)}</div>
     """
-    html = f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <title>Text analysis</title>
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        </head>
-        <body class="bg-light">
-            <div class="container py-5">
-                <h1 class="mb-4">{title}</h1>
-                <hr/>
-                {faq_html}
-                <hr/>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">Original text</div>
-                    <div class="card-body">
-                        <p>{dataset.text}</p>
-                    </div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-warning text-dark">Verdict</div>
-                    <div class="card-body">
-                        <p class="mb-0"><strong>{title}</strong></p>
-                    </div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-info text-white">Reasoning</div>
-                    <div class="card-body">
-                        {markdown2.markdown(commentary)}
-                    </div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-success text-white">{
-    'Action points' if title.startswith('Biased') else 'Explanation'
-    }</div>
-                    <div class="card-body">
-                        {markdown2.markdown(result)}
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
     return HTML(html)

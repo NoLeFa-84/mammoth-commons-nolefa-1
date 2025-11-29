@@ -13,9 +13,10 @@ from mammoth_commons.externals import pd_read_csv
 def data_auto_csv(path: str = "", max_discrete: int = 10) -> CSV:
     """
     <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; height: 36px;"/>
-    <h3>powered by <a href="https://pandas.pydata.org/">pandas</a> CSV loading</h3>
+    <h3>load a common CSV with pandas</h3>
 
-    Loads a CSV file that contains numeric, categorical, and predictive data columns.
+    Uses <a href="https://pandas.pydata.org/">pandas</a> to load
+    a CSV file that contains numeric, categorical, and predictive data columns.
     This automatically detects the characteristics of the dataset being loaded,
     namely the delimiter that separates the columns, and whether each column contains
     numeric or categorical data.
