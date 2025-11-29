@@ -19,17 +19,17 @@ def data_researchers(
     country_divisions_path: str = "https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/refs/heads/dev/data/researchers/API_NY.GDP.MKTP.CD_DS2_en_csv_v2_14/Metadata_Country_API_NY.GDP.MKTP.CD_DS2_en_csv_v2_14.csv",
 ) -> Graph_CSH:
     """
+    <img src="https://networkx.org/_static/networkx_logo.svg" alt="Based on networkx" style="float: left; margin-right: 15px; height: 36px;"/>
+    <h3>researcher papers and affiliations</h3>
 
-    This is a Loader to load .csv files with information about researchers
-    The `papers_path` and `papers_affiliations` should be given relative to your locally running instance
-    (e.g.: *./data/researchers/Top&#95;researchers.csv*)
-    The `Delimiter` should match the CSV file you have (e.g.: '|')
+    This is a Loader to load .csv URLs with information about citations between researchers, as well as
+    their affiliations.
 
     Args:
         paper_graph_path: The path to the paper citation graph.
-        paper_graph_delimiter: The delimiter in the paper graph file.
+        paper_graph_delimiter: The delimiter separating the columns of the paper graph file. Default is `|`.
         paper_affiliations_path: The path to the paper affiliation map.
-        paper_affiliation_delimiter: The delimiter of the paper affiliation map file.
+        paper_affiliation_delimiter: The delimiter separating the columns of the paper affiliation map file. Default is `|`.
         country_codes_path: Metadata mapping countries to respective codes found in researcher profilers. Prefer the default value.
         country_divisions_path: Metadata of country divisions. Prefer the default value.
     """
@@ -106,44 +106,32 @@ def data_researchers(
 
     graph_data = Graph_CSH(DF_papers, DF_Affiliations, sensitive_columns=["Gender"])
     graph_data.create_coauth_graph()
-
     return graph_data
 
 
 def validate_papers(data):
     required_columns = ["doi", "year"]
     missing_columns = [col for col in required_columns if col not in data.columns]
-
-    if missing_columns:
-        raise ValueError(
-            f"The following columns must be present in the dataset, but they are not: {missing_columns}"
-        )
+    assert (
+        not missing_columns
+    ), f"The following columns must be present in the dataset, but they are not: {missing_columns}"
     len_papers = len(data)
-    if len_papers == 0:
-        raise ValueError("The papers dataset is empty")
-
+    assert len_papers, "The papers dataset is empty"
     # TODO: Allow it, but don't do visualisations
-    if len_papers > 1500:
-        raise ValueError(
-            "The papers dataset has too many papers. Please provide a smaller dataset."
-        )
+    assert (
+        len_papers <= 1500
+    ), "The papers dataset has too many papers. Please provide a smaller dataset."
 
 
 def validate_affiliations(data):
     required_columns = ["doi", "researcher_id", "aff_country", "Nationality"]
     missing_columns = [col for col in required_columns if col not in data.columns]
-
-    if missing_columns:
-        raise ValueError(
-            f"The following columns must be present in the dataset, but they are not: {missing_columns}"
-        )
-
+    assert (
+        not missing_columns
+    ), f"The following columns must be present in the dataset, but they are not: {missing_columns}"
     len_papers = len(data)
-    if len_papers == 0:
-        raise ValueError("The affiliations dataset is empty")
-
+    assert len_papers, "The affiliations dataset is empty"
     # TODO: Allow it, but don't do visualisations
-    if len_papers > 2500:
-        raise ValueError(
-            "The papers dataset has too many papers. Please provide a smaller dataset."
-        )
+    assert (
+        len_papers <= 2500
+    ), "The papers dataset has too many papers. Please provide a smaller dataset."

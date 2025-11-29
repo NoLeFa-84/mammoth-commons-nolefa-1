@@ -27,7 +27,7 @@ def multi_objective_report(
     model: ONNXEnsemble,
     sensitive: List[str],
 ) -> HTML:
-    """<img src="https://raw.githubusercontent.com/arjunroyihrpa/MMM_fair/main/images/mmm-fair.png" alt="Based
+    """<img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based
     on MMM-Fair" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 80px;"/>
 
     <p>Presents an interactive <a href="https://plotly.com/python/3d-charts/" target="_blank">Plotly 3D plot</a>

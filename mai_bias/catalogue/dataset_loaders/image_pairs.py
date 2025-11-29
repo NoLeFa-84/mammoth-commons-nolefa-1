@@ -11,7 +11,7 @@ from mammoth_commons.externals import safeexec
 )
 def data_image_pairs(
     path: str = "",
-    image_root_dir: str = "./",
+    image_root_dir: str = "",
     target: str = "",
     batch_size: int = 4,
     shuffle: bool = False,
@@ -26,8 +26,9 @@ def data_image_pairs(
 
     Loads image pairs and tabular metadata declared in a CSV file. Images are stored in an independent location
     (to not move around large swathes of data), and must be accompanied by their preprocessing transformation. Metadata
-    include prediction targets for the pair, such as the prediction labels for face verification or whether
-    at least one of the images exhibits a sensitive attribute.
+    include prediction targets for the pair. like prediction targets or whether
+    at least one of the images exhibits a sensitive attribute. For example, in face verification the prediction
+    target can be whether both images of the pair refer to the same person or not.
 
     <details><summary><i>How to construct an image pair file?</i></summary>
     The expected format is to have the first image's identifier in the first column,

@@ -23,8 +23,8 @@ def data_custom_csv(
     skip_invalid_lines: bool = True,
 ) -> CSV:
     """
-    <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; height: 36px;"/>
-    <h3>load a CSV file with pandas</a></h3>
+    <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; height: 36px;"/>
+    <h3>a CSV file loaded with pandas</h3>
 
     Uses <a href="https://pandas.pydata.org/">pandas</a> to load
     a CSV file that contains customly-specified numeric, categorical, and predictive data columns.

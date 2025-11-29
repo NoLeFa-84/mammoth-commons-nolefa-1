@@ -11,7 +11,7 @@ def default_progress_callback(progress, message):
 
 
 __mammoth_progress_callback = default_progress_callback
-__mammoth_progress_end = lambda: print("\033[2K\033[1G", end="")
+__mammoth_progress_end = lambda: print("\r"+140*" "+"\r")
 
 
 def register_progress_callback(callback, end=None):

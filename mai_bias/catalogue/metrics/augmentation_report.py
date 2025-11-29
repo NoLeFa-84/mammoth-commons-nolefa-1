@@ -529,7 +529,7 @@ def augmentation_report(
     sensitive: List[str],
 ) -> HTML:
     """
-    <img src="https://raw.githubusercontent.com/arjunroyihrpa/MMM_fair/main/images/mmm-fair.png" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 80px;"/>
+    <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 80px;"/>
 
     This module generates an interactive HTML report featuring a
     <a href="https://plotly.com/python/sunburst-charts/" target="_blank">Plotly sunburst pie chart</a> visualization
