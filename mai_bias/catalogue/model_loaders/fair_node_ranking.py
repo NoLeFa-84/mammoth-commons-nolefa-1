@@ -1,11 +1,12 @@
 from mammoth_commons.models import NodeRanking
 from mammoth_commons.integration import loader, Options
+from typing import Literal
 
 
 @loader(namespace="mammotheu", version="v054", python="3.13", packages=("pygrank",))
 def model_fair_node_ranking(
     diffusion: float = 0.85,
-    redistribution: Options("none", "uniform", "original") = "original",
+    redistribution: Literal["none", "uniform", "original"] = "original",
 ) -> NodeRanking:
     """
     Constructs a node ranking algorithm that is a variation non-personalized PageRank.

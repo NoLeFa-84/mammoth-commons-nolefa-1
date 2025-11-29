@@ -16,9 +16,11 @@ def model_onnx_ensemble(path: str = "") -> ONNXEnsemble:
     """
     <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
 
-    <h3>powered by <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> ensembling</h3>
-    Enables predictions using a <a href="https://scikit-learn.org/stable/modules/ensemble.html" target="_blank">boosting ensemble</a> mechanism, which combines multiple simple AI models (called weak learners)
+    <h3>powered by MMM-fair ensembling</h3>
+    Enables predictions using a <a href="https://scikit-learn.org/stable/modules/ensemble.html" target="_blank">boosting ensemble</a>
+    mechanism, which combines multiple simple AI models (called weak learners)
     to obtain an improvement over their individual prediction accuracy.
+    The <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> library is used to load and process the ensemble.
 
     <details><summary><i>Technical details.</i></summary>
     <p>Weak learners are often <a href="https://scikit-learn.org/stable/modules/tree.html#classification" target="_blank">decision trees</a>.

@@ -23,12 +23,14 @@ def model_torch2onnx(
 ) -> ONNX:
     """
 
-    <img src="https://github.com/pytorch/pytorch/raw/main/docs/source/_static/img/pytorch-logo-dark.png" alt="Based on PyTorch" style="float: left; margin-right: 5px; margin-bottom: 5px; margin-top: 10px; height: 30px;"/>
+    <img src="https://github.com/pytorch/pytorch/raw/main/docs/source/_static/img/pytorch-logo-dark.png" alt="Based on PyTorch" style="float: left; margin-right: 5px; height: 30px;"/>
+    <img src="https://onnx.ai/images/ONNX-Logo.svg" alt="Based on ONNX" style="background-color: #000055; float: left; margin-right: 15px; height: 30px;"/>
 
-    Loads a <a href="https://pytorch.org/">pytorch</a> model that comprises a Python code initializing the
-    architecture and a file of trained parameters, and converts into ONNX format to support processing by
-    modules not supporting GPU compute. For safety, the architecture's
-    definition is allowed to directly import only specified libraries.
+    <h3>powered by PyTorch and ONNX</h3>
+
+    Loads a <a href="https://pytorch.org/">PyTorch</a> AI model that comprises a Python code initializing the
+    architecture, and a file of trained parameters. The result is however converted into ONNx format to support
+    processing by modules that are not compatible with GPU computations.
 
     Args:
         state_path: The path in which the architecture's state is stored.
@@ -36,15 +38,15 @@ def model_torch2onnx(
         model_name: The variable in the model path's script to which the architecture is assigned.
         input_width: The expected width of input images.
         input_height: The expected heightg of input images.
-        safe_libraries: A comma-separated list of libraries that can be imported.
+        safe_libraries: A comma-separated list of libraries that can be imported. For safety, the architecture's definition is allowed to directly import only specified libraries.
         multiclass_threshold: A decision threshold that treats outputs as separate classes. If this is set to zero (default), a softmax is applied to outputs. For binary classification, this is equivalent to setting the decision threshold at 0.5. Otherwise, each output is thresholded separately.
     """
     import torch
 
-    state_path = prepare(state_path)
     model_path = prepare(model_path)
 
     input_width = int(input_width)
+    state_path = prepare(state_path)
     input_height = int(input_height)
 
     multiclass_threshold = float(multiclass_threshold)

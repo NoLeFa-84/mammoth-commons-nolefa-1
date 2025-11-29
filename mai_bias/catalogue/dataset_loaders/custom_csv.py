@@ -26,12 +26,9 @@ def data_custom_csv(
     <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; height: 36px;"/>
     <h3>powered by <a href="https://pandas.pydata.org/">pandas</a> CSV loading</h3>
 
-    Loads a CSV file that contains numeric, categorical, and predictive data columns
-    separated by a user-defined delimiter. Each row corresponds to a different data sample,
-    with the first one sometimes holding column names (this is automatically detected).
-    To use all data in the file and automate discovery of numerical and categorical columns,
-    as well as of delimiters, use the `auto csv` loader instead. Otherwise, set here all loading
-    parameters.
+    Loads a CSV file that contains customly-specified numeric, categorical, and predictive data columns.
+    Each row corresponds to a different data sample, with the first one sometimes holding column names
+    (this is automatically detected).
 
     Args:
         path: The local file path or a web URL of the file.

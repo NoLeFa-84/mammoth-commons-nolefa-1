@@ -6,12 +6,12 @@ from mammoth_commons.externals import prepare
 @loader(namespace="mammotheu", version="v054", python="3.13", packages=("onnxruntime",))
 def model_onnx(path: str = "", trained_with_sensitive: bool = True) -> ONNX:
     """
-    <div><img src="https://onnx.ai/images/ONNX-Logo.svg" alt="Based on ONNX" style="background-color: #000055; float: left; margin-right: 15px; height: 36px;"/>
+    <img src="https://onnx.ai/images/ONNX-Logo.svg" alt="Based on ONNX" style="background-color: #000055; float: left; margin-right: 15px; height: 32px;"/>
 
-    <h3>powered by <a href="https://onnx.ai/">ONNx</a></h3>
+    <h3>powered by ONNx</h3>
 
-    Loads an inference model stored in the ONNx format, which is a generic cross-platform way of representing AI
-    models with a common set of operations.
+    Loads an inference model stored in the <a href="https://onnx.ai/">ONNx</a> format,
+    which is a generic cross-platform way of representing AI models with a common set of operations.
     The loaded model should be compatible with the dataset being analysed, for example having been trained on
     the same tabular data columns.
 
