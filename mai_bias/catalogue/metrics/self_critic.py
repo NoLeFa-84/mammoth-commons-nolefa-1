@@ -16,7 +16,7 @@ def llm_audit(
 ) -> HTML:
     """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/ai.png?raw=true" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>
 
-    <h3>use the LLM as text auditor</h3>
+    <h3>use an LLM as text auditor</h3>
 
     This assessment methodology sets an LLM at the role of fairness auditor and asks it to provide
     a sequence of votes, obtaining an assessment of whether given text is biased or neutral.

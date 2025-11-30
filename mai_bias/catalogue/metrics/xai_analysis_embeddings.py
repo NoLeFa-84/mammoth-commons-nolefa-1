@@ -21,6 +21,10 @@ def facex_embeddings(
     target_layer: str = None,
 ) -> HTML:
     """
+        <img src="https://github.com/gsarridis/faceX/raw/main/images/facex.JPG" alt="Based on Facex" style="max-width: 600px;"/>
+
+        <h3>highlight red the facial features on which a model focuses to compare image pairs</h3>
+
         <a href="https://github.com/gsarridis/faceX">FaceX</a> for feature extractors is designed to help you
         understand how face verification models process
         images by comparing feature embeddings. In tasks like face recognition, models

@@ -9,7 +9,7 @@
 This repository is created by the [MAMMOth](https://mammoth-ai.eu/)
 project and holds the mammoth-commons library, which contains 
 supporting datatypes and decorators for developing fairness modules.
-It also hosts a catalogue of 30+ modules. 
+It also hosts a catalogue of 35+ modules. 
 Finally, find desktop and terminal applications that 
 run those modules in your local machine.
 
