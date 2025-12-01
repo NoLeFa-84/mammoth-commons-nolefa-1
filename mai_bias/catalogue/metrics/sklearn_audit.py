@@ -1,8 +1,8 @@
 from mammoth_commons.datasets import CSV
 from mammoth_commons.models import EmptyModel
 from mammoth_commons.exports import HTML
-from typing import Dict, List, Literal
-from mammoth_commons.integration import metric, Options
+from typing import List, Literal
+from mammoth_commons.integration import metric
 import numpy as np
 from mammoth_commons.integration_callback import notify_progress, notify_end
 from mammoth_commons.externals import fb_categories
@@ -37,16 +37,17 @@ def sklearn_audit(
     presentation: Literal["Numbers", "Bars"] = "Numbers",
 ) -> HTML:
     """
-    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
-
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 36px;"/>
+    <h3>report on the biases of a simple predictor</h3>
     <p>One way to evaluate the fairness of a dataset is by testing for biases using simple models with limited
     degrees of freedom. This module audits datasets by training such models provided by the
     <a href="https://scikit-learn.org/stable/index.html">scikit-learn</a> library on half of the dataset.
     The second half is then used as test data to assess predictive performance and detect classification
-    or scoring biases.</p>
-
-    <p>Test data are used to generate a fairness and bias report with the
-    <a href="https://fairbench.readthedocs.io/">FairBench</a> library. If strong biases appear in the simple models
+    or scoring biases. Test data are used to generate a fairness and bias report with the
+    <a href="https://fairbench.readthedocs.io/">FairBench</a> library.
+    </p>
+    <details><summary><i>Details for experts.</i></summary>
+    <p>If strong biases appear in the simple models
     that are explored, they may also persist in more complex models trained on the same data. To focus on the most
     significant biases, adjust the minimum shown deviation parameter.
     The report provides multiple types of fairness and bias assessments and can be viewed in three different formats,
@@ -67,6 +68,8 @@ def sklearn_audit(
     <p>If intersectional subgroup analysis is enabled, separate subgroups are created for each combination of sensitive
     attribute values. However, if there are too many attributes, some groups will be small or empty. Empty groups are
     ignored in the analysis. The report may also include information about built-in datasets.</p>
+
+    </details>
 
     Args:
         predictor: Which simple model should be used.
@@ -277,7 +280,7 @@ def sklearn_audit(
             </script>
 
             <h1 class="banner {outcome_class}">{outcome_label}</h1>
-            <div><img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on FairBench reporting</h1></div>
+            <div><img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on FairBench reporting on a simple predictor</h1></div>
             <div class="pill-buttons">
                 <div class="pill-btn" data-target="whatis">What is this?
                 <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>

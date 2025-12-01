@@ -28,11 +28,10 @@ def bias_scan(
 ) -> HTML:
     """
     <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
-
     <h3>scan for biased attributes or attribute intersections</h3>
 
-    <p>This module scans your dataset to estimate the most biased attributes or combinations of attributes.
-    You can use those as inputs to other modules.
+    <p>Use <a href="https://aif360.readthedocs.io" target="_blank">AIF360</a>
+    to scans your dataset to estimate the most biased attributes or combinations of attributes.
     For example, gender may only show bias when combined with socioeconomic status, despite the latter not
     bein inherently sensitive. If you have already marked some
     attributes as sensitive (such as race or gender), the module will **exclude** them from the scan. This allows

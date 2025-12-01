@@ -23,8 +23,8 @@ def data_custom_csv(
     skip_invalid_lines: bool = True,
 ) -> CSV:
     """
-    <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; height: 36px;"/>
-    <h3>CSV file</h3>
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/csv.png?raw=true" alt="csv" style="float: left; margin-right: 15px; height: 36px;"/>
+    <h3>tabular data with custom formatting</h3>
 
     Uses <a href="https://pandas.pydata.org/">pandas</a> to load
     a CSV file that contains custom specification of numeric, categorical, and predictive data columns.

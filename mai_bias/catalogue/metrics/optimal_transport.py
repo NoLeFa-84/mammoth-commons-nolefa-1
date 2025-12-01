@@ -24,6 +24,11 @@ def optimal_transport(
     dataset: Dataset, model: Predictor, sensitive: List[str], threshold: float = 0.01
 ) -> HTML:
     """
+    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+    <h3>representational disparities in predictions</h3>
+
+    <details><summary><i>Expert details.</i></summary>
+
     Creates an optimal transport evaluation based on the implementation provided by the AIF360 library.
     The evaluation computes the Wasserstein distance that reflects the cost of transforming the predictive
     distributions between sensitive attribute groups.
@@ -44,6 +49,7 @@ def optimal_transport(
     <b>License</b><p><i>Parts of the above description are adapted from AIF360
     (<a href="https://github.com/Trusted-AI/AIF360">https://github.com/Trusted-AI/AIF360</a>),
     which is licensed under Apache License 2.0.</i></p>
+    </details>
 
     Args:
         threshold: Transport distances below the given threshold are considered negligible.

@@ -11,12 +11,12 @@ from PySide6.QtWidgets import (
     QListWidget,
     QScrollArea,
 )
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
-from PySide6.QtWidgets import QSizePolicy
-from PySide6.QtCore import Qt, QLocale, QUrl
-from PySide6.QtGui import QIntValidator, QDoubleValidator
+from PySide6.QtCore import Qt, Signal, QUrl, QLocale
 from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWidgets import QVBoxLayout, QSizePolicy, QWidget, QLabel, QFrame
+from PySide6.QtGui import QIntValidator, QDoubleValidator
 from mammoth_commons.externals import prepare_html
+from mammoth_commons.exports import get_description_header
 
 import json
 import os
@@ -24,7 +24,6 @@ import csv
 import mammoth_commons.externals
 
 from mammoth_commons.externals import pd_read_csv
-from mai_bias.states.cache import ExternalLinkPage
 from .style import Styled
 
 
@@ -69,8 +68,6 @@ def format_name(name):
 
 
 class InfoBox(QFrame):
-    """Reusable informational box matching Dashboard style."""
-
     def __init__(self, html_content, parent=None):
         super().__init__(parent)
         self.setObjectName("InfoBox")
@@ -97,6 +94,248 @@ class InfoBox(QFrame):
         layout.addWidget(label)
 
 
+from PySide6.QtCore import Qt, Signal, QUrl, QEvent
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QSizePolicy, QLabel
+from mammoth_commons.exports import get_description_header
+
+
+class CardButton(QFrame):
+    clicked = Signal(str)
+
+    def __init__(self, name, html_description, parent=None):
+        super().__init__(parent)
+
+        self.name = name
+        self.full_html = html_description  # full content for expanded view
+        self._checked = False
+        self.setObjectName("CardFrame")
+        self.setFrameShape(QFrame.StyledPanel)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setStyleSheet(
+            """
+            QFrame#CardFrame {
+                background-color: white;
+                border: 1px solid #e2d9a8;
+                border-radius: 8px;
+                padding: 5px;
+                padding-left: 15px;
+            }
+            QFrame#CardFrame[checked="true"] {
+                border: 4px solid #d4c05d;
+            }
+        """
+        )
+
+        # --- MAIN LAYOUT ---
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+
+        # --------------------------------------------------------
+        #  SMALL RENDERER (title only)
+        # --------------------------------------------------------
+        self.title_label = QLabel(self)
+        self.title_label.setTextFormat(Qt.RichText)
+        self.title_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.title_label.setOpenExternalLinks(False)
+        self.title_label.setWordWrap(True)
+        self.title_label.setStyleSheet("font-size: 28px;")
+        self.title_label.setAlignment(Qt.AlignVCenter)
+
+        def fix_img_styles_for_qlabel(html: str) -> str:
+            import re
+
+            html = re.sub(
+                r'<img([^>]+)style="[^"]*height:\s*(\d+)px[^"]*"([^>]*)>',
+                r'<img\1height="\2"\3>',
+                html,
+            )
+            html = re.sub(
+                r'<img([^>]+)style="[^"]*width:\s*(\d+)px[^"]*"([^>]*)>',
+                r'<img\1width="\2"\3>',
+                html,
+            )
+            return html
+
+        header_html = prepare_html(get_description_header(self.full_html))
+        header_html = (
+            header_html.replace("<h1>", " ")
+            .replace("</h1>", " ")
+            .replace("<h2>", " ")
+            .replace("</h2>", " ")
+            .replace("<h3>", " ")
+            .replace("</h3>", " ")
+        )
+        header_html = fix_img_styles_for_qlabel(header_html)
+        header_html = f'<table cellpadding="0" cellspacing="0" style="border:0;"><tr> <td style="vertical-align:middle;">{header_html}</td></tr></table>'
+        self.title_label.setText(header_html)
+        # This must be clickable:
+        self.title_label.mousePressEvent = lambda e: self.clicked.emit(self.name)
+
+        # --------------------------------------------------------
+        #  FULL RENDERER (QWebEngineView)
+        # --------------------------------------------------------
+        self.web = QWebEngineView(self)
+        self.web.setContextMenuPolicy(Qt.NoContextMenu)
+        self.web.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Load full HTML
+        self.web.setHtml(
+            prepare_html(
+                """<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">"""
+                + self.full_html
+            ),
+            QUrl("file:///"),
+        )
+
+        # --------------------------------------------------------
+        #  INITIAL STATE: UNCHECKED → show title only
+        # --------------------------------------------------------
+        self.web.hide()
+        self.title_label.show()
+        self.title_label.setFixedHeight(38)
+
+        self.layout.addWidget(self.title_label)
+        self.layout.addWidget(self.web)
+
+    # ============================================================
+    #  Check / Uncheck behavior (switch renderer)
+    # ============================================================
+    def setChecked(self, checked: bool):
+        self._checked = checked
+        self.setProperty("checked", "true" if checked else "false")
+        self.style().unpolish(self)
+        self.style().polish(self)
+
+        if checked:
+            self.title_label.hide()
+            self.web.show()
+            self.web.setFixedHeight(250)
+        else:
+            self.web.hide()
+            self.title_label.show()
+            self.title_label.setFixedHeight(38)
+
+    def isChecked(self):
+        return self._checked
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        self.clicked.emit(self.name)
+
+
+class ScrollSelector(QWidget):
+    def __init__(self, items, specs, on_change, parent=None):
+        super().__init__(parent)
+
+        self.on_change = on_change
+        self.items = list(items)
+        self.specs = dict(specs)
+        self.cards = []
+        self.selected = self.items[0] if self.items else None
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setStyleSheet("background:transparent; border: none;")
+
+        container = QWidget()
+        self.layout = QVBoxLayout(container)
+        self.layout.setContentsMargins(4, 4, 4, 4)
+        self.layout.setSpacing(12)
+
+        # Create cards
+        for name in self.items:
+            html = self.specs.get(name, dict()).get("description", "")
+            if not html:
+                continue
+            card = CardButton(name, html)
+            card.clicked.connect(self._select)
+            self.cards.append(card)
+            self.layout.addWidget(card)
+
+        scroll.setWidget(container)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.addWidget(scroll)
+
+        if self.items:
+            self.set_selected(self.items[0])
+
+    # ----------------------------
+    # Selection logic
+    # ----------------------------
+    def _select(self, name):
+        self.selected = name
+        for card in self.cards:
+            card.setChecked(card.name == name)
+
+        self.on_change(name)
+
+    def set_selected(self, name):
+        if self.selected == name:
+            return
+        self.selected = name
+        for card in self.cards:
+            card.setChecked(card.name == name)
+        self.on_change(name)
+
+    # ----------------------------
+    # ComboBox compatibility
+    # ----------------------------
+    def currentText(self):
+        return self.selected
+
+    def itemText(self, index):
+        return self.items[index] if 0 <= index < len(self.items) else ""
+
+    def findText(self, text):
+        for i, name in enumerate(self.items):
+            if name == text:
+                return i
+        return -1
+
+    def setCurrentIndex(self, index):
+        if 0 <= index < len(self.items):
+            self.set_selected(self.items[index])
+
+    def clear(self):
+        for card in self.cards:
+            card.setParent(None)
+            card.deleteLater()
+        self.cards.clear()
+        self.items.clear()
+        self.selected = None
+
+    def removeItem(self, index):
+        if 0 <= index < len(self.items):
+            self.items.pop(index)
+            card = self.cards.pop(index)
+            card.setParent(None)
+            card.deleteLater()
+            if self.items:
+                self.set_selected(self.items[0])
+
+    def addItem(self, name):
+        html = self.specs.get(name, dict()).get("description", "")
+        if not html:
+            return
+        self.items.append(name)
+        card = CardButton(name, html)
+        card.clicked.connect(self._select)
+        self.cards.append(card)
+        self.layout.addWidget(card)
+
+        if self.selected is None:
+            self.set_selected(name)
+
+    def addItems(self, names):
+        for name in names:
+            self.addItem(name)
+
+
 class Step(Styled):
     def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
         super().__init__()
@@ -121,15 +360,17 @@ class Step(Styled):
         selector_layout.setContentsMargins(0, 0, 0, 0)
         selector_layout.setSpacing(6)
 
-        self.dataset_selector = QComboBox(self)
-        self.dataset_selector.addItems(
-            ["Select a module"] + list(dataset_loaders.keys())
+        # Horizontal scrolling selector instead of combobox
+        self.dataset_selector = ScrollSelector(
+            ["Select a module"] + list(dataset_loaders.keys()),
+            specs=dataset_loaders,
+            on_change=self.update_param_form,
+            parent=self,
         )
-        self.dataset_selector.currentTextChanged.connect(self.update_param_form)
 
         # Make the selector expand to fill available space
         self.dataset_selector.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
 
         # Existing toggle button (reuse same name)
@@ -137,15 +378,12 @@ class Step(Styled):
         self.param_toggle_button.setCheckable(True)
         self.param_toggle_button.clicked.connect(self.toggle_param_visibility)
         self.param_toggle_button.hide()
-        self.param_toggle_button.setFixedHeight(
-            self.dataset_selector.sizeHint().height()
-        )
         selector_layout.addWidget(self.dataset_selector, 1)
-        selector_layout.addWidget(self.param_toggle_button)
         self.param_toggle_button.setFixedWidth(140)
 
         selector_row.setLayout(selector_layout)
         layout.addWidget(selector_row)
+        layout.addWidget(self.param_toggle_button)
 
         content_layout = QVBoxLayout()
         self.param_form = QFormLayout()
@@ -160,16 +398,6 @@ class Step(Styled):
         spacer.setFrameShape(QFrame.Shape.HLine)
         spacer.setFrameShadow(QFrame.Shadow.Sunken)
         content_layout.addWidget(spacer)
-
-        # --- Description view (expands normally) ---
-        self.description_label = QWebEngineView(self)
-        self.description_label.setMinimumHeight(300)
-        self.description_label.setPage(ExternalLinkPage(self.description_label))
-        self.description_label.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        )
-        content_layout.addWidget(self.description_label, stretch=1)
-
         layout.addLayout(content_layout, stretch=1)
         layout.addStretch()
 
@@ -222,24 +450,15 @@ class Step(Styled):
 
     def update_param_form(self, dataset_name):
         if self.first_selection and dataset_name != self.dataset_selector.itemText(0):
-            self.dataset_selector.removeItem(0)
+            if dataset_name not in self.dataset_loaders:
+                self.dataset_selector.removeItem(0)
             self.first_selection = False
         for i in reversed(range(self.param_form.rowCount())):
             self.param_form.removeRow(i)
         self.param_inputs.clear()
         if dataset_name not in self.dataset_loaders:
-            self.description_label.setHtml("Select a module to see its description.")
             return
         loader = self.dataset_loaders[dataset_name]
-        self.description_label.setHtml(
-            prepare_html(
-                """<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">"""
-                + loader.get(
-                    "description", f"No description available:<br><b>{dataset_name}</b>"
-                )
-            ),
-            QUrl("file:///"),
-        )
         self.last_url = None
         self.last_delimiter = None
         self.count_hidden_params = 0

@@ -532,7 +532,7 @@ def augmentation_report(
     """
     <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
 
-    <h3>investigate intersectional representation imbalances in data</h3>
+    <h3>intersectional representation imbalances in data</h3>
 
     This module uses the <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> library to
     generate an interactive <a href="https://plotly.com/python/sunburst-charts/" target="_blank">sunburst pie chart</a>

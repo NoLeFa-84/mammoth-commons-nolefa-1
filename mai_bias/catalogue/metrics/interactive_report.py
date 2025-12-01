@@ -20,7 +20,8 @@ def interactive_report(
     compare_groups: Literal["Pairwise", "To the total population"] = "Pairwise",
 ) -> HTML:
     """<img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
-    style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    style="float: left; margin-right: 5px; margin-bottom: 5px; width: 36px;"/>
+    <h3>for experts only - explore several biases and their intermediate quantities</h3>
 
     Creates an interactive report using the FairBench library. The report creates traceable evaluations that
     you can shift through to find actual sources of unfairness.

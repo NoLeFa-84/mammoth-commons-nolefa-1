@@ -1,10 +1,8 @@
-import importlib
-
-from mammoth_commons.datasets import Dataset, Labels
+from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
-from typing import Dict, List, Literal
-from mammoth_commons.integration import metric, Options
+from typing import List, Literal
+from mammoth_commons.integration import metric
 from mammoth_commons.externals import fb_categories, align_predictions
 
 
@@ -36,7 +34,7 @@ def model_card(
     and what is acceptable behavior. Imbalanced distributions of benefits are uncovered to serve as points of
     discussion of real-world impact. </p>
 
-    <details><summary><i>Details for experts</i></summary>
+    <details><summary><i>Details for experts.</i></summary>
     <p>The generated report can be viewed in three different formats, where the model card contains a subset of
     results but attaches to these socio-technical concerns to be taken into account:</p>
     <ol>

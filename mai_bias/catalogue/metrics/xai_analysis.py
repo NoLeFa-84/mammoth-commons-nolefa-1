@@ -21,9 +21,9 @@ def facex_regions(
     target_layer: str = None,
 ) -> HTML:
     """
+        <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/facex.png?raw=true" alt="facex" style="float: left; margin-right: 15px; height: 36px;"/>
+        <h3>facial features on which a model focuses to categorize an image</h3>
         <img src="https://github.com/gsarridis/faceX/raw/main/images/facex.JPG" alt="Based on Facex" style="max-width: 600px;"/>
-
-        <h3>highlight red the facial features on which a model focuses to categorize an image</h3>
 
         <a href="https://github.com/gsarridis/faceX">FaceX</a> is a tool designed to help you understand how
         face attribute classifiers make decisions. It

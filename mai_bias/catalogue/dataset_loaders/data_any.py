@@ -51,7 +51,7 @@ def data_read_any(
 
     <h3>flexible tabular data loading</h3>
 
-    Loads a dataset for analysis from either a pre-loaded pandas DataFrame or a file in one of the supported formats:
+    Uses <a href="https://pandas.pydata.org/">pandas</a> to load file stored in one of the formats:
     `.csv`, `.xls`, `.xlsx`, `.xlsm`, `.xlsb`, `.odf`, `.ods`, `.json`, `.html`, or `.htm`.
     The module is derived from  <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a>
     to support several data formats. Basic preprocessing is applied
