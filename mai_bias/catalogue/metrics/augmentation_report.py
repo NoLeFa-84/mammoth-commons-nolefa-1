@@ -530,8 +530,8 @@ def augmentation_report(
     representational_allowance: float = 0.9,
 ) -> HTML:
     """
-    <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
-
+    <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true"
+    alt="MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
     <h3>intersectional representation imbalances in data</h3>
 
     This module uses the <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> library to
