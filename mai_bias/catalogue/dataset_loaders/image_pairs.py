@@ -20,7 +20,8 @@ def data_image_pairs(
     num_workers: int = 0,
     safe_libraries="numpy,torch,torchvision,PIL,io,requests,urllib",
 ) -> ImagePairs:
-    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/images.png?raw=true" alt="text" style="float: left; margin-right: 15px; height: 36px;"/>
+    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/images.png?raw=true"
+    alt="images" style="float: left; margin-right: 15px; height: 36px;"/>
 
     <h3>pairs of images with metadata</h3>
 

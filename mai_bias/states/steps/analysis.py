@@ -113,7 +113,7 @@ biases that were not accounted for during system creation, like historical racis
 
     def showEvent(self, event):
         pipeline = self.runs[-1]
-        #self.description_input.setText(pipeline["description"])
+        # self.description_input.setText(pipeline["description"])
         compatible_methods = [
             method
             for method, entries in registry.analysis_methods.items()

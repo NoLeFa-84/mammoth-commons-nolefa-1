@@ -6,7 +6,8 @@ from mammoth_commons.externals import pd_read_csv
 @loader(namespace="mammotheu", version="v054", python="3.13")
 def data_csv_rankings(path: str = "", delimiter: str = "|") -> CSV:
     """
-    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/csv.png?raw=true" alt="csv" style="float: left; margin-right: 15px; height: 36px;"/>
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/csv.png?raw=true"
+    alt="csv" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>anonymized researcher characteristics</h3>
 
     Uses <a href="https://pandas.pydata.org/">pandas</a> to load

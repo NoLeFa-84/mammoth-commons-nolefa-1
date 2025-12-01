@@ -16,7 +16,8 @@ def data_uci(
     dataset_name: Literal["Credit", "Bank", "Adult", "KDD"] = None,
 ) -> CSV:
     """
-    <img src="https://storage.googleapis.com/kaggle-datasets-images/2417096/4083793/85e682cbc981e5214668824a9b0415c3/dataset-cover.jpg?t=2022-08-17-05-14-29" alt="Based on UCI" style="float: left; margin-right: 15px; height: 36px;"/>
+    <img src="https://storage.googleapis.com/kaggle-datasets-images/2417096/4083793/85e682cbc981e5214668824a9b0415c3/dataset-cover.jpg?t=2022-08-17-05-14-29"
+    alt="UCI" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>tabular datasets from UCI</h3>
     Loads a dataset from the (<a href="https://archive.ics.uci.edu/ml/index.php" target="_blank">UCI</a>) machine
     learning dataset repository. The dataset contains pre-specified numeric, categorical, and predictive data columns,

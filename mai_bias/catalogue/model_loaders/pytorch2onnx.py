@@ -23,8 +23,9 @@ def model_torch2onnx(
 ) -> ONNX:
     """
 
-    <img src="https://github.com/pytorch/pytorch/raw/main/docs/source/_static/img/pytorch-logo-dark.png" alt="Based on PyTorch" style="float: left; margin-right: 5px; height: 30px;"/>
-    <h3>deep learning model for CPU-based analysis</h3>
+    <img src="https://github.com/pytorch/pytorch/raw/main/docs/source/_static/img/pytorch-logo-dark.png"
+    alt="PyTorch" style="float: left; margin-right: 5px; height: 30px;"/>
+    <h3>deep learning model (for CPU)</h3>
 
     Loads a <a href="https://pytorch.org/">PyTorch</a> deep learning model that comprises code initializing the
     architecture, and a file of trained parameters. The result is however converted into the

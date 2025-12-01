@@ -1,8 +1,8 @@
-The following license governs to the contents of this directory, aside of facex.png
-which is distributed under the mammoth-commons Apache license. This license also covers
+The following license governs to the contents of this directory, aside of facex.png and croissant.png
+which are distributed under the mammoth-commons Apache license. This file's license also covers
 caching of corresponding icons.
 
-----
+---
 
 MIT License
 

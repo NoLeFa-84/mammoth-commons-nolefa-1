@@ -20,10 +20,10 @@ def data_images(
     num_workers: int = 0,
     safe_libraries="numpy,torch,torchvision,PIL,io,requests,urllib",
 ) -> Image:
-    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/image.png?raw=true" alt="text" style="float: left; margin-right: 15px; height: 36px;"/>
+    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/image.png?raw=true"
+    alt="image" style="float: left; margin-right: 15px; height: 36px;"/>
 
     <h3>images with metadata</h3>
-
     Loads image data from a CSV file that contains their sensitive and predictive attribute
     data, as well as paths relative to a root directory. Loaded images are accompanied by a preprocessing transformation.
 

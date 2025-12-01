@@ -74,7 +74,8 @@ class SelectModel(Step):
         super().__init__(step_name, stacked_widget, dataset_loaders, runs, dataset)
         self.layout().insertWidget(
             self.layout().count() - 1,
-            self.new_info_box("""
+            self.new_info_box(
+                """
                 <p>
                 Fairness is a consideration at each step during the lifecycle of an AI system; 
                 it spans fair design, development interventions, and ongoing practices to maintain quality. 
@@ -102,7 +103,7 @@ class SelectModel(Step):
                 [2] Giovanola, Benedetta, and Simona Tiribelli. 
                 "Weapons of moral construction? On the value of fairness in algorithmic decision-making."
                 <i>Ethics and Information Technology</i> 24, no. 1: 3 (2022)</p> """
-            )
+            ),
         )
 
     def showEvent(self, event):

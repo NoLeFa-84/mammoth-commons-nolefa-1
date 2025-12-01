@@ -25,25 +25,31 @@ def sklearn_visual_analysis(
     dataset: CSV,
     model: EmptyModel,
     sensitive: List[str],
-    predictor: Options("Logistic regression", "Gaussian naive Bayes") = None,
-    intersections: Options("Base", "All", "Subgroups") = "Base",
-    compare_groups: Options("Pairwise", "To the total population") = None,
+    predictor: Options(
+        "Logistic regression", "Gaussian naive Bayes"
+    ) = "Logistic regression",
+    intersections: Options("Base", "All", "Subgroups") = "Subgroups",
+    compare_groups: Options("Pairwise", "To the total population") = "Pairwise",
     problematic_deviation: float = 0.1,
     show_non_problematic: bool = True,
     top_recommendations: int = 3,
     min_group_size: int = 1,
 ) -> HTML:
     """
-    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
 
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true"
+    alt="FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 36px;"/>
+    <h3>for data scientists: barplots with the biases of a simple predictor</h3>
     <p>One way to evaluate the fairness of a dataset is by testing for biases using simple models with limited
     degrees of freedom. This module audits datasets by training such models provided by the
     <a href="https://scikit-learn.org/stable/index.html">scikit-learn</a> library on half of the dataset.
     The second half is then used as test data to assess predictive performance and detect classification
-    or scoring biases.</p>
+    or scoring biases. Test data are used to generate a fairness and bias report with the
+    <a href="https://fairbench.readthedocs.io/">FairBench</a> library.
+    </p>
 
-    <p>Test data are used to generate a fairness and bias report with the
-    <a href="https://fairbench.readthedocs.io/">FairBench</a> library. If strong biases appear in the simple models
+    <details><summary><i>Details for experts.</i></summary>
+    <p>If strong biases appear in the simple models
     that are explored, they may also persist in more complex models trained on the same data. To focus on the most
     significant biases, adjust the minimum shown deviation parameter.
     The report provides multiple types of fairness and bias assessments and can be viewed in three different formats,
@@ -64,6 +70,7 @@ def sklearn_visual_analysis(
     <p>If intersectional subgroup analysis is enabled, separate subgroups are created for each combination of sensitive
     attribute values. However, if there are too many attributes, some groups will be small or empty. Empty groups are
     ignored in the analysis. The report may also include information about built-in datasets.</p>
+    </details>
 
     Args:
         predictor: Which simple model should be used.

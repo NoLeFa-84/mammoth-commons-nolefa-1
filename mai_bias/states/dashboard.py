@@ -100,6 +100,37 @@ class Dashboard(Styled):
             """
         )
 
+        # --- LOGO CARD ---
+        logo_card = QPushButton(self)
+        logo_card.setCursor(Qt.CursorShape.PointingHandCursor)
+        logo_card.setToolTip("New analysis")
+        logo_card.clicked.connect(self.create_new_item)
+        logo_card.setStyleSheet(
+            f"""
+            QPushButton {{background-color: white; border: 2px dashed #0369a1; border-radius: 10px; padding: 0px;}}
+            QPushButton:hover {{background-color: #d3ecfa; border: 2px solid #0369a1;}}
+            """
+        )
+        logo_pixmap = QPixmap(
+            prepare(
+                "https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_bias/logo.png"
+            )
+        )
+        # Fit logo to ~60% width of card, keep aspect
+        img_max_width = int(1100 * 0.60)
+        img_max_height = int(40 * 2)
+        logo_pixmap = logo_pixmap.scaled(
+            img_max_width,
+            img_max_height,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        logo_label = QLabel(logo_card)
+        logo_label.setPixmap(logo_pixmap)
+        self.logo_pixmap = logo_pixmap
+        self.logo_card = logo_card
+        self.logo_label = logo_label
+
         # Content Widget
         self.content_widget = QWidget()
         self.layout = QVBoxLayout(self.content_widget)
@@ -288,8 +319,14 @@ class Dashboard(Styled):
             return
         while layout.count():
             child = layout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
+            widget = child.widget()
+            if widget:
+                if (
+                    widget != self.logo_card
+                    and widget != self.logo_pixmap
+                    and widget != self.logo_label
+                ):
+                    widget.deleteLater()
             elif child.layout():
                 self.clear_layout(child.layout())
 
@@ -338,37 +375,10 @@ class Dashboard(Styled):
         row = 0
         col = 0
 
-        # --- LOGO CARD ---
-        logo_card = QPushButton(self)
-        logo_card.setCursor(Qt.CursorShape.PointingHandCursor)
+        logo_card = self.logo_card
+        logo_label = self.logo_label
+        logo_pixmap = self.logo_pixmap
         logo_card.setFixedSize(card_width, card_height * 3)
-        logo_card.setToolTip("New analysis")
-        logo_card.clicked.connect(self.create_new_item)
-        logo_card.setStyleSheet(
-            f"""
-            QPushButton {{background-color: white; border: 2px dashed #0369a1; border-radius: 10px; padding: 0px;}}
-            QPushButton:hover {{background-color: #d3ecfa; border: 2px solid #0369a1;}}
-            """
-        )
-
-        # Centered logo image
-        logo_pixmap = QPixmap(
-            prepare(
-                "https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_bias/logo.png"
-            )
-        )
-        # Fit logo to ~60% width of card, keep aspect
-        img_max_width = int(card_width * 0.60)
-        img_max_height = int(card_height * 2)
-        logo_pixmap = logo_pixmap.scaled(
-            img_max_width,
-            img_max_height,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation,
-        )
-
-        logo_label = QLabel(logo_card)
-        logo_label.setPixmap(logo_pixmap)
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo_label.setGeometry(
             (card_width - logo_pixmap.width()) // 2,
@@ -377,8 +387,11 @@ class Dashboard(Styled):
             logo_pixmap.height(),
         )
         if not self.hidden:
+            logo_card.show()
             grid_layout.addWidget(logo_card, row, col)
             col += 1
+        else:
+            logo_card.hide()
         if col >= max_cols:
             row += 1
             col = 0

@@ -12,7 +12,8 @@ from mammoth_commons.externals import pd_read_csv
 )
 def data_auto_csv(path: str = "", max_discrete: int = 10) -> CSV:
     """
-    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/csv.png?raw=true" alt="csv" style="float: left; margin-right: 15px; height: 36px;"/>
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/csv.png?raw=true"
+    alt="csv" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>tabular data with common formatting</h3>
 
     Uses <a href="https://pandas.pydata.org/">pandas</a> to load

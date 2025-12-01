@@ -30,7 +30,12 @@ def croissant(
     qualitative_creators: List[str] = "",
     distribution: List[str] = "",
 ) -> HTML:
-    """Generate some json dataset metadata that boostraps conversion of your datasets into the
+    """
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/croissant.png?raw=true"
+    alt="croissant" style="float: left; margin-right: 15px; height: 36px;"/>
+    <h3>for data scientists: croissant specification</h3>
+
+    Generate some json dataset metadata that bootstraps conversion of your datasets into the
     <a href="https://github.com/mlcommons/croissant">Croissant</a> format. That format is used to
     standardized how datasets may be indexed and loaded. If your dataset is stored locally, such as
     in minio instances, you can consider either sharing the metadata to explain to others what you

@@ -6,8 +6,8 @@ from mammoth_commons.externals import prepare
 @loader(namespace="mammotheu", version="v054", python="3.13", packages=("onnxruntime",))
 def model_onnx(path: str = "", trained_with_sensitive: bool = True) -> ONNX:
     """
-    <img src="https://onnx.ai/images/ONNX-Logo.svg" alt="Based on ONNX" style="background-color: #000055; float: left; margin-right: 15px; height: 32px;"/>
-
+    <img src="https://onnx.ai/images/ONNX-Logo.svg"
+    alt="ONNX" style="background-color: #000055; float: left; margin-right: 15px; height: 32px;"/>
     <h3>a serialized machine learning model</h3>
 
     Loads an inference model stored in the <a href="https://onnx.ai/">ONNx</a> format,

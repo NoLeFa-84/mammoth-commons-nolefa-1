@@ -9,6 +9,10 @@ def model_fair_node_ranking(
     redistribution: Literal["none", "uniform", "original"] = "original",
 ) -> NodeRanking:
     """
+    <img src="https://github.com/MKLab-ITI/pygrank/blob/master/docs/pygrank.png?raw=true"
+    alt="pygrank" style="float: left; margin-right: 5px; height: 32px;"/>
+    <h3>fairness-aware node ranking algorithm</h3>
+
     Constructs a node ranking algorithm that is a variation non-personalized PageRank.
     The base algorithm is often computes a notion of centrality/structural
     importance for each node in the graph, and employs a diffusion parameter in the range [0, 1).

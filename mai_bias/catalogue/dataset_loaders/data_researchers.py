@@ -19,7 +19,8 @@ def data_researchers(
     country_divisions_path: str = "https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/refs/heads/dev/data/researchers/API_NY.GDP.MKTP.CD_DS2_en_csv_v2_14/Metadata_Country_API_NY.GDP.MKTP.CD_DS2_en_csv_v2_14.csv",
 ) -> Graph_CSH:
     """
-    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/graph.png?raw=true" alt="graph" style="float: left; margin-right: 15px; height: 36px;"/>
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/graph.png?raw=true"
+    alt="graph" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>researcher papers and affiliations</h3>
 
     This is a Loader to load .csv URLs with information about citations between researchers, as well as

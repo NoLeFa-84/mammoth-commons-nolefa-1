@@ -37,7 +37,8 @@ def sklearn_audit(
     presentation: Literal["Numbers", "Bars"] = "Numbers",
 ) -> HTML:
     """
-    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 36px;"/>
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true"
+    alt="FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 36px;"/>
     <h3>report on the biases of a simple predictor</h3>
     <p>One way to evaluate the fairness of a dataset is by testing for biases using simple models with limited
     degrees of freedom. This module audits datasets by training such models provided by the
@@ -68,7 +69,6 @@ def sklearn_audit(
     <p>If intersectional subgroup analysis is enabled, separate subgroups are created for each combination of sensitive
     attribute values. However, if there are too many attributes, some groups will be small or empty. Empty groups are
     ignored in the analysis. The report may also include information about built-in datasets.</p>
-
     </details>
 
     Args:

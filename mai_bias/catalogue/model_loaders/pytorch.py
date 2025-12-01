@@ -19,9 +19,8 @@ def model_torch(
 ) -> Pytorch:
     """
     <img src="https://github.com/pytorch/pytorch/raw/main/docs/source/_static/img/pytorch-logo-dark.png"
-    alt="Based on PyTorch" style="float: left; margin-right: 5px; height: 32px;"/>
-
-    <h3>deep learning model</h3>
+    alt="PyTorch" style="float: left; margin-right: 5px; height: 32px;"/>
+    <h3>deep learning model (for GPU)</h3>
 
     Loads a <a href="https://pytorch.org/">PyTorch</a> deep learning model that comprises a Python code initializing the
     architecture, and a file of trained parameters.

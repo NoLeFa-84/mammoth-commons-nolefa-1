@@ -212,7 +212,9 @@ class CardButton(QFrame):
         if checked:
             self.title_label.hide()
             self.web.show()
-            self.web.setFixedHeight(28+12*len(self.full_html.split("<details>")[0].split("\n")))
+            self.web.setFixedHeight(
+                28 + 12 * len(self.full_html.split("<details>")[0].split("\n"))
+            )
         else:
             self.web.hide()
             self.title_label.show()
@@ -238,13 +240,13 @@ class ScrollSelector(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll.setStyleSheet("background:transparent; border: none;")
 
         container = QWidget()
         self.layout = QVBoxLayout(container)
-        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addStretch()
         self.layout.setSpacing(4)
 
