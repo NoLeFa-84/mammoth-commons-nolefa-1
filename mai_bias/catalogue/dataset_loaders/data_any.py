@@ -48,7 +48,6 @@ def data_read_any(
 ) -> CSV:
     """
     <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
-
     <h3>flexible tabular data loading</h3>
 
     Uses <a href="https://pandas.pydata.org/">pandas</a> to load file stored in one of the formats:

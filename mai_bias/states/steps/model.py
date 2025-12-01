@@ -72,44 +72,42 @@ class ModelLoaderThread(QThread):
 class SelectModel(Step):
     def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
         super().__init__(step_name, stacked_widget, dataset_loaders, runs, dataset)
-        info_box = InfoBox(
-            """
-        <p>
-        Fairness is a consideration at each step during the lifecycle of an AI system; 
-        it spans fair design, development interventions, and ongoing practices to maintain quality. 
-        Starting from the design phase, determine a desired outcome and build or investigate your system with that in mind:
-        </p>
-    
-        💡 <b>Weak fairness</b> passively debiases predictions.<br/>
-        💡 <b>Strong fairness</b> actively participates in societal improvement 
-        (more access, opportunities, life chances to all people, etc.).
-    
-        <p>
-        Consider an AI system that regulates university admissions <b>[1]</b>. 
-        Weak fairness aims to correct biases related to several intersecting protected attributes,
-        such as ethnicity, gender, disability, or national origin.
-        Forms of strong fairness could include correcting the underadmission of
-        certain groups in previous years, or placing equal importance on both more and less
-        affordable extracurricular activities that influence access to universities, 
-        given that some groups struggle to pay for expensive ones <b>[2]</b>.
-        </p>
-    
-        <p style="font-style: italic; color: #555;">
-        [1] Costanza-Chock, Sasha. “Design Justice. Community-led practices to
-        build the worlds we need”, Cambridge, MA: The MIT Press (2020)
-        <br/>
-        [2] Giovanola, Benedetta, and Simona Tiribelli. 
-        "Weapons of moral construction? On the value of fairness in algorithmic decision-making."
-        <i>Ethics and Information Technology</i> 24, no. 1: 3 (2022)
-        </p>
-        """,
-            self,
+        self.layout().insertWidget(
+            self.layout().count() - 1,
+            self.new_info_box("""
+                <p>
+                Fairness is a consideration at each step during the lifecycle of an AI system; 
+                it spans fair design, development interventions, and ongoing practices to maintain quality. 
+                Starting from the design phase, determine a desired outcome and build or investigate your system with that in mind:
+                </p>
+            
+                💡 <b>Weak fairness</b> passively debiases predictions.<br/>
+                💡 <b>Strong fairness</b> actively participates in societal improvement 
+                (more access, opportunities, life chances to all people, etc.).
+            
+                <p>
+                Consider an AI system that regulates university admissions <b>[1]</b>. 
+                Weak fairness aims to correct biases related to several intersecting protected attributes,
+                such as ethnicity, gender, disability, or national origin.
+                Forms of strong fairness could include correcting the underadmission of
+                certain groups in previous years, or placing equal importance on both more and less
+                affordable extracurricular activities that influence access to universities, 
+                given that some groups struggle to pay for expensive ones <b>[2]</b>.
+                </p>
+            
+                <p style="font-style: italic; color: #555;">
+                [1] Costanza-Chock, Sasha. “Design Justice. Community-led practices to
+                build the worlds we need”, Cambridge, MA: The MIT Press (2020)
+                <br/>
+                [2] Giovanola, Benedetta, and Simona Tiribelli. 
+                "Weapons of moral construction? On the value of fairness in algorithmic decision-making."
+                <i>Ethics and Information Technology</i> 24, no. 1: 3 (2022)</p> """
+            )
         )
-        self.layout().insertWidget(self.layout().count() - 2, info_box)
 
     def showEvent(self, event):
         pipeline = self.runs[-1]
-        self.description_input.setText(pipeline["description"])
+        # self.description_input.setText(pipeline["description"])
         module = pipeline["dataset"]["module"]
         loaders = [
             loader

@@ -94,6 +94,7 @@ class Results(Styled):
         self.layout.addLayout(self.create_top_container())
         self.layout.addLayout(info_container)
         self.results_viewer = QWebEngineView(self)
+        self.results_viewer.setZoomFactor(0.8)
         self.layout.insertWidget(self.layout.count() - 1, self.results_viewer)
         self.results_viewer.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)

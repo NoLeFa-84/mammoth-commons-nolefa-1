@@ -86,19 +86,17 @@ class DatasetLoaderThread(QThread):
 class SelectDataset(Step):
     def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
         super().__init__(step_name, stacked_widget, dataset_loaders, runs, dataset)
-        info_box = InfoBox(
-            """
-        <p>
-        <b>Prefer diverse datasets and development teams.</b> They should cover multiple dimensions 
-        (gender, race/ethnicity, age, disability status, socio-economic background, education, geographic origin, etc.).
-        Varied teams bring different values, assumptions, views of the world, and priorities.
-        This helps improve problem framing, data selection, feature design, evaluation criteria, and harm identification.
-        In the end, they reduce blind spots against inequitable outcomes.
-        </p>
-        """,
-            self,
+        self.layout().insertWidget(
+            self.layout().count() - 1,
+            self.new_info_box(
+                """<p><b>Prefer diverse datasets and development teams.</b> They should cover multiple dimensions 
+                (gender, race/ethnicity, age, disability status, socio-economic background, education, geographic origin, etc.).
+                Varied teams bring different values, assumptions, views of the world, and priorities.
+                This helps improve problem framing, data selection, feature design, evaluation criteria, and harm identification.
+                In the end, they reduce blind spots against inequitable outcomes.</p>
+                """,
+            ),
         )
-        self.layout().insertWidget(self.layout().count() - 2, info_box)
 
     def next(self):
         self.save("dataset")
@@ -142,7 +140,7 @@ class SelectDataset(Step):
             self.loading_message.done(0)
 
     def showEvent(self, event):
-        self.description_input.setText(self.runs[-1]["description"])
+        # self.description_input.setText(self.runs[-1]["description"])
         self.dataset_selector.clear()
         self.dataset_selector.addItems(
             ["Select a dataset loader"] + list(self.dataset_loaders.keys())

@@ -139,7 +139,7 @@ class CardButton(QFrame):
         self.title_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.title_label.setOpenExternalLinks(False)
         self.title_label.setWordWrap(True)
-        self.title_label.setStyleSheet("font-size: 28px;border: none;")
+        self.title_label.setStyleSheet("font-size: 22px;border: none;")
         self.title_label.setAlignment(Qt.AlignVCenter)
 
         def fix_img_styles_for_qlabel(html: str) -> str:
@@ -147,7 +147,7 @@ class CardButton(QFrame):
 
             html = re.sub(
                 r'<img([^>]+)style="[^"]*height:\s*(\d+)px[^"]*"([^>]*)>',
-                r'<img\1height="\2"\3>',
+                r'<img\1height="28"\3>',
                 html,
             )
             html = re.sub(
@@ -168,14 +168,15 @@ class CardButton(QFrame):
         )
         header_html = fix_img_styles_for_qlabel(header_html)
         header_html = f'<table cellpadding="0" cellspacing="0" style="border:0;"><tr> <td style="vertical-align:middle;">{header_html}</td></tr></table>'
+
         self.title_label.setText(header_html)
-        # This must be clickable:
         self.title_label.mousePressEvent = lambda e: self.clicked.emit(self.name)
 
         # --------------------------------------------------------
         #  FULL RENDERER (QWebEngineView)
         # --------------------------------------------------------
         self.web = QWebEngineView(self)
+        self.web.setZoomFactor(0.8)
         self.web.setContextMenuPolicy(Qt.NoContextMenu)
         self.web.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -193,10 +194,11 @@ class CardButton(QFrame):
         # --------------------------------------------------------
         self.web.hide()
         self.title_label.show()
-        self.title_label.setFixedHeight(38)
+        self.title_label.setFixedHeight(28)
 
         self.layout.addWidget(self.title_label)
         self.layout.addWidget(self.web)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
 
     # ============================================================
     #  Check / Uncheck behavior (switch renderer)
@@ -210,11 +212,11 @@ class CardButton(QFrame):
         if checked:
             self.title_label.hide()
             self.web.show()
-            self.web.setFixedHeight(250)
+            self.web.setFixedHeight(28+12*len(self.full_html.split("<details>")[0].split("\n")))
         else:
             self.web.hide()
             self.title_label.show()
-            self.title_label.setFixedHeight(38)
+            self.title_label.setFixedHeight(28)
 
     def isChecked(self):
         return self._checked
@@ -242,8 +244,9 @@ class ScrollSelector(QWidget):
 
         container = QWidget()
         self.layout = QVBoxLayout(container)
-        self.layout.setContentsMargins(4, 4, 4, 4)
-        self.layout.setSpacing(12)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.addStretch()
+        self.layout.setSpacing(4)
 
         # Create cards
         for name in self.items:
@@ -367,8 +370,6 @@ class Step(Styled):
             QSizePolicy.Expanding, QSizePolicy.Expanding
         )
 
-        from PySide6.QtWidgets import QToolButton
-
         icon_path = prepare(
             "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/params.png?raw=true"
         )
@@ -393,8 +394,9 @@ class Step(Styled):
 
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
-        separator.setStyleSheet("color:#ccc;margin:6px 0;")
+        separator.setStyleSheet("color:#444;margin:6px 0;")
         layout.addWidget(separator, 0)
+        layout.addSpacing(32)
 
         content_layout = QVBoxLayout()
         self.param_form = QFormLayout()
@@ -408,17 +410,13 @@ class Step(Styled):
         form_row.addWidget(self.param_toggle_button, 0, Qt.AlignTop)
         content_layout.addLayout(form_row)
 
-        spacer = QFrame()
-        spacer.setFrameShape(QFrame.HLine)
-        spacer.setStyleSheet("color:#ccc")
-        content_layout.addWidget(spacer)
-
         layout.addLayout(content_layout, 0)
+        layout.addSpacing(32)
 
-        self.description_input = QLineEdit(self)
-        self.description_input.setPlaceholderText("Describe your analysis (optional)")
-        self.description_input.setStyleSheet("background:#fff")
-        layout.addWidget(self.description_input, 0)
+        # self.description_input = QLineEdit(self)
+        # self.description_input.setPlaceholderText("Describe your analysis (optional)")
+        # self.description_input.setStyleSheet("background:#fff")
+        # layout.addWidget(self.description_input, 0)
 
         button_layout = QHBoxLayout()
         self.next_button = QPushButton(
@@ -949,7 +947,7 @@ class Step(Styled):
             else:
                 params[param] = field.text()
         pipeline[step] = {"module": dataset_name, "params": params}
-        pipeline["description"] = self.description_input.text().strip()
+        pipeline["description"] = ""  # self.description_input.text().strip()
 
     def show_error_message(self, message):
         error_msg = QMessageBox(self)

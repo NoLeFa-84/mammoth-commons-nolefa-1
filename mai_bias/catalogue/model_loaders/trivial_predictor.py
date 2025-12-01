@@ -5,8 +5,7 @@ from mammoth_commons.integration import loader
 @loader(namespace="mammotheu", version="v054", python="3.13", packages=())
 def model_trivial_predictor() -> TrivialPredictor:
     """
-    <div><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/nofeats.png?raw=true" alt="bias focus" style="float: left; margin-right: 15px; height: 36px;"/>
-
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/nofeats.png?raw=true" alt="bias focus" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>uncovers biases when features are ignored</h3>
     This is a deliberately biased predictor that ignores dataset features and decides on a fixed prediction based on
     the majority.
