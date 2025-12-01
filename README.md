@@ -151,6 +151,10 @@ This repository is distributed under the Apache 2.0 License, Copyright 2025 MAMM
 
 Third-party licenses:
 
+- Some of the icons in `docs/icons/` are used by modules and
+and are released by *tabler-icons* under the MIT license 
+here: https://github.com/tabler/tabler-icons
+
 - The file `mammoth_commons/custom_kfp.py` was adjusted from the KFP project to
 handle additional metadata needed for interoperability with the demonstrator 
 and our metaprogramming decorators. Modifications were made on an original 
