@@ -24,13 +24,12 @@ def model_torch2onnx(
     """
 
     <img src="https://github.com/pytorch/pytorch/raw/main/docs/source/_static/img/pytorch-logo-dark.png" alt="Based on PyTorch" style="float: left; margin-right: 5px; height: 30px;"/>
-    <img src="https://onnx.ai/images/ONNX-Logo.svg" alt="Based on ONNX" style="background-color: #000055; float: left; margin-right: 15px; height: 30px;"/>
-
     <h3>deep learning model for CPU-based analysis</h3>
 
-    Loads a <a href="https://pytorch.org/">PyTorch</a> AI model that comprises a Python code initializing the
-    architecture, and a file of trained parameters. The result is however converted into ONNx format to support
-    processing by modules that are not compatible with GPU computations.
+    Loads a <a href="https://pytorch.org/">PyTorch</a> deep learning model that comprises code initializing the
+    architecture, and a file of trained parameters. The result is however converted into the
+    <a href="https://onnx.ai/">ONNx</a> format to support
+    processing by analysis methods that are not compatible with GPU computations.
 
     Args:
         state_path: The path in which the architecture's state is stored.

@@ -11,19 +11,25 @@ from PySide6.QtWidgets import (
     QListWidget,
     QScrollArea,
 )
-from PySide6.QtCore import Qt, Signal, QUrl, QLocale
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QVBoxLayout, QSizePolicy, QWidget, QLabel, QFrame
 from PySide6.QtGui import QIntValidator, QDoubleValidator
 from mammoth_commons.externals import prepare_html
 from mammoth_commons.exports import get_description_header
-
+from PySide6.QtCore import Qt, Signal, QUrl, QLocale, QSize
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWidgets import (
+    QFrame,
+    QVBoxLayout,
+    QSizePolicy,
+    QLabel,
+    QWidget,
+    QToolButton,
+)
+from PySide6.QtGui import QIcon, QPixmap
+from mammoth_commons.externals import prepare, pd_read_csv
 import json
 import os
 import csv
 import mammoth_commons.externals
-
-from mammoth_commons.externals import pd_read_csv
 from .style import Styled
 
 
@@ -94,12 +100,6 @@ class InfoBox(QFrame):
         layout.addWidget(label)
 
 
-from PySide6.QtCore import Qt, Signal, QUrl, QEvent
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QSizePolicy, QLabel
-from mammoth_commons.exports import get_description_header
-
-
 class CardButton(QFrame):
     clicked = Signal(str)
 
@@ -139,7 +139,7 @@ class CardButton(QFrame):
         self.title_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.title_label.setOpenExternalLinks(False)
         self.title_label.setWordWrap(True)
-        self.title_label.setStyleSheet("font-size: 28px;")
+        self.title_label.setStyleSheet("font-size: 28px;border: none;")
         self.title_label.setAlignment(Qt.AlignVCenter)
 
         def fix_img_styles_for_qlabel(html: str) -> str:
@@ -347,95 +347,101 @@ class Step(Styled):
         self.show_all_params = False
 
         layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # Step title
         self.label = QLabel(step_name, self)
-        self.label.setStyleSheet("font-size: 50px; font-weight: bold")
-        layout.addWidget(self.label)
+        self.label.setStyleSheet("font-size:50px;font-weight:bold")
+        layout.addWidget(self.label, 0)
 
-        # Dataset selector + toggle button on the right
         selector_row = QWidget()
-        selector_layout = QHBoxLayout()
+        selector_layout = QHBoxLayout(selector_row)
         selector_layout.setContentsMargins(0, 0, 0, 0)
         selector_layout.setSpacing(6)
 
-        # Horizontal scrolling selector instead of combobox
         self.dataset_selector = ScrollSelector(
             ["Select a module"] + list(dataset_loaders.keys()),
             specs=dataset_loaders,
             on_change=self.update_param_form,
             parent=self,
         )
-
-        # Make the selector expand to fill available space
         self.dataset_selector.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+            QSizePolicy.Expanding, QSizePolicy.Expanding
         )
 
-        # Existing toggle button (reuse same name)
-        self.param_toggle_button = QPushButton("More options...", self)
+        from PySide6.QtWidgets import QToolButton
+
+        icon_path = prepare(
+            "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/params.png?raw=true"
+        )
+        icon = QIcon(QPixmap(icon_path))
+
+        self.param_toggle_button = QToolButton(self)
         self.param_toggle_button.setCheckable(True)
+        self.param_toggle_button.setIcon(icon)
+        self.param_toggle_button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        self.param_toggle_button.setIconSize(QSize(48, 48))
+        self.param_toggle_button.setFixedSize(56, 56)
+        self.param_toggle_button.setStyleSheet(
+            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#ddd}"
+        )
         self.param_toggle_button.clicked.connect(self.toggle_param_visibility)
         self.param_toggle_button.hide()
-        selector_layout.addWidget(self.dataset_selector, 1)
-        self.param_toggle_button.setFixedWidth(140)
 
-        selector_row.setLayout(selector_layout)
-        layout.addWidget(selector_row)
-        layout.addWidget(self.param_toggle_button)
+        selector_layout.addWidget(self.dataset_selector, 1)
+        selector_layout.addWidget(self.param_toggle_button, 0, Qt.AlignTop)
+        selector_row.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        layout.addWidget(selector_row, 1)
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setStyleSheet("color:#ccc;margin:6px 0;")
+        layout.addWidget(separator, 0)
 
         content_layout = QVBoxLayout()
         self.param_form = QFormLayout()
         self.param_inputs = {}
         self.form_widget = QWidget()
         self.form_widget.setLayout(self.param_form)
-        self.form_widget.setSizePolicy(
-            QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-        )
-        content_layout.addWidget(self.form_widget)
+        self.form_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        form_row = QHBoxLayout()
+        form_row.addWidget(self.form_widget, 1)
+        form_row.addWidget(self.param_toggle_button, 0, Qt.AlignTop)
+        content_layout.addLayout(form_row)
+
         spacer = QFrame()
-        spacer.setFrameShape(QFrame.Shape.HLine)
-        spacer.setFrameShadow(QFrame.Shadow.Sunken)
+        spacer.setFrameShape(QFrame.HLine)
+        spacer.setStyleSheet("color:#ccc")
         content_layout.addWidget(spacer)
-        layout.addLayout(content_layout, stretch=1)
-        layout.addStretch()
+
+        layout.addLayout(content_layout, 0)
 
         self.description_input = QLineEdit(self)
         self.description_input.setPlaceholderText("Describe your analysis (optional)")
-        self.description_input.setStyleSheet("background-color: #ffffff")
-        layout.addWidget(self.description_input)
+        self.description_input.setStyleSheet("background:#fff")
+        layout.addWidget(self.description_input, 0)
 
         button_layout = QHBoxLayout()
         self.next_button = QPushButton(
             "Run" if hasattr(self, "switch_to_restart") else "Next", self
         )
         self.next_button.setStyleSheet(
-            f"""
-            QPushButton {{background-color: #007bff; color: white; border-radius: 5px; padding: 6px; }}
-            QPushButton:hover {{background-color: {self.highlight_color('#007bff')};}}
-            """
+            "QPushButton{background:#07f;color:#fff;border-radius:5px;padding:6px}QPushButton:hover{background:#059}"
         )
         self.next_button.clicked.connect(self.next)
 
         self.cancel_button = QPushButton("Cancel", self)
         self.cancel_button.setStyleSheet(
-            f"""
-            QPushButton {{background-color: #dc3545; color: white; border-radius: 5px;}}
-            QPushButton:hover {{background-color: {self.highlight_color('#dc3545')};}}
-            """
+            "QPushButton{background:#d33;color:#fff;border-radius:5px}QPushButton:hover{background:#a00}"
         )
         self.cancel_button.setFixedSize(80, 30)
         self.cancel_button.clicked.connect(self.switch_to_dashboard)
+
         button_layout.addWidget(self.next_button)
 
         if hasattr(self, "switch_to_restart"):
             self.restart_button = QPushButton("Edit pipeline", self)
             self.restart_button.setStyleSheet(
-                f"""
-                QPushButton {{background-color: #dc3545; color: white; border-radius: 5px;}}
-                QPushButton:hover {{background-color: {self.highlight_color('#dc3545')};}}
-                """
+                "QPushButton{background:#d33;color:#fff;border-radius:5px}QPushButton:hover{background:#a00}"
             )
             self.restart_button.setFixedSize(80, 30)
             self.restart_button.clicked.connect(self.switch_to_restart)
@@ -445,7 +451,7 @@ class Step(Styled):
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
-        self.defaults = dict()
+        self.defaults = {}
         self.update_param_form(self.dataset_selector.currentText())
 
     def update_param_form(self, dataset_name):
@@ -483,7 +489,7 @@ class Step(Styled):
         self.param_toggle_button.setText(
             "Hide details"
             if self.show_all_params
-            else f"Show {self.count_hidden_params} expert options"
+            else f"+{self.count_hidden_params} details"
         )
 
     def toggle_param_visibility(self):
