@@ -8,17 +8,8 @@ class ONNX(Predictor):
         self.model_bytes = model_bytes
         self.includes_sensitive = includes_sensitive
 
-    def predict(self, dataset, sensitive: list[str]):
-        includes_sensitive = not self.includes_sensitive
-
-        import onnxruntime as rt
-        from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
-
-        sess = rt.InferenceSession(self.model_bytes, providers=["CPUExecutionProvider"])
-        label_name = sess.get_outputs()[0].name
-        inputs = sess.get_inputs()
+    def _get_feed(self, dataset, sensitive, includes_sensitive, inputs):
         input_count = len(inputs)
-
         if input_count == 1:
             x = (
                 dataset
@@ -90,6 +81,19 @@ class ONNX(Predictor):
                     feed[inp.name] = (
                         df[inp.name].to_numpy().reshape(-1, 1).astype(np_type)
                     )
+        return feed
+
+
+    def predict(self, dataset, sensitive: list[str]):
+        includes_sensitive = not self.includes_sensitive
+
+        import onnxruntime as rt
+        from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
+
+        sess = rt.InferenceSession(self.model_bytes, providers=["CPUExecutionProvider"])
+        label_name = sess.get_outputs()[0].name
+        inputs = sess.get_inputs()
+        feed = self._get_feed(dataset, sensitive, includes_sensitive, inputs)
 
         try:
             return sess.run([label_name], feed)[0]
@@ -99,3 +103,42 @@ class ONNX(Predictor):
                 '<details><summary class="btn btn-secondary">Details</summary><br><br>'
                 "<pre>" + str(e) + "</pre></details>"
             )
+
+
+    def predict_probabilities(self, dataset, sensitive: list[str]):
+        includes_sensitive = not self.includes_sensitive
+
+        import onnxruntime as rt
+        from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
+
+        sess = rt.InferenceSession(self.model_bytes, providers=["CPUExecutionProvider"])
+        label_name = sess.get_outputs()[0].name
+        probabilities_name = sess.get_outputs()[1].name
+        inputs = sess.get_inputs()
+        feed = self._get_feed(dataset, sensitive, includes_sensitive, inputs)
+
+        import pdb; pdb.set_trace()
+        try:
+            probabilities = sess.run([probabilities_name], feed)[0]
+        except InvalidArgument as e:
+            raise Exception(
+                "The ONNX loader encountered an error matching this dataset with the model.<br><br>"
+                '<details><summary class="btn btn-secondary">Details</summary><br><br>'
+                "<pre>" + str(e) + "</pre></details>"
+            )
+
+        # Transform probabilities into common format
+        if isinstance(probabilities[0], dict):
+            class_labels = sorted(probabilities[0].keys())
+            probs_array = np.array(
+                [
+                    [pp[label] for label in class_labels]
+                    for pp in probabilities
+                ]
+            )
+        else:
+            probs_array = probabilities
+
+        import pdb; pdb.set_trace()
+        print('Finished')
+        return probs_array

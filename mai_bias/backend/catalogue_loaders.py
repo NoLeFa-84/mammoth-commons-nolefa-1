@@ -46,6 +46,9 @@ from mai_bias.catalogue.metrics.augmentation_report import (
 )
 from mai_bias.catalogue.metrics.text_dbias import text_debias
 from mai_bias.catalogue.metrics.self_critic import llm_audit
+from mai_bias.catalogue.metrics.nolefa_ts_binary_classification import (
+    nolefa_ts_binary_classification
+)
 
 from mai_bias.backend.registry import Registry
 
@@ -135,3 +138,4 @@ registry.analysis(
 registry.analysis(augmentation_report)
 registry.analysis(text_debias)
 registry.analysis(llm_audit)
+registry.analysis(nolefa_ts_binary_classification)
