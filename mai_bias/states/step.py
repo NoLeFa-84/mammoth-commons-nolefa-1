@@ -103,43 +103,57 @@ class InfoBox(QFrame):
 class CardButton(QFrame):
     clicked = Signal(str)
 
+    HTML_BG_DARK = """
+    <style>
+        html, body {
+            background-color: #d0d0d0 !important;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    """
+
     def __init__(self, name, html_description, parent=None):
         super().__init__(parent)
 
         self.name = name
-        self.full_html = html_description  # full content for expanded view
+        self.full_html = html_description
         self._checked = False
+
         self.setObjectName("CardFrame")
         self.setFrameShape(QFrame.StyledPanel)
         self.setCursor(Qt.PointingHandCursor)
         self.setStyleSheet(
             """
             QFrame#CardFrame {
-                background-color: white;
-                border: 1px solid #e2d9a8;
+                background-color: #f5f5f5;
+                border: 1px solid #cccccc;
                 border-radius: 8px;
                 padding: 5px;
                 padding-left: 15px;
             }
             QFrame#CardFrame[checked="true"] {
-                border: 4px solid #d4c05d;
+                background-color: #d0d0d0;
+                border-color: #999999;
             }
-        """
+            """
         )
 
-        # --- MAIN LAYOUT ---
+        # ------------------------------------------------------
+        # Main layout
+        # ------------------------------------------------------
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
-        # --------------------------------------------------------
-        #  SMALL RENDERER (title only)
-        # --------------------------------------------------------
+        # ------------------------------------------------------
+        # Title (collapsed view)
+        # ------------------------------------------------------
         self.title_label = QLabel(self)
         self.title_label.setTextFormat(Qt.RichText)
         self.title_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.title_label.setOpenExternalLinks(False)
         self.title_label.setWordWrap(True)
-        self.title_label.setStyleSheet("font-size: 22px;border: none;")
+        self.title_label.setStyleSheet("font-size: 22px; border: none;")
         self.title_label.setAlignment(Qt.AlignVCenter)
 
         def fix_img_styles_for_qlabel(html: str) -> str:
@@ -158,51 +172,46 @@ class CardButton(QFrame):
             return html
 
         header_html = prepare_html(get_description_header(self.full_html))
-        header_html = (
-            header_html.replace("<h1>", " ")
-            .replace("</h1>", " ")
-            .replace("<h2>", " ")
-            .replace("</h2>", " ")
-            .replace("<h3>", " ")
-            .replace("</h3>", " ")
-        )
+        header_html = header_html.replace("<h1>", " ").replace("</h1>", " ")
+        header_html = header_html.replace("<h2>", " ").replace("</h2>", " ")
+        header_html = header_html.replace("<h3>", " ").replace("</h3>", " ")
         header_html = fix_img_styles_for_qlabel(header_html)
-        header_html = f'<table cellpadding="0" cellspacing="0" style="border:0;"><tr> <td style="vertical-align:middle;">{header_html}</td></tr></table>'
-
+        header_html = (
+            f'<table cellpadding="0" cellspacing="0" style="border:0;"><tr>'
+            f'<td style="vertical-align:middle;">{header_html}</td>'
+            f"</tr></table>"
+        )
         self.title_label.setText(header_html)
         self.title_label.mousePressEvent = lambda e: self.clicked.emit(self.name)
 
-        # --------------------------------------------------------
-        #  FULL RENDERER (QWebEngineView)
-        # --------------------------------------------------------
+        # ------------------------------------------------------
+        # WebEngine (expanded view)
+        # ------------------------------------------------------
         self.web = QWebEngineView(self)
         self.web.setZoomFactor(0.8)
         self.web.setContextMenuPolicy(Qt.NoContextMenu)
         self.web.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self._load_html(checked=False)
 
-        # Load full HTML
-        self.web.setHtml(
-            prepare_html(
-                """<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">"""
-                + self.full_html
-            ),
-            QUrl("file:///"),
-        )
-
-        # --------------------------------------------------------
-        #  INITIAL STATE: UNCHECKED → show title only
-        # --------------------------------------------------------
         self.web.hide()
-        self.title_label.show()
         self.title_label.setFixedHeight(28)
 
         self.layout.addWidget(self.title_label)
         self.layout.addWidget(self.web)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
 
-    # ============================================================
-    #  Check / Uncheck behavior (switch renderer)
-    # ============================================================
+    def _load_html(self, checked: bool):
+        bg = self.HTML_BG_DARK
+        html = prepare_html(
+            """
+            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+                  rel="stylesheet">
+            """
+            + bg
+            + self.full_html
+        )
+        self.web.setHtml(html, QUrl("file:///"))
+
     def setChecked(self, checked: bool):
         self._checked = checked
         self.setProperty("checked", "true" if checked else "false")

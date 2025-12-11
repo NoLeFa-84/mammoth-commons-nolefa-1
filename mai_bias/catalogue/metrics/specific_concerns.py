@@ -3,6 +3,7 @@ import importlib
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML
+from mammoth_commons.reminders import on_results
 from typing import List, Literal
 from mammoth_commons.integration import metric, Options
 from mammoth_commons.externals import fb_categories, align_predictions
@@ -150,14 +151,14 @@ def specific_concerns(
     html_content = f"""
     <style>
         .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
-        .banner {{width: 100%;  padding: 18px 24px; font-size: 42px; font-weight: 700; text-align: center; color: white; border-radius: 12px margin-bottom: 25px;}}
+        .banner {{width: 100%;  padding: 180px 24px; font-size: 64px; font-weight: 700; text-align: center; color: white; border-radius: 12px margin-bottom: 25px;}}
         .banner.fair {{ background: #2e8b57; }}
         .banner.biased {{ background: #c0392b; }}
         .banner.report {{ background: #7f8c8d; }}
-        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
+        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
         .pill-btn:hover {{ background: #e0e0e0; }}
-        .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
-        .section-panel {{ display: none; border: 0px solid #ddd; padding: 0px; border-radius: 8px; background: white; }}
+        .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
+        .section-panel {{ display: none; padding: 12px; border: 0px; }}
         .section-panel.active {{ display: block; }}
         .overview-title {{font-size: 32px; font-weight: 700; margin-top: 0; margin-bottom: 10px; }}
         .overview-sub {{ font-size: 18px; opacity: 0.8; margin-bottom: 20px; }}
@@ -186,6 +187,9 @@ def specific_concerns(
             <div class="pill-btn" data-target="whatis">What is this?
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
             </div>
+            <div class="pill-btn" data-target="warning">Responsible use
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true" height="128px"/>
+            </div>
             <div class="pill-btn" data-target="process">Analysis methodology
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
             </div>
@@ -196,12 +200,16 @@ def specific_concerns(
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
             </div>
         </div>
+        <hr>
         <div id="whatis" class="section-panel">
             We analysed how {getattr(fb.measures, fb_measures[base_measure]).descriptor.details.lower()} is 
             distributed in a model's outputs given a tested dataset by comparing several protected groups 
             {compare_groups.lower()}. 
             {'Expert interpretation of numeric details is required.' if problematic_deviation == 0 else 
             'The assessment depends on specific parameters provided as inputs.'}
+        </div>
+        <div id="warning" class="section-panel">
+            {on_results}
         </div>
         <div id="pipeline" class="section-panel">
             {dataset_description}

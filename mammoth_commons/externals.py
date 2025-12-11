@@ -227,7 +227,9 @@ def prepare_html(html: str) -> str:
         attr = match.group(1)  # src or href
         quote = match.group(2)  # ' or "
         url = match.group(3)  # the URL value
-        if url.startswith("http://") or url.startswith("https://"):
+        if (url.startswith("http://") or url.startswith("https://")) and (
+            ".png" in url or ".js" in url or ".svg" in url or ".jpg" in url
+        ):
             try:
                 cached_path = prepare(url)
                 file_url = to_file_url(cached_path)

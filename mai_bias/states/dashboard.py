@@ -221,7 +221,7 @@ class Dashboard(Styled):
                 by AI, like developers, users, profiting organizations, policymakers, 
                 and vulnerable groups who might be discriminated against by its use. They may also include product 
                 owners that drive main technical specifications, such as parent or funding organizations."""
-        info_container.addWidget(make_info_box(fairness_html))
+        # info_container.addWidget(make_info_box(fairness_html))
 
         self.main_layout.addLayout(info_container)
 

@@ -27,8 +27,9 @@ def bias_scan(
     discovery: bool = True,
 ) -> HTML:
     """
-    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
-    <h3>scan for biased attributes or attribute intersections</h3>
+    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
+    alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+    <h3>scan for biased attribute values or their intersections</h3>
 
     <p>Use <a href="https://aif360.readthedocs.io" target="_blank">AIF360</a>
     to scans your dataset to estimate the most biased attributes or combinations of attributes.
@@ -122,7 +123,7 @@ def bias_scan(
             outcome="fair" if counts == 0 else "biased",
             technology='<div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360\'s bias scan</h1></div>',
             title=(
-                "No concerns in attributes"
+                "No concerns for attribute values"
                 if counts == 0
                 else f"{counts} attribute biases"
             ),

@@ -86,17 +86,17 @@ class DatasetLoaderThread(QThread):
 class SelectDataset(Step):
     def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
         super().__init__(step_name, stacked_widget, dataset_loaders, runs, dataset)
-        self.layout().insertWidget(
-            self.layout().count() - 1,
-            self.new_info_box(
-                """<p><b>Prefer diverse datasets and development teams.</b> They should cover multiple dimensions 
-                (gender, race/ethnicity, age, disability status, socio-economic background, education, geographic origin, etc.).
-                Varied teams bring different values, assumptions, views of the world, and priorities.
-                This helps improve problem framing, data selection, feature design, evaluation criteria, and harm identification.
-                In the end, they reduce blind spots against inequitable outcomes.</p>
-                """,
-            ),
-        )
+        # self.layout().insertWidget(
+        #     self.layout().count() - 1,
+        #     self.new_info_box(
+        #         """<p><b>Prefer diverse datasets and development teams.</b> They should cover multiple dimensions
+        #         (gender, race/ethnicity, age, disability status, socio-economic background, education, geographic origin, etc.).
+        #         Varied teams bring different values, assumptions, views of the world, and priorities.
+        #         This helps improve problem framing, data selection, feature design, evaluation criteria, and harm identification.
+        #         In the end, they reduce blind spots against inequitable outcomes.</p>
+        #         """,
+        #     ),
+        # )
 
     def next(self):
         self.save("dataset")

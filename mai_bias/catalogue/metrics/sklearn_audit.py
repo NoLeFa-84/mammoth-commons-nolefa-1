@@ -6,6 +6,7 @@ from mammoth_commons.integration import metric
 import numpy as np
 from mammoth_commons.integration_callback import notify_progress, notify_end
 from mammoth_commons.externals import fb_categories
+from mammoth_commons.reminders import on_results
 
 
 @metric(
@@ -205,7 +206,7 @@ def sklearn_audit(
                 .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
                 .banner {{
                     width: 100%;
-                    padding: 18px 24px;
+                    padding: 180px 24px;
                     font-size: 42px;
                     font-weight: 700;
                     text-align: center;
@@ -285,6 +286,9 @@ def sklearn_audit(
                 <div class="pill-btn" data-target="whatis">What is this?
                 <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
                 </div>
+                <div class="pill-btn" data-target="warning">Responsible use
+                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true" height="128px"/>
+                </div>
                 <div class="pill-btn" data-target="method">Analysis methodology
                 <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
                 </div>
@@ -308,6 +312,10 @@ def sklearn_audit(
                 if problematic else 'No biases were found.'}
                 <br><br>
                 <i>{'<br>'.join(problematic)}</i>
+            </div>
+            
+            <div id="warning" class="section-panel">
+                {on_results}
             </div>
 
             <div id="method" class="section-panel">

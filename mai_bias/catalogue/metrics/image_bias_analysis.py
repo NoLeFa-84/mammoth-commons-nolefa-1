@@ -18,7 +18,8 @@ def image_bias_analysis(
     task: Literal["face verification", "image classification"] = None,
 ) -> Markdown:
     """
-    <img src="https://github.com/mever-team/vb-mitigator/blob/main/assets/vb-mitigator%20logo_250.png?raw=true" alt="vb-mitigator" style="float: left; margin-right: 15px; height: 36px;"/>
+    <img src="https://github.com/mever-team/vb-mitigator/blob/main/assets/vb-mitigator%20logo_250.png?raw=true"
+    alt="vb-mitigator" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>for data scientists: solutions for imbalanced image models</h3>
 
     This module provides a comprehensive solution for analyzing image bias and recommending effective
@@ -38,7 +39,8 @@ def image_bias_analysis(
     When you run the analysis, the module identifies specific biases within the dataset and suggests
     tailored mitigation approaches. Specifically, the suitable mitigation methodologies are determined
     based on the task and the types of the detected biases in the data.
-    The analysis is conducted based on the <a href="https://github.com/gsarridis/cv-bias-mitigation-library">CV Bias Mitigation Library</a>.
+    The analysis is conducted based on the
+    <a href="https://github.com/gsarridis/cv-bias-mitigation-library">CV Bias Mitigation Library</a>.
 
     Args:
         task: The type of predictive task. It should be either face verification or image classification.

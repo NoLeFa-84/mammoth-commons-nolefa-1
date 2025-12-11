@@ -24,8 +24,12 @@ def optimal_transport(
     dataset: Dataset, model: Predictor, sensitive: List[str], threshold: float = 0.01
 ) -> HTML:
     """
-    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
+    alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
     <h3>representational disparities in predictions</h3>
+
+    Evaluates the cost of transforming distribution differences between the predictions of different
+    sensitive attribute groups.
 
     <details><summary><i>Expert details.</i></summary>
 

@@ -2,6 +2,7 @@ from kfp import dsl
 import base64
 import re
 from typing import Literal
+from mammoth_commons.reminders import on_results
 
 
 def _encode_image_to_base64(filepath):
@@ -64,14 +65,15 @@ def simplified_formatter(
     pipeline: str,
     experts: str,
     technology: str = "",
+    warning: str = on_results,
 ):
     return f"""
         <style>
             .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
             .banner {{
                 width: 100%;
-                padding: 18px 24px;
-                font-size: 42px;
+                padding: 180px 24px;
+                font-size: 64px;
                 font-weight: 700;
                 text-align: center;
                 color: white;
@@ -143,6 +145,9 @@ def simplified_formatter(
             <div class="pill-btn" data-target="whatis">What is this?
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
             </div>
+            <div class="pill-btn" data-target="warning">Responsible use
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true" height="128px"/>
+            </div>
             <div class="pill-btn" data-target="method">Analysis methodology
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
             </div>
@@ -153,7 +158,9 @@ def simplified_formatter(
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
             </div>
         </div>
+        <hr>
         <div id="whatis" class="section-panel">{about}</div>
+        <div id="warning" class="section-panel">{warning}</div>
         <div id="method" class="section-panel">{methodology}</div>
         <div id="pipeline" class="section-panel">{pipeline}</div>
         <div id="details" class="section-panel">{experts}</div>

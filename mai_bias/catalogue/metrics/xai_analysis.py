@@ -21,7 +21,8 @@ def facex_regions(
     target_layer: str = None,
 ) -> HTML:
     """
-        <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/facex.png?raw=true" alt="facex" style="float: left; margin-right: 15px; height: 36px;"/>
+        <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/facex.png?raw=true"
+        alt="facex" style="float: left; margin-right: 15px; height: 36px;"/>
         <h3>facial features contributing to image categorization</h3>
 
         <a href="https://github.com/gsarridis/faceX">FaceX</a> is used to analyze

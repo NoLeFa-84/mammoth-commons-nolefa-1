@@ -6,6 +6,7 @@ from typing import List
 from mammoth_commons.integration import metric
 from mammoth_commons.externals import align_predictions
 from mammoth_commons.integration_callback import notify_progress, notify_end
+from mammoth_commons.reminders import on_results
 import json
 
 
@@ -331,29 +332,18 @@ def aif360_metrics(
     )
     html_content = f"""
     <style>
-        .banner {{
-            width: 100%;
-            padding: 18px 24px;
-            font-size: 42px;
-            font-weight: 700;
-            text-align: center;
-            color: white;
-            border-radius: 12px;
-            background: {"#2e8b57" if "fair" in verdict.lower() else "#c0392b"};
-            margin-bottom: 25px;
-        }}
-        .pill-buttons {{ display: flex; gap: 12px; margin-bottom: 25px; }}
-        .pill-btn {{
-            width: 100%; text-align:center; padding: 10px 18px;
-            background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc;
-            cursor: pointer; font-size: 18px; transition: 0.2s;
-        }}
+        .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
+        .banner {{width: 100%;  padding: 180px 24px; font-size: 64px; font-weight: 700; text-align: center; color: white; border-radius: 12px margin-bottom: 25px;}}
+        .banner.fair {{ background: #2e8b57; }}
+        .banner.biased {{ background: #c0392b; }}
+        .banner.report {{ background: #7f8c8d; }}
+        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
         .pill-btn:hover {{ background: #e0e0e0; }}
-        .pill-btn.active {{
-            background: #d0d0d0; border-color: #999;
-        }}
-        .section-panel {{ display: none; }}
+        .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
+        .section-panel {{ display: none; padding: 12px; border: 0px; }}
         .section-panel.active {{ display: block; }}
+        .overview-title {{font-size: 32px; font-weight: 700; margin-top: 0; margin-bottom: 10px; }}
+        .overview-sub {{ font-size: 18px; opacity: 0.8; margin-bottom: 20px; }}
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function() {{
@@ -373,12 +363,16 @@ def aif360_metrics(
         }});
     </script>
     <div>
-        <h1 class="banner">{verdict}</h1>
+        <h1 class="banner {'biased' if 'bias' in verdict else 'fair'}">{verdict}</h1>
         <div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360 metrics</h1></div>
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">
                 What is this?<br>
                 <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="warning">
+                Responsible use
+                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true" height="128px"/>
             </div>
             <div class="pill-btn" data-target="methodology">
                 Analysis methodology<br>
@@ -395,6 +389,9 @@ def aif360_metrics(
         </div>
         <div id="whatis" class="section-panel">
             <p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>{bias_list_html}
+        </div>
+        <div id="warning" class="section-panel">
+            {on_results}
         </div>
         <div id="methodology" class="section-panel">
             <p>Each fairness metric provided by AIF360 is computed across <b>{len(sensitive)}</b> groups, each of which 

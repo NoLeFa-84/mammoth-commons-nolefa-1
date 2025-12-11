@@ -77,7 +77,7 @@ def llm_audit(
         .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
         .banner {{
             width: 100%;
-            padding: 18px 24px;
+            padding: 180px 24px;
             font-size: 42px;
             font-weight: 700;
             text-align: center;
