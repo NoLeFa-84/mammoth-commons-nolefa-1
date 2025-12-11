@@ -147,7 +147,8 @@ def aif360_metrics(
     bias_threshold: float = 0.05,
 ) -> HTML:
     """
-    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
+    alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
 
     <h3>popular types of bias</h3>
 

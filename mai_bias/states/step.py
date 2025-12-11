@@ -13,9 +13,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QIntValidator, QDoubleValidator
 from mammoth_commons.externals import prepare_html
-from mammoth_commons.exports import get_description_header
-from PySide6.QtCore import Qt, Signal, QUrl, QLocale, QSize
-from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtCore import Qt, QLocale, QSize
 from PySide6.QtWidgets import (
     QFrame,
     QVBoxLayout,
@@ -31,6 +29,7 @@ import os
 import csv
 import mammoth_commons.externals
 from .style import Styled
+from .step_utils.card_button import CardButton
 
 
 def save_all_runs(path, runs):
@@ -100,143 +99,6 @@ class InfoBox(QFrame):
         layout.addWidget(label)
 
 
-class CardButton(QFrame):
-    clicked = Signal(str)
-
-    HTML_BG_DARK = """
-    <style>
-        html, body {
-            background-color: #d0d0d0 !important;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
-    """
-
-    def __init__(self, name, html_description, parent=None):
-        super().__init__(parent)
-
-        self.name = name
-        self.full_html = html_description
-        self._checked = False
-
-        self.setObjectName("CardFrame")
-        self.setFrameShape(QFrame.StyledPanel)
-        self.setCursor(Qt.PointingHandCursor)
-        self.setStyleSheet(
-            """
-            QFrame#CardFrame {
-                background-color: #f5f5f5;
-                border: 1px solid #cccccc;
-                border-radius: 8px;
-                padding: 5px;
-                padding-left: 15px;
-            }
-            QFrame#CardFrame[checked="true"] {
-                background-color: #d0d0d0;
-                border-color: #999999;
-            }
-            """
-        )
-
-        # ------------------------------------------------------
-        # Main layout
-        # ------------------------------------------------------
-        self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-
-        # ------------------------------------------------------
-        # Title (collapsed view)
-        # ------------------------------------------------------
-        self.title_label = QLabel(self)
-        self.title_label.setTextFormat(Qt.RichText)
-        self.title_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.title_label.setOpenExternalLinks(False)
-        self.title_label.setWordWrap(True)
-        self.title_label.setStyleSheet("font-size: 22px; border: none;")
-        self.title_label.setAlignment(Qt.AlignVCenter)
-
-        def fix_img_styles_for_qlabel(html: str) -> str:
-            import re
-
-            html = re.sub(
-                r'<img([^>]+)style="[^"]*height:\s*(\d+)px[^"]*"([^>]*)>',
-                r'<img\1height="28"\3>',
-                html,
-            )
-            html = re.sub(
-                r'<img([^>]+)style="[^"]*width:\s*(\d+)px[^"]*"([^>]*)>',
-                r'<img\1width="\2"\3>',
-                html,
-            )
-            return html
-
-        header_html = prepare_html(get_description_header(self.full_html))
-        header_html = header_html.replace("<h1>", " ").replace("</h1>", " ")
-        header_html = header_html.replace("<h2>", " ").replace("</h2>", " ")
-        header_html = header_html.replace("<h3>", " ").replace("</h3>", " ")
-        header_html = fix_img_styles_for_qlabel(header_html)
-        header_html = (
-            f'<table cellpadding="0" cellspacing="0" style="border:0;"><tr>'
-            f'<td style="vertical-align:middle;">{header_html}</td>'
-            f"</tr></table>"
-        )
-        self.title_label.setText(header_html)
-        self.title_label.mousePressEvent = lambda e: self.clicked.emit(self.name)
-
-        # ------------------------------------------------------
-        # WebEngine (expanded view)
-        # ------------------------------------------------------
-        self.web = QWebEngineView(self)
-        self.web.setZoomFactor(0.8)
-        self.web.setContextMenuPolicy(Qt.NoContextMenu)
-        self.web.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self._load_html(checked=False)
-
-        self.web.hide()
-        self.title_label.setFixedHeight(28)
-
-        self.layout.addWidget(self.title_label)
-        self.layout.addWidget(self.web)
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-
-    def _load_html(self, checked: bool):
-        bg = self.HTML_BG_DARK
-        html = prepare_html(
-            """
-            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-                  rel="stylesheet">
-            """
-            + bg
-            + self.full_html
-        )
-        self.web.setHtml(html, QUrl("file:///"))
-
-    def setChecked(self, checked: bool):
-        self._checked = checked
-        self.setProperty("checked", "true" if checked else "false")
-        self.style().unpolish(self)
-        self.style().polish(self)
-
-        if checked:
-            self.title_label.hide()
-            self.web.show()
-            self.web.setFixedHeight(
-                28 + 12 * len(self.full_html.split("<details>")[0].split("\n"))
-            )
-        else:
-            self.web.hide()
-            self.title_label.show()
-            self.title_label.setFixedHeight(28)
-
-    def isChecked(self):
-        return self._checked
-
-    def mousePressEvent(self, event):
-        super().mousePressEvent(event)
-        self.clicked.emit(self.name)
-
-
 class ScrollSelector(QWidget):
     def __init__(self, items, specs, on_change, parent=None):
         super().__init__(parent)
@@ -249,14 +111,13 @@ class ScrollSelector(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setStyleSheet("background:transparent; border: none;")
 
         container = QWidget()
         self.layout = QVBoxLayout(container)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.addStretch()
         self.layout.setSpacing(4)
 
         # Create cards
@@ -269,6 +130,7 @@ class ScrollSelector(QWidget):
             self.cards.append(card)
             self.layout.addWidget(card)
 
+        self.layout.setAlignment(Qt.AlignTop)
         scroll.setWidget(container)
 
         root = QVBoxLayout(self)
@@ -363,7 +225,7 @@ class Step(Styled):
         layout = QVBoxLayout()
 
         self.label = QLabel(step_name, self)
-        self.label.setStyleSheet("font-size:50px;font-weight:bold")
+        self.label.setStyleSheet("font-size:32px;font-weight:bold")
         layout.addWidget(self.label, 0)
 
         selector_row = QWidget()
@@ -378,7 +240,7 @@ class Step(Styled):
             parent=self,
         )
         self.dataset_selector.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Expanding
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
 
         icon_path = prepare(
@@ -389,64 +251,100 @@ class Step(Styled):
         self.param_toggle_button = QToolButton(self)
         self.param_toggle_button.setCheckable(True)
         self.param_toggle_button.setIcon(icon)
-        self.param_toggle_button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-        self.param_toggle_button.setIconSize(QSize(48, 48))
-        self.param_toggle_button.setFixedSize(56, 56)
+        self.param_toggle_button.setToolButtonStyle(
+            Qt.ToolButtonStyle.ToolButtonTextUnderIcon
+        )
+        self.param_toggle_button.setIconSize(QSize(72, 72))
+        self.param_toggle_button.setFixedSize(96, 96)
         self.param_toggle_button.setStyleSheet(
-            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#ddd}"
+            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#d0d0d0;border: 1px solid #cccccc}"
         )
         self.param_toggle_button.clicked.connect(self.toggle_param_visibility)
         self.param_toggle_button.hide()
 
+        icon_path = prepare(
+            "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true"
+        )
+        icon = QIcon(QPixmap(icon_path))
+        self.warnings_toggle_button = QToolButton(self)
+        self.warnings_toggle_button.setCheckable(True)
+        self.warnings_toggle_button.setIcon(icon)
+        self.warnings_toggle_button.setToolButtonStyle(
+            Qt.ToolButtonStyle.ToolButtonTextUnderIcon
+        )
+        self.warnings_toggle_button.setIconSize(QSize(72, 72))
+        self.warnings_toggle_button.setFixedSize(96, 96)
+        self.warnings_toggle_button.setText("responsibility")
+        self.warnings_toggle_button.setStyleSheet(
+            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#d0d0d0;border: 1px solid #cccccc}"
+        )
+        self.warnings_toggle_button.clicked.connect(self.toggle_param_visibility)
+        self.warnings_toggle_button.hide()
+
         selector_layout.addWidget(self.dataset_selector, 1)
-        selector_layout.addWidget(self.param_toggle_button, 0, Qt.AlignTop)
-        selector_row.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        selector_layout.addWidget(
+            self.param_toggle_button, 0, Qt.AlignmentFlag.AlignTop
+        )
+        selector_row.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
         layout.addWidget(selector_row, 1)
+        # selector_row.setMinimumHeight(400)
+        # layout.addStretch(2)
 
         separator = QFrame()
-        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShape(QFrame.Shape.HLine)
         separator.setStyleSheet("color:#444;margin:6px 0;")
         layout.addWidget(separator, 0)
-        layout.addSpacing(32)
 
         content_layout = QVBoxLayout()
         self.param_form = QFormLayout()
         self.param_inputs = {}
+
         self.form_widget = QWidget()
         self.form_widget.setLayout(self.param_form)
-        self.form_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        form_row = QHBoxLayout()
-        form_row.addWidget(self.form_widget, 1)
-        form_row.addWidget(self.param_toggle_button, 0, Qt.AlignTop)
-        content_layout.addLayout(form_row)
+        self.form_widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
+        left_col = QVBoxLayout()
+        label = QLabel("Configure", self)
+        label.setStyleSheet("font-size:32px;font-weight:bold")
+        left_col.addWidget(label)
+        left_col.addWidget(self.form_widget)
+        right_col = QHBoxLayout()
+        right_col.addWidget(self.param_toggle_button, 0, Qt.AlignmentFlag.AlignBottom)
+        right_col.addWidget(
+            self.warnings_toggle_button, 0, Qt.AlignmentFlag.AlignBottom
+        )
+        container_row = QHBoxLayout()
+        container_row.addLayout(left_col, 1)
+        container_row.addLayout(right_col, 0)
+        content_layout.addLayout(container_row)
 
         layout.addLayout(content_layout, 0)
-        layout.addSpacing(32)
-
-        # self.description_input = QLineEdit(self)
-        # self.description_input.setPlaceholderText("Describe your analysis (optional)")
-        # self.description_input.setStyleSheet("background:#fff")
-        # layout.addWidget(self.description_input, 0)
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet("color:#444;margin:6px 0;")
+        content_layout.addWidget(separator, 0)
+        content_layout.addSpacing(32)
 
         button_layout = QHBoxLayout()
-        self.next_button = QPushButton(
+        next_button = QPushButton(
             "Run" if hasattr(self, "switch_to_restart") else "Next", self
         )
-        self.next_button.setStyleSheet(
+        next_button.setStyleSheet(
             "QPushButton{background:#07f;color:#fff;border-radius:5px;padding:6px}QPushButton:hover{background:#059}"
         )
-        self.next_button.clicked.connect(self.next)
+        next_button.clicked.connect(self.next)
 
-        self.cancel_button = QPushButton("Cancel", self)
-        self.cancel_button.setStyleSheet(
+        cancel_button = QPushButton("Cancel", self)
+        cancel_button.setStyleSheet(
             "QPushButton{background:#d33;color:#fff;border-radius:5px}QPushButton:hover{background:#a00}"
         )
-        self.cancel_button.setFixedSize(80, 30)
-        self.cancel_button.clicked.connect(self.switch_to_dashboard)
+        cancel_button.setFixedSize(80, 30)
+        cancel_button.clicked.connect(self.switch_to_dashboard)
 
-        button_layout.addWidget(self.next_button)
-
+        button_layout.addWidget(next_button)
         if hasattr(self, "switch_to_restart"):
             self.restart_button = QPushButton("Edit pipeline", self)
             self.restart_button.setStyleSheet(
@@ -455,8 +353,7 @@ class Step(Styled):
             self.restart_button.setFixedSize(80, 30)
             self.restart_button.clicked.connect(self.switch_to_restart)
             button_layout.addWidget(self.restart_button)
-
-        button_layout.addWidget(self.cancel_button)
+        button_layout.addWidget(cancel_button)
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
@@ -496,9 +393,9 @@ class Step(Styled):
         else:
             self.param_toggle_button.hide()
         self.param_toggle_button.setText(
-            "Hide details"
+            "hide details"
             if self.show_all_params
-            else f"+{self.count_hidden_params} details"
+            else "for experts"  # f"{self.count_hidden_params}"
         )
 
     def toggle_param_visibility(self):
@@ -901,13 +798,8 @@ class Step(Styled):
         help_button.setFixedSize(20, 20)
         help_button.setStyleSheet(
             f"""
-            QPushButton {{
-                background-color: #dddddd; 
-                border-radius: 10px;
-            }}
-            QPushButton:hover {{
-                background-color: {self.highlight_color('#dddddd')};
-            }}"""
+            QPushButton {{background-color: #dddddd; border-radius: 10px;}}
+            QPushButton:hover {{background-color: {self.highlight_color('#dddddd')};}}"""
         )
         help_button.setToolTip("Parameter info")
         help_button.clicked.connect(

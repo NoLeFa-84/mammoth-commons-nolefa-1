@@ -85,11 +85,11 @@ def simplified_formatter(
             .banner.report {{ background: #7f8c8d; }}
             .pill-btn {{
                 width:100%; text-align:center; padding: 10px 18px;
-                background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc;
+                background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc;
                 cursor: pointer; font-size: 18px; transition: background 0.2s;
             }}
             .pill-btn:hover {{ background: #e0e0e0; }}
-            .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
+            .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
             .section-panel {{ display: none; padding: 0px; background: white; }}
             .section-panel.active {{ display: block; }}
             .tablinks {{

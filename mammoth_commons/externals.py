@@ -233,6 +233,7 @@ def prepare_html(html: str) -> str:
             or ".css" in url
             or ".svg" in url
             or ".jpg" in url
+            or "githubusercontent" in url
         ):
             try:
                 cached_path = prepare(url)
