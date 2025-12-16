@@ -72,28 +72,13 @@ class Results(Styled):
 
         info_container = QVBoxLayout()
         info_container.setAlignment(Qt.AlignmentFlag.AlignTop)
-        info_container.addWidget(
-            self.new_info_box(
-                """
-                <p><b>Fairness does not end after producing AI outputs.</b></p>
-                 💡 Continue interacting with stakeholders to assert that their idea of fairness is correctly implemented.<br>
-                 💡 Monitor the outputs of deployed systems by rerunning the analysis on updated models and datasets.<br>
-                 💡 Test model and dataset variations for multiple sensitive characteristics and parameters.
-                <div style='margin-top: 10px;'><p>Keep a balance between justifying outputs as part of a fair process 
-                and accommodating constructive criticism. Do not over-rely on technical justification, and ensure 
-                meaningful human oversight whenever AI systems are deployed in decision-making, 
-                high-stakes, or rights-impacting contexts. Human oversight prevents overreliance on imperfect models, 
-                catches context-specific errors, and enables ethical judgment, accountability, and recourse for 
-                affected people.</p></div>
-                """
-            )
-        )
 
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.layout.addLayout(self.create_top_container())
         self.layout.addLayout(info_container)
         self.results_viewer = QWebEngineView(self)
+        self.results_viewer.setZoomFactor(0.8)
         self.layout.insertWidget(self.layout.count() - 1, self.results_viewer)
         self.results_viewer.setSizePolicy(
             QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -114,6 +99,9 @@ class Results(Styled):
 
     def switch_to_dashboard(self):
         self.stacked_widget.slideToWidget(0)
+
+    def switch_to_restart(self):
+        self.stacked_widget.slideToWidget(1)
 
     def showEvent(self, event):
         super().showEvent(event)

@@ -146,7 +146,7 @@ def _download(url, path):
         )
         total_size = int(total_size) if total_size else None
         with open(path, "wb") as out_file:
-            chunk_size = 1024
+            chunk_size = 4096 * 8  # 32kbps rate updates each second
             downloaded = 0
             chunk = True
             while chunk:
@@ -227,7 +227,14 @@ def prepare_html(html: str) -> str:
         attr = match.group(1)  # src or href
         quote = match.group(2)  # ' or "
         url = match.group(3)  # the URL value
-        if url.startswith("http://") or url.startswith("https://"):
+        if (url.startswith("http://") or url.startswith("https://")) and (
+            ".png" in url
+            or ".js" in url
+            or ".css" in url
+            or ".svg" in url
+            or ".jpg" in url
+            or "githubusercontent" in url
+        ):
             try:
                 cached_path = prepare(url)
                 file_url = to_file_url(cached_path)

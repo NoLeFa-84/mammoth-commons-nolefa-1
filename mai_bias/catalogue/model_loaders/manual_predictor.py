@@ -14,12 +14,21 @@ class ManualPredictor(Predictor):
 
 @loader(namespace="mammotheu", version="v054", python="3.13", packages=("pandas",))
 def model_manual_predictor(path_or_predictions: str = "") -> ManualPredictor:
-    """Lets you input comma-separated list of predictions that correspond to the data you are processing.
+    """
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/list.png?raw=true"
+    alt="dataset focus" style="float: left; margin-right: 15px; height: 36px;"/>
+    <h3>manual predictions for the dataset</h3>
+
+    Manually loaded predictions may have been produced by workflows external to the toolkit.
+
+    <details><summary>How to format the predictions.</summary>
+    Input comma-separated list of predictions that correspond to the data you are processing.
     This is useful so that you can export the predictions directly from your testing code. If there are no
     commas provided, this module's argument is considered to be the URL to a CSV file whose last column contains
     the predictions. Other columns are ignored, but are allowed to give you flexibility. If your dataset also
     has the last column as the prediction label (e.g., if it is loaded with auto csv) you will obtain analysis
     for a perfect predictor.
+    </details>
 
     Args:
             path_or_predictions: A comma-separated list of predictions, or a URL to a CSV file whose last column contains them.

@@ -93,27 +93,33 @@ class AnalysisThread(QThread):
 class SelectAnalysis(Step):
     def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
         super().__init__(step_name, stacked_widget, dataset_loaders, runs, dataset)
-        info_box = InfoBox(
-            """
-<p>💡 <b>Fairness is context-specific.</b> There is no general fairness definition that applies to every context or use case.
-This page lets you select fairness/bias assessment methodologies that contain definitions from the computer science literature. 
-However, which ones are suitable depends on the specific situation you are studying; less common methodologies and definitions 
-could be preferable in certain cases.</p>
+        self.warnings_toggle_button.show()
+        self.warnings_toggle_button.clicked.connect(self.show_warnings_popup)
 
-<p>💡 <b>There can be conflicting interests and opinions on what is fair.</b> When different stakeholders with different ideas on what 
-constitutes a fair solution to a problem are involved, fairness becomes the result of a negotiation process that is affected 
-by power relations. Think of an example AI system that evaluates loan requests: bank clients might want their personal circumstances to
-be part of the evaluation, but lenders might think it is fair to provide impartial and systematic responses (although these may also contain
-biases that were not accounted for during system creation, like historical racism in training data).
-</p>
-        """,
-            self,
+    def show_warnings_popup(self):
+        popup = QMessageBox(self)
+        popup.setWindowTitle("Responsible analysis")
+        popup.setText(
+            """
+            <p>💡 <b>Fairness is context-specific.</b> There is no general fairness definition that applies to every context or use case.
+            This page lets you select fairness/bias assessment methodologies that contain definitions from the computer science literature. 
+            However, which ones are suitable depends on the specific situation you are studying; less common methodologies and definitions 
+            could be preferable in certain cases.</p>
+            
+            <p>💡 <b>There can be conflicting interests and opinions on what is fair.</b> When different stakeholders with different ideas on what 
+            constitutes a fair solution to a problem are involved, fairness becomes the result of a negotiation process that is affected 
+            by power relations. Think of an example AI system that evaluates loan requests: bank clients might want their personal circumstances to
+            be part of the evaluation, but lenders might think it is fair to provide impartial and systematic responses (although these may also contain
+            biases that were not accounted for during system creation, like historical racism in training data).
+            </p>
+            s"""
         )
-        self.layout().insertWidget(self.layout().count() - 2, info_box)
+        popup.setStandardButtons(QMessageBox.StandardButton.Ok)
+        popup.exec()
 
     def showEvent(self, event):
         pipeline = self.runs[-1]
-        self.description_input.setText(pipeline["description"])
+        # self.description_input.setText(pipeline["description"])
         compatible_methods = [
             method
             for method, entries in registry.analysis_methods.items()
@@ -191,6 +197,12 @@ biases that were not accounted for during system creation, like historical racis
         self.save("analysis")
         self.runs[-1]["status"] = "saved"
         self.stacked_widget.slideToWidget(0)
+        save_all_runs("history.json", self.dataset)
+
+    def switch_to_restart(self):
+        self.save("analysis")
+        self.runs[-1]["status"] = "saved"
+        self.stacked_widget.slideToWidget(1)
         save_all_runs("history.json", self.dataset)
 
     def closeEvent(self, event):

@@ -1,10 +1,8 @@
-import importlib
-
-from mammoth_commons.datasets import Dataset, Labels
+from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
-from mammoth_commons.exports import HTML
-from typing import Dict, List, Literal
-from mammoth_commons.integration import metric, Options
+from mammoth_commons.exports import HTML, simplified_formatter
+from typing import List, Literal
+from mammoth_commons.integration import metric
 from mammoth_commons.externals import fb_categories, align_predictions
 
 
@@ -26,13 +24,18 @@ def model_card(
     presentation: Literal["Numbers", "Bars"] = "Numbers",
 ) -> HTML:
     """
-    <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench"
-    style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
+    style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+
+    <h3>cover a broad picture of imbalances</h3>
 
     <p>Generates a fairness and bias report using the <a href="https://github.com/mever-team/FairBench">FairBench</a>
     library. This explores many kinds of bias to paint a broad picture and help you decide on what is problematic
-    and what is acceptable behavior.
-    The generated report can be viewed in three different formats, where the model card contains a subset of
+    and what is acceptable behavior. Imbalanced distributions of benefits are uncovered to serve as points of
+    discussion of real-world impact. </p>
+
+    <details><summary><i>Details for experts.</i></summary>
+    <p>The generated report can be viewed in three different formats, where the model card contains a subset of
     results but attaches to these socio-technical concerns to be taken into account:</p>
     <ol>
         <li>A summary table of results.</li>
@@ -49,6 +52,7 @@ def model_card(
     <p>If intersectional subgroup analysis is enabled, separate subgroups are created for each combination of sensitive
     attribute values. However, if there are too many attributes, some groups will be small or empty. Empty groups are
     ignored in the analysis.</p>
+    </details>
 
     Args:
         intersections: Whether to consider only the provided groups, all non-empty group intersections, or all non-empty intersections while ignoring larger groups during analysis. This does nothing if there is only one sensitive attribute. It could be computationally intensive if too many group intersections are selected. As an example of intersectional bias <b>[1]</b> race and gender together affect algorithmic performance of commercial facial-analysis systems; worst performance for darker-skinned women demonstrates a compounded disparity that would be missed if the analysis looked only at race or only at gender. <br><br><b>[1]</b> <i>Buolamwini, J., & Gebru, T. (2018, January). Gender shades Intersectional accuracy disparities in commercial gender classification. In Conference on fairness, accountability and transparency (pp. 77-91). PMLR.</p>
@@ -92,16 +96,11 @@ def model_card(
     ).depends.values():
         for col2 in col.depends.values():
             for value in col2.depends.values():
-                # problematic.add(col2.descriptor.details+" of "+value.descriptor.details+" for "+col.descriptor.details)
                 problematic.add(
-                    "<b>"
-                    + value.descriptor.name
-                    + "</b>: "
-                    + value.descriptor.prototype.details
+                    f"{value.descriptor.prototype.details} ({value.descriptor.name})"
                 )
     if prob != 0:
         report = report.filter(fb.investigate.DeviationsOver(prob, prune=reject))
-
     views = {
         "Summary": report.show(env=presentation(view=False, filename=None)),
         "Stamps": report.filter(fb.investigate.Stamps).show(
@@ -113,154 +112,42 @@ def model_card(
             depth=3 if isinstance(predictions, dict) else 2,
         ),
     }
-    if problematic:
-        outcome_class = "biased"
-        outcome_label = f"{len(problematic)} biased metrics in {len(sensitive.branches())} protected groups"
-    else:
-        outcome_class = "fair"
-        outcome_label = "Fully fair system"
-
-    expert_tabs_header = "".join(
-        f'<button class="tablinks" data-tab="{key}">{key}</button>' for key in views
+    return HTML(
+        simplified_formatter(
+            outcome="biased" if problematic else "fair",
+            title=(
+                f"Biases in {len(problematic)} types of benefits"
+                if problematic
+                else "no concerns"
+            ),
+            technology='<div><img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="logo" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on FairBench reporting</h1></div>',
+            about=f"""
+                <p>{('Some system performance metrics, which indicate obtained benefits like correct or favorable '
+                  'operation, were found unevenly distributed across the population. '
+                  'These biases occurred in at least one prediction class and at least one way of aggregating the comparison '
+                  'among multiple groups. Expert assessment is needed to help understand which biases may be considered unfair. '
+                  'The biased metrics are:')
+                if problematic else 'No biases were found.'}
+                <br><br>
+                <i>{'<br>'.join(problematic)}</i>
+            """,
+            methodology=f"""
+                <p>Groups were compared <b>{compare_groups.lower()}</b>.
+                Values deviating more than <b>{prob:.3f}</b> from their ideal target
+                were counted as problematic. These deviations guide where deeper inspection is needed.
+                The result is considered biased if it lays <b>{prob:.3f}</b> away from its ideal target
+                that would indicate fairness. For example, the ideal target is 0 for differences between measure values,
+                and 1 for values that should be large (e.g., the minimum accuracy across all groups).
+                Some metrics have no known ideal values.</p>
+                <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
+                <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p></p>
+            """,
+            pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+            experts=f"""
+                <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
+                <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>
+                <div id="expert-tab-header">{"".join(f'<button class="tablinks" data-tab="{key}">{key}</button>' for key in views)}</div>
+                <div id="expert-tab-body">{"".join(f'<div id="{key}" class="tabcontent">{value}</div>' for key, value in views.items())}</div>
+            """,
+        )
     )
-    expert_tabs_body = "".join(
-        f'<div id="{key}" class="tabcontent">{value}</div>'
-        for key, value in views.items()
-    )
-
-    dataset_description = dataset.to_description().split("Args:")[0]
-    model_description = model.to_description().split("Args:")[0]
-
-    html_content = f"""
-        <style>
-            .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
-            .banner {{
-                width: 100%;
-                padding: 18px 24px;
-                font-size: 42px;
-                font-weight: 700;
-                text-align: center;
-                color: white;
-                border-radius: 12px;
-                margin-bottom: 25px;
-            }}
-            .banner.fair {{ background: #2e8b57; }}
-            .banner.biased {{ background: #c0392b; }}
-            .banner.report {{ background: #7f8c8d; }}
-            .pill-btn {{
-                width:100%; text-align:center; padding: 10px 18px;
-                background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc;
-                cursor: pointer; font-size: 18px; transition: background 0.2s;
-            }}
-            .pill-btn:hover {{ background: #e0e0e0; }}
-            .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
-            .section-panel {{ display: none; padding: 0px; background: white; }}
-            .section-panel.active {{ display: block; }}
-
-            /* expert inner tabs */
-            .tablinks {{
-                background-color: #ddd;
-                padding: 10px;
-                cursor: pointer;
-                border: none;
-                border-radius: 5px;
-                margin: 5px;
-            }}
-            .tablinks.active {{ background-color: #aaa; }}
-            .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
-            .tabcontent.active {{ display: block; }}
-        </style>
-
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {{
-                // main pill tabs
-                const buttons = document.querySelectorAll(".pill-btn");
-                const sections = document.querySelectorAll(".section-panel");
-
-                buttons.forEach(btn => {{
-                    btn.addEventListener("click", () => {{
-                        let target = btn.getAttribute("data-target");
-                        buttons.forEach(b => b.classList.remove("active"));
-                        sections.forEach(s => s.classList.remove("active"));
-                        btn.classList.add("active");
-                        document.getElementById(target).classList.add("active");
-                    }});
-                }});
-                document.querySelector(".pill-btn").classList.add("active");
-                document.querySelector(".section-panel").classList.add("active");
-
-                // expert inner tabs
-                const tabContainer = document.getElementById("expert-tab-header");
-                if (tabContainer) {{
-                    tabContainer.addEventListener("click", function(event) {{
-                        if (event.target.classList.contains("tablinks")) {{
-                            let tabName = event.target.getAttribute("data-tab");
-                            document.querySelectorAll(".tablinks").forEach(tab => tab.classList.remove("active"));
-                            document.querySelectorAll(".tabcontent").forEach(content => content.classList.remove("active"));
-                            event.target.classList.add("active");
-                            document.getElementById(tabName).classList.add("active");
-                        }}
-                    }});
-                    let first = tabContainer.querySelector(".tablinks");
-                    if (first) {{
-                        first.classList.add("active");
-                        document.getElementById(first.getAttribute("data-tab")).classList.add("active");
-                    }}
-                }}
-            }});
-        </script>
-
-        <h1 class="banner {outcome_class}">{outcome_label}</h1>
-
-        <div class="pill-buttons">
-            <div class="pill-btn" data-target="whatis">What is this?
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="method">Analysis methodology
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="pipeline">Data pipeline
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="details">For experts
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
-            </div>
-        </div>
-
-        <div id="whatis" class="section-panel">
-            <p>This model card investigates many kinds of fairness definitions across <b>{len(sensitive.branches())}</b> 
-            protected groups, by comparing them {compare_groups.lower()}. 
-            {('The following system performance metrics, which indicate obtained benefits like correct or favorable'
-              'operation, were found unevenly distributed across the population. '
-              'These biases occurred in at least one prediction class and at least one way of aggregating the comparison '
-              'among multiple groups. Expert assessment is needed to help understand which biases may be considered unfair. ')
-            if problematic else 'No biases were found.'}
-            <br><br>
-            <i>{'<br>'.join(problematic)}</i>
-        </div>
-
-        <div id="method" class="section-panel">
-            <p>Groups were compared <b>{compare_groups.lower()}</b>.
-            Values deviating more than <b>{prob:.3f}</b> from their ideal target
-            were counted as problematic. These deviations guide where deeper inspection is needed.
-            The result is considered biased if it lays <b>{prob:.3f}</b> away from its ideal target 
-            that would indicate fairness. For example, the ideal target is 0 for differences between measure values, 
-            and 1 for values that should be large (e.g., the minimum accuracy across all groups).
-            Some metrics have no known ideal values.</p>
-            <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
-            <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p></p>
-        </div>
-
-        <div id="pipeline" class="section-panel">
-            {dataset_description}
-            <br><br>
-            {model_description}
-        </div>
-
-        <div id="details" class="section-panel">
-            <div id="expert-tab-header">{expert_tabs_header}</div>
-            <div id="expert-tab-body">{expert_tabs_body}</div>
-        </div>
-        """
-
-    return HTML(html_content)

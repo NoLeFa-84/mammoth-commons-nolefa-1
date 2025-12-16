@@ -11,21 +11,25 @@ from PySide6.QtWidgets import (
     QListWidget,
     QScrollArea,
 )
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
-from PySide6.QtWidgets import QSizePolicy
-from PySide6.QtCore import Qt, QLocale, QUrl
 from PySide6.QtGui import QIntValidator, QDoubleValidator
-from PySide6.QtWebEngineWidgets import QWebEngineView
 from mammoth_commons.externals import prepare_html
-
+from PySide6.QtCore import Qt, QLocale, QSize
+from PySide6.QtWidgets import (
+    QFrame,
+    QVBoxLayout,
+    QSizePolicy,
+    QLabel,
+    QWidget,
+    QToolButton,
+)
+from PySide6.QtGui import QIcon, QPixmap
+from mammoth_commons.externals import prepare, pd_read_csv
 import json
 import os
 import csv
 import mammoth_commons.externals
-
-from mammoth_commons.externals import pd_read_csv
-from mai_bias.states.cache import ExternalLinkPage
 from .style import Styled
+from .step_utils.card_button import CardButton
 
 
 def save_all_runs(path, runs):
@@ -69,8 +73,6 @@ def format_name(name):
 
 
 class InfoBox(QFrame):
-    """Reusable informational box matching Dashboard style."""
-
     def __init__(self, html_content, parent=None):
         super().__init__(parent)
         self.setObjectName("InfoBox")
@@ -97,6 +99,119 @@ class InfoBox(QFrame):
         layout.addWidget(label)
 
 
+class ScrollSelector(QWidget):
+    def __init__(self, items, specs, on_change, parent=None):
+        super().__init__(parent)
+
+        self.on_change = on_change
+        self.items = list(items)
+        self.specs = dict(specs)
+        self.cards = []
+        self.selected = self.items[0] if self.items else None
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setStyleSheet("background:transparent; border: none;")
+
+        container = QWidget()
+        self.layout = QVBoxLayout(container)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(4)
+
+        # Create cards
+        for name in self.items:
+            html = self.specs.get(name, dict()).get("description", "")
+            if not html:
+                continue
+            card = CardButton(name, html)
+            card.clicked.connect(self._select)
+            self.cards.append(card)
+            self.layout.addWidget(card)
+
+        self.layout.setAlignment(Qt.AlignTop)
+        scroll.setWidget(container)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.addWidget(scroll)
+
+        if self.items:
+            self.set_selected(self.items[0])
+
+    # ----------------------------
+    # Selection logic
+    # ----------------------------
+    def _select(self, name):
+        self.selected = name
+        for card in self.cards:
+            card.setChecked(card.name == name)
+
+        self.on_change(name)
+
+    def set_selected(self, name):
+        if self.selected == name:
+            return
+        self.selected = name
+        for card in self.cards:
+            card.setChecked(card.name == name)
+        self.on_change(name)
+
+    # ----------------------------
+    # ComboBox compatibility
+    # ----------------------------
+    def currentText(self):
+        return self.selected
+
+    def itemText(self, index):
+        return self.items[index] if 0 <= index < len(self.items) else ""
+
+    def findText(self, text):
+        for i, name in enumerate(self.items):
+            if name == text:
+                return i
+        return -1
+
+    def setCurrentIndex(self, index):
+        if 0 <= index < len(self.items):
+            self.set_selected(self.items[index])
+
+    def clear(self):
+        for card in self.cards:
+            card.setParent(None)
+            card.deleteLater()
+        self.cards.clear()
+        self.items.clear()
+        self.selected = None
+
+    def removeItem(self, index):
+        if 0 <= index < len(self.items):
+            self.items.pop(index)
+            card = self.cards.pop(index)
+            card.setParent(None)
+            card.deleteLater()
+            if self.items:
+                self.set_selected(self.items[0])
+
+    def addItem(self, name):
+        html = self.specs.get(name, dict()).get("description", "")
+        if not html:
+            return
+        self.items.append(name)
+        card = CardButton(name, html)
+        card.clicked.connect(self._select)
+        self.cards.append(card)
+        self.layout.addWidget(card)
+
+        if self.selected is None:
+            self.set_selected(name)
+
+    def addItems(self, names):
+        for name in names:
+            self.addItem(name)
+
+
 class Step(Styled):
     def __init__(self, step_name, stacked_widget, dataset_loaders, runs, dataset):
         super().__init__()
@@ -105,114 +220,164 @@ class Step(Styled):
         self.first_selection = True
         self.runs = runs
         self.dataset = dataset
+        self.show_all_params = False
 
         layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # Step title
         self.label = QLabel(step_name, self)
-        self.label.setStyleSheet("font-size: 50px; font-weight: bold")
-        layout.addWidget(self.label)
+        self.label.setStyleSheet("font-size:32px;font-weight:bold")
+        layout.addWidget(self.label, 0)
 
-        # Dataset selector
-        self.dataset_selector = QComboBox(self)
-        self.dataset_selector.addItems(
-            ["Select a module"] + list(dataset_loaders.keys())
+        selector_row = QWidget()
+        selector_layout = QHBoxLayout(selector_row)
+        selector_layout.setContentsMargins(0, 0, 0, 0)
+        selector_layout.setSpacing(6)
+
+        self.dataset_selector = ScrollSelector(
+            ["Select a module"] + list(dataset_loaders.keys()),
+            specs=dataset_loaders,
+            on_change=self.update_param_form,
+            parent=self,
         )
-        self.dataset_selector.currentTextChanged.connect(self.update_param_form)
-        layout.addWidget(self.dataset_selector)
-
-        # === Description and Form side-by-side ===
-        content_layout = QHBoxLayout()
-
-        # Left: Description
-        self.description_label = QWebEngineView(self)
-        self.description_label.setMinimumWidth(500)
-        self.description_label.setPage(ExternalLinkPage(self.description_label))
-        self.description_label.setSizePolicy(
-            QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.dataset_selector.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
-        content_layout.addWidget(self.description_label, 2)
 
-        # Right: Parameter form (in scroll area)
+        icon_path = prepare(
+            "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/params.png?raw=true"
+        )
+        icon = QIcon(QPixmap(icon_path))
+
+        self.param_toggle_button = QToolButton(self)
+        self.param_toggle_button.setCheckable(True)
+        self.param_toggle_button.setIcon(icon)
+        self.param_toggle_button.setToolButtonStyle(
+            Qt.ToolButtonStyle.ToolButtonTextUnderIcon
+        )
+        self.param_toggle_button.setIconSize(QSize(72, 72))
+        self.param_toggle_button.setFixedSize(96, 96)
+        self.param_toggle_button.setStyleSheet(
+            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#d0d0d0;border: 1px solid #cccccc}"
+        )
+        self.param_toggle_button.clicked.connect(self.toggle_param_visibility)
+        self.param_toggle_button.hide()
+
+        icon_path = prepare(
+            "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true"
+        )
+        icon = QIcon(QPixmap(icon_path))
+        self.warnings_toggle_button = QToolButton(self)
+        self.warnings_toggle_button.setCheckable(True)
+        self.warnings_toggle_button.setIcon(icon)
+        self.warnings_toggle_button.setToolButtonStyle(
+            Qt.ToolButtonStyle.ToolButtonTextUnderIcon
+        )
+        self.warnings_toggle_button.setIconSize(QSize(72, 72))
+        self.warnings_toggle_button.setFixedSize(96, 96)
+        self.warnings_toggle_button.setText("responsibility")
+        self.warnings_toggle_button.setStyleSheet(
+            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#d0d0d0;border: 1px solid #cccccc}"
+        )
+        self.warnings_toggle_button.clicked.connect(self.toggle_param_visibility)
+        self.warnings_toggle_button.hide()
+
+        selector_layout.addWidget(self.dataset_selector, 1)
+        selector_layout.addWidget(
+            self.param_toggle_button, 0, Qt.AlignmentFlag.AlignTop
+        )
+        selector_row.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
+        layout.addWidget(selector_row, 1)
+        # selector_row.setMinimumHeight(400)
+        # layout.addStretch(2)
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet("color:#444;margin:6px 0;")
+        layout.addWidget(separator, 0)
+
+        content_layout = QVBoxLayout()
         self.param_form = QFormLayout()
         self.param_inputs = {}
+
         self.form_widget = QWidget()
         self.form_widget.setLayout(self.param_form)
-
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(self.form_widget)
-        scroll_area.setSizePolicy(
-            QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.form_widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
         )
-        content_layout.addWidget(scroll_area, 3)
+        left_col = QVBoxLayout()
+        label = QLabel("Configure", self)
+        label.setStyleSheet("font-size:32px;font-weight:bold")
+        left_col.addWidget(label)
+        left_col.addWidget(self.form_widget)
+        right_col = QHBoxLayout()
+        right_col.addWidget(self.param_toggle_button, 0, Qt.AlignmentFlag.AlignBottom)
+        right_col.addWidget(
+            self.warnings_toggle_button, 0, Qt.AlignmentFlag.AlignBottom
+        )
+        container_row = QHBoxLayout()
+        container_row.addLayout(left_col, 1)
+        container_row.addLayout(right_col, 0)
+        content_layout.addLayout(container_row)
 
-        layout.addLayout(content_layout, stretch=1)
-
-        # === Buttons & description ===
-        layout.addStretch()
-
-        self.description_input = QLineEdit(self)
-        self.description_input.setPlaceholderText("Describe your analysis (optional)")
-        self.description_input.setStyleSheet("background-color: #ffffff")
-        layout.addWidget(self.description_input)
+        layout.addLayout(content_layout, 0)
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet("color:#444;margin:6px 0;")
+        content_layout.addWidget(separator, 0)
+        content_layout.addSpacing(32)
 
         button_layout = QHBoxLayout()
-        self.next_button = QPushButton("Next", self)
-        self.next_button.setStyleSheet(
-            f"""
-            QPushButton {{background-color: #007bff; color: white; border-radius: 5px; padding: 6px; }}
-            QPushButton:hover {{background-color: {self.highlight_color('#007bff')};}}
-            """
+        next_button = QPushButton(
+            "Run" if hasattr(self, "switch_to_restart") else "Next", self
         )
-        self.next_button.clicked.connect(self.next)
-
-        self.cancel_button = QPushButton("Cancel", self)
-        self.cancel_button.setStyleSheet(
-            f"""
-            QPushButton {{background-color: #dc3545; color: white; border-radius: 5px;}}
-            QPushButton:hover {{background-color: {self.highlight_color('#dc3545')};}}
-            """
+        next_button.setStyleSheet(
+            "QPushButton{background:#07f;color:#fff;border-radius:5px;padding:6px}QPushButton:hover{background:#059}"
         )
-        self.cancel_button.setFixedSize(80, 30)
-        self.cancel_button.clicked.connect(self.switch_to_dashboard)
+        next_button.clicked.connect(self.next)
 
-        button_layout.addWidget(self.next_button)
-        button_layout.addWidget(self.cancel_button)
+        cancel_button = QPushButton("Cancel", self)
+        cancel_button.setStyleSheet(
+            "QPushButton{background:#d33;color:#fff;border-radius:5px}QPushButton:hover{background:#a00}"
+        )
+        cancel_button.setFixedSize(80, 30)
+        cancel_button.clicked.connect(self.switch_to_dashboard)
+
+        button_layout.addWidget(next_button)
+        if hasattr(self, "switch_to_restart"):
+            self.restart_button = QPushButton("Edit pipeline", self)
+            self.restart_button.setStyleSheet(
+                "QPushButton{background:#d33;color:#fff;border-radius:5px}QPushButton:hover{background:#a00}"
+            )
+            self.restart_button.setFixedSize(80, 30)
+            self.restart_button.clicked.connect(self.switch_to_restart)
+            button_layout.addWidget(self.restart_button)
+        button_layout.addWidget(cancel_button)
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
-        self.defaults = dict()
+        self.defaults = {}
         self.update_param_form(self.dataset_selector.currentText())
 
     def update_param_form(self, dataset_name):
         if self.first_selection and dataset_name != self.dataset_selector.itemText(0):
-            self.dataset_selector.removeItem(0)
+            if dataset_name not in self.dataset_loaders:
+                self.dataset_selector.removeItem(0)
             self.first_selection = False
-
         for i in reversed(range(self.param_form.rowCount())):
             self.param_form.removeRow(i)
         self.param_inputs.clear()
-
         if dataset_name not in self.dataset_loaders:
-            self.description_label.setHtml("Select a module to see its description.")
             return
-
         loader = self.dataset_loaders[dataset_name]
-        self.description_label.setHtml(
-            prepare_html(
-                """<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">"""
-                + loader.get(
-                    "description", f"No description available:<br><b>{dataset_name}</b>"
-                )
-            ),
-            QUrl("file:///"),
-        )
-
         self.last_url = None
         self.last_delimiter = None
+        self.count_hidden_params = 0
         for name, param_type, default, description in loader["parameters"]:
+            can_be_hidden = name != "sensitive" and default != "" and default != "None"
+            if can_be_hidden:
+                self.count_hidden_params += 1
             default = self.defaults.get(name, default)
             if name == "dataset" or name == "model":
                 continue
@@ -220,9 +385,23 @@ class Step(Styled):
             param_widget = self.create_input_widget(
                 name, param_type, default, description, param_options
             )
+            if can_be_hidden and not self.show_all_params:
+                param_widget.hide()
             self.param_form.addRow(param_widget)
+        if self.count_hidden_params:
+            self.param_toggle_button.show()
+        else:
+            self.param_toggle_button.hide()
+        self.param_toggle_button.setText(
+            "hide details"
+            if self.show_all_params
+            else "for experts"  # f"{self.count_hidden_params}"
+        )
 
-    # === rest of file unchanged ===
+    def toggle_param_visibility(self):
+        self.show_all_params = self.param_toggle_button.isChecked()
+        self.update_param_form(self.dataset_selector.currentText())
+
     def open_sensitive_modal(self, title, input_field, columns):
         if not isinstance(columns, list):
             path = columns[0].text()
@@ -238,7 +417,7 @@ class Step(Styled):
                 QMessageBox.warning(
                     self,
                     "Error",
-                    "The previous file's delimiter was empty and could not be used as reference</b>",
+                    "The previous file's delimiter was empty and could not be used as reference.</b>",
                 )
                 return
             try:
@@ -332,14 +511,13 @@ class Step(Styled):
                 select_button.setToolTip("Select from options")
                 select_button.setFixedSize(30, 20)
                 select_button.setStyleSheet(
-                    f"""
-                            QPushButton {{
-                                background-color: #dddd88; 
-                                border-radius: 5px;
-                            }}
-                            QPushButton:hover {{
-                                background-color: {self.highlight_color('#dddd88')};
-                            }}"""
+                    f"""QPushButton {{
+                        background-color: #dddd88; 
+                        border-radius: 5px;
+                    }}
+                    QPushButton:hover {{
+                        background-color: {self.highlight_color('#dddd88')};
+                    }}"""
                 )
                 select_button.clicked.connect(
                     lambda: self.open_sensitive_modal(
@@ -366,14 +544,8 @@ class Step(Styled):
                 select_button.setToolTip("Select from options")
                 select_button.setFixedSize(30, 20)
                 select_button.setStyleSheet(
-                    f"""
-                    QPushButton {{
-                        background-color: #dddd88; 
-                        border-radius: 5px;
-                    }}
-                    QPushButton:hover {{
-                        background-color: {self.highlight_color('#dddd88')};
-                    }}"""
+                    f"""QPushButton {{background-color: #dddd88; border-radius: 5px;}}
+                    QPushButton:hover {{background-color: {self.highlight_color('#dddd88')};}}"""
                 )
                 last_url = self.last_url
                 last_delimiter = self.last_delimiter
@@ -393,14 +565,8 @@ class Step(Styled):
                 select_button.setToolTip("Select from options")
                 select_button.setFixedSize(30, 20)
                 select_button.setStyleSheet(
-                    f"""
-                    QPushButton {{
-                        background-color: #dddd88; 
-                        border-radius: 5px;
-                    }}
-                    QPushButton:hover {{
-                        background-color: {self.highlight_color('#dddd88')};
-                    }}"""
+                    f"""QPushButton {{background-color: #dddd88; border-radius: 5px;}}
+                    QPushButton:hover {{background-color: {self.highlight_color('#dddd88')};}}"""
                 )
                 last_url = self.last_url
                 select_button.clicked.connect(
@@ -458,7 +624,7 @@ class Step(Styled):
             input_widget = QLineEdit(self)
             validator = QDoubleValidator()
             validator.setLocale(QLocale("C"))
-            validator.setNotation(QDoubleValidator.StandardNotation)
+            validator.setNotation(QDoubleValidator.Notation.StandardNotation)
             input_widget.setValidator(validator)
             input_widget.setText(str(default) if default != "None" else "0.0")
         elif param_type == "bool":
@@ -632,13 +798,8 @@ class Step(Styled):
         help_button.setFixedSize(20, 20)
         help_button.setStyleSheet(
             f"""
-            QPushButton {{
-                background-color: #dddddd; 
-                border-radius: 10px;
-            }}
-            QPushButton:hover {{
-                background-color: {self.highlight_color('#dddddd')};
-            }}"""
+            QPushButton {{background-color: #dddddd; border-radius: 10px;}}
+            QPushButton:hover {{background-color: {self.highlight_color('#dddddd')};}}"""
         )
         help_button.setToolTip("Parameter info")
         help_button.clicked.connect(
@@ -689,7 +850,7 @@ class Step(Styled):
             else:
                 params[param] = field.text()
         pipeline[step] = {"module": dataset_name, "params": params}
-        pipeline["description"] = self.description_input.text().strip()
+        pipeline["description"] = ""  # self.description_input.text().strip()
 
     def show_error_message(self, message):
         error_msg = QMessageBox(self)
@@ -700,6 +861,6 @@ class Step(Styled):
         message = "The following issue must be addressed:<br><b>" + message + "</b>"
         error_msg.setWindowTitle("Error")
         error_msg.setText(message)
-        error_msg.setIcon(QMessageBox.Critical)
+        error_msg.setIcon(QMessageBox.Icon.Critical)
         error_msg.setModal(True)
         error_msg.exec()

@@ -1,8 +1,9 @@
 import importlib
 
 from mammoth_commons.datasets import CSV
-from mammoth_commons.integration import loader, Options
+from mammoth_commons.integration import loader
 from collections import OrderedDict
+from typing import Literal
 
 
 @loader(
@@ -12,13 +13,16 @@ from collections import OrderedDict
     packages=("pandas", "ucimlrepo"),
 )
 def data_uci(
-    dataset_name: Options("Credit", "Bank", "Adult", "KDD") = None,
+    dataset_name: Literal["Credit", "Bank", "Adult", "KDD"] = None,
 ) -> CSV:
     """
-    <img src="https://storage.googleapis.com/kaggle-datasets-images/2417096/4083793/85e682cbc981e5214668824a9b0415c3/dataset-cover.jpg?t=2022-08-17-05-14-29" alt="Based on UCI" style="float: left; margin-right: 5px; margin-top: 10px; margin-bottom: 5px; height: 80px;"/>
-
-    Loads a dataset from the UCI Machine Learning Repository (<a href="https://archive.ics.uci.edu/ml/index.php" target="_blank">www.uci.org</a>) containing numeric, categorical, and predictive data columns. The dataset is automatically downloaded from the repository, and basic preprocessing is applied to identify the column types. The specified target column is treated as the predictive label.
-        To customize the loading process (e.g., use a different target column, load a subset of features, or handle missing data differently), additional parameters or a custom loader can be used.
+    <img src="https://storage.googleapis.com/kaggle-datasets-images/2417096/4083793/85e682cbc981e5214668824a9b0415c3/dataset-cover.jpg?t=2022-08-17-05-14-29"
+    alt="UCI" style="float: left; margin-right: 15px; height: 36px;"/>
+    <h3>tabular datasets from UCI</h3>
+    Loads a dataset from the (<a href="https://archive.ics.uci.edu/ml/index.php" target="_blank">UCI</a>) machine
+    learning dataset repository. The dataset contains pre-specified numeric, categorical, and predictive data columns,
+    as well as preprocessing. Available datasets are commonly used in the algorithmic fairness literature to test
+    new approaches.
 
     Args:
         dataset_name: The name of the dataset.

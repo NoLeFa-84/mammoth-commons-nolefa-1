@@ -21,13 +21,24 @@ def facex_regions(
     target_layer: str = None,
 ) -> HTML:
     """
-        <img src="https://github.com/gsarridis/faceX/raw/main/images/facex.JPG" alt="Based on Facex" style="max-width: 600px;"/>
+        <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/facex.png?raw=true"
+        alt="facex" style="float: left; margin-right: 15px; height: 36px;"/>
+        <h3>facial features contributing to image categorization</h3>
 
-        <a href="https://github.com/gsarridis/faceX">FaceX</a> is a tool designed to help you understand how
-        face attribute classifiers make decisions. It
-        provides clear explanations by analyzing 19 key regions of the face, such as the eyes, nose, mouth,
-        hair, and skin. This method helps reveal which parts of the face the model focuses on when making
+        <a href="https://github.com/gsarridis/faceX">FaceX</a> is used to analyze
+        19 key face regions, such as the eyes, nose, mouth,
+        hair, and skin. Then it identifies which parts of the face the model focuses on when making
         predictions about attributes like age, gender, or race.
+
+        <span class="alert alert-warning alert-dismissible fade show" role="alert"
+            style="display: inline-block; padding: 10px;"> <i class="bi bi-exclamation-triangle-fill"></i> GPU
+            access is recommended for large datasets. </span>
+
+        <details><summary><i>Technical approach at a glance.</i></summary>
+        <img src="https://github.com/gsarridis/faceX/raw/main/images/facex.JPG" alt="Based on Facex" style="max-width: 600px;"/>
+        </details>
+
+        <details><summary><i>Why is this useful?</i></summary>
 
         Rather than explaining each individual image separately, FaceX aggregates information across the
         entire dataset, offering a broader view of the model's behavior. It looks at how the model activates
@@ -44,11 +55,7 @@ def facex_regions(
         decision-making process. This is especially useful for ensuring that your model is fair and
         transparent, and for spotting any potential biases that may
         affect its performance.
-
-        <span class="alert alert-warning alert-dismissible fade show" role="alert"
-        style="display: inline-block; padding: 10px;"> <i class="bi bi-exclamation-triangle-fill"></i> GPU
-        access is recommended as this analysis can be computationally intensive, especially with large
-        datasets. </span>
+        </details>
 
 
     Args:

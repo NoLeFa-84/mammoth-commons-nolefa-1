@@ -1,7 +1,7 @@
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML
-from typing import Dict, List
+from typing import Dict, List, Literal
 from mammoth_commons.integration import metric, Options
 from mammoth_commons.externals import fb_categories, align_predictions
 
@@ -17,10 +17,11 @@ def interactive_report(
     model: Predictor,
     sensitive: List[str],
     intersectional: bool = False,
-    compare_groups: Options("Pairwise", "To the total population") = None,
+    compare_groups: Literal["Pairwise", "To the total population"] = "Pairwise",
 ) -> HTML:
-    """<img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench"
-    style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    """<img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
+    style="float: left; margin-right: 5px; margin-bottom: 5px; width: 36px;"/>
+    <h3>for data scientists: explore several biases and their intermediate quantities</h3>
 
     Creates an interactive report using the FairBench library. The report creates traceable evaluations that
     you can shift through to find actual sources of unfairness.
@@ -65,6 +66,7 @@ def interactive_report(
                 for label in labels
             }
         )
+
     return HTML(
         "<div class='container'><h1>Interactive report</h1>\n"
         + fb.interactive_html(report, show=False, name="Classes")
