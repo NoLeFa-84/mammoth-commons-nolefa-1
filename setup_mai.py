@@ -10,12 +10,12 @@ import setuptools
 with open("README.md", "r") as file:
     long_description = "This is the desktop version of the MAI-BIAS toolkit.\nFor more information visit the [homepage](https://github.com/mammoth-eu/mammoth-commons)."
 
-with open("requirements[mai].txt", "r") as file:
+with open("config/requirements[mai].txt", "r") as file:
     deployment_requirements = file.read().splitlines()
 
 setuptools.setup(
     name="MAI-Bias",
-    version="0.2.20",
+    version="0.2.24",
     author="Emmanouil (Manios) Krasanakis",
     author_email="maniospas@hotmail.com",
     description="Desktop app version of the MAI-Bias toolkit.",

@@ -2,11 +2,12 @@ from mammoth_commons.datasets import Dataset, ImageLike
 from mammoth_commons.models import EmptyModel
 from mammoth_commons.exports import HTML
 from typing import List
+from mammoth_commons.reminders import on_results
 from mammoth_commons.integration import metric
 from mammoth_commons.integration_callback import notify_progress, notify_end
 
 
-def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
+def generate_nested_pie_chart(df, columns, title=None):
     """
     Generate a nested pie chart (sunburst) where the same values in the same ring
     have the same color while ensuring distinct colors between rings.
@@ -15,42 +16,31 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
     import plotly.graph_objects as go
     import plotly.express as px
 
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("df must be a pandas DataFrame")
-    if not isinstance(columns, list) or len(columns) < 1:
-        raise TypeError("columns must be a list with at least 1 column name")
+    assert isinstance(df, pd.DataFrame), "df must be a pandas DataFrame"
+    assert (
+        isinstance(columns, list) and len(columns) >= 1
+    ), "columns must be a list containing at least 1 column name"
     for col in columns:
-        if col not in df.columns:
-            raise ValueError(f"Column '{col}' not found in DataFrame")
-
-    # Determine a numeric column to use as values
+        assert col in df.columns, f"Column '{col}' not found in DataFrame"
     value_col = None
     for col in df.columns:
         if col not in columns and pd.api.types.is_numeric_dtype(df[col]):
             value_col = col
             break
-
-    # List of color maps to use for each column
     color_palettes = [
         px.colors.qualitative.Set1,
         px.colors.qualitative.Set2,
-        # px.colors.qualitative.Set3,
-        # px.colors.qualitative.Plotly,
-        # px.colors.qualitative.D3
-    ]  # Add more palettes if needed
+    ]
 
-    # Create a color mapping for each level
     color_map = {}
     for j, col in enumerate(columns):
         unique_values = df[col].unique()
-        # Select a color palette for the current column, cycling through available palettes
         color_palette = color_palettes[j % len(color_palettes)]
         color_map[col] = {
             val: color_palette[i % len(color_palette)]
             for i, val in enumerate(unique_values)
         }
 
-    # Create the sunburst chart
     fig = px.sunburst(
         df,
         path=columns,
@@ -60,7 +50,6 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
     )
 
     global_color_map = {}
-
     for level in columns:
         if level in color_map:  # Make sure the level has a color map
             for val, color in color_map[level].items():
@@ -68,24 +57,14 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
                     global_color_map[str(val)] = color
 
     for i, trace in enumerate(fig.data):
-        # Initialize the 'colors' list for the trace if it's None
         if trace.marker.colors is None:
             trace.marker.colors = []
-
-        # Initialize an empty list to store colors for each label
         colors = []
-
-        # For each segment, apply the color based on its label
         for j, label in enumerate(trace.labels):
-            color = global_color_map.get(
-                str(label), "#000000"
-            )  # Default to black if not found
+            color = global_color_map.get(str(label), "#000000")
             colors.append(color)
-
-        # Assign the list of colors to the trace's marker colors
         trace.marker.colors = colors
 
-    # Create dummy traces for the custom legend
     legend_entries = []
     for col, col_map in color_map.items():
         # Add feature label entry (i.e., 'Feature 1', 'Feature 2')
@@ -142,24 +121,16 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
             x=+1.05,  # Position the legend below the chart
             tracegroupgap=10,  # Spacing between legend items
         ),
-        # Set background color of plot and chart area to transparent
-        plot_bgcolor="rgba(0,0,0,0)",  # Transparent plot background
-        paper_bgcolor="rgba(0,0,0,0)",  # Transparent paper background
-        # Disable grid and axes lines
-        xaxis=dict(
-            showgrid=False, zeroline=False, showticklabels=False
-        ),  # No grid or ticks on x-axis
-        yaxis=dict(
-            showgrid=False, zeroline=False, showticklabels=False
-        ),  # No grid or ticks on y-axis
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
     )
 
     customdata = [
         " → ".join([f"{columns[i]}: {val}" for i, val in enumerate(i.split("/"))])
         for i in trace.ids
     ]
-
-    # Pass the full path information as custom data
     fig.update_traces(
         branchvalues="total",
         customdata=customdata,  # Full path data as customdata
@@ -168,64 +139,35 @@ def generate_nested_pie_chart(df, columns, title=None, color_scheme=None):
         insidetextorientation="radial",
         texttemplate="%{label}<br>%{percentRoot:.1%}",
     )
-
-    # Add the legend entries for custom color patches
     for legend_entry in legend_entries:
         fig.add_trace(legend_entry)
-
     return fig
 
 
 def plot_sampling_strategies(
-    df, protected_attribute, target_column, width=1000, height=400
+    df: "DataFrame",
+    protected: str,
+    target_column: str,
+    width: int = 1000,
+    height: int = 400,
 ):
-    """
-    Create a visualization of class and group balances across different sampling strategies using Plotly.
-
-    Parameters:
-    -----------
-    df : pandas.DataFrame
-        The dataset to analyze
-    protected_attribute : str
-        Column name of the protected attribute (e.g., 'sex')
-    target_column : str
-        Column name of the target class (e.g., 'income')
-    width : int, optional
-        Width of the figure, default is 1000
-    height : int, optional
-        Height of the figure, default is 400
-    """
-    import pandas as pd
-    import plotly.graph_objects as go
-    import plotly.express as px
     from plotly.subplots import make_subplots
 
-    # Create a copy of the dataframe
     data = df.copy()
-
-    # Original names for later reference
     most_common_value = None
-
-    # Convert to binary if not already
-    if data[protected_attribute].nunique() > 2:
-        # For demonstration purposes, convert to binary (most frequent vs rest)
-        most_common = data[protected_attribute].value_counts().index[0]
+    if data[protected].nunique() > 2:
+        most_common = data[protected].value_counts().index[0]
         most_common_value = most_common
-        data[protected_attribute] = (data[protected_attribute] == most_common).astype(
-            int
-        )
+        data[protected] = (data[protected] == most_common).astype(int)
 
     if data[target_column].nunique() > 2:
-        # For demonstration purposes, convert to binary (most frequent vs rest)
         most_common = data[target_column].value_counts().index[0]
-        # Create clear mapping for target values
         target_values_map = {
             1: f"Most common: {most_common}",
             0: f"Other {target_column} values",
         }
         data[target_column] = (data[target_column] == most_common).astype(int)
 
-    # Create subplot titles
     subplot_titles = [
         "Original data",
         "Class",
@@ -233,38 +175,21 @@ def plot_sampling_strategies(
         "Protected",
         "Class (ratio)",
     ]
-
-    # Create a figure with 5 subplots in a row
     fig = make_subplots(rows=1, cols=5, subplot_titles=subplot_titles)
+    add_plot_distribution(fig, data, protected, target_column, 1, 1)
 
-    # First subplot: Original data distribution
-    add_plot_distribution(fig, data, protected_attribute, target_column, 1, 1)
+    class_data = class_sampling(data, protected, target_column)
+    add_plot_distribution(fig, class_data, protected, target_column, 1, 2)
 
-    # Second subplot: 'class' strategy
-    class_data = apply_class_sampling(data, protected_attribute, target_column)
-    add_plot_distribution(fig, class_data, protected_attribute, target_column, 1, 2)
+    class_protected_data = class_protected_sampling(data, protected, target_column)
+    add_plot_distribution(fig, class_protected_data, protected, target_column, 1, 3)
 
-    # Third subplot: 'class & protected' strategy
-    class_protected_data = apply_class_protected_sampling(
-        data, protected_attribute, target_column
-    )
-    add_plot_distribution(
-        fig, class_protected_data, protected_attribute, target_column, 1, 3
-    )
+    protected_data = protected_sampling(data, protected, target_column)
+    add_plot_distribution(fig, protected_data, protected, target_column, 1, 4)
 
-    # Fourth subplot: 'protected' strategy
-    protected_data = apply_protected_sampling(data, protected_attribute, target_column)
-    add_plot_distribution(fig, protected_data, protected_attribute, target_column, 1, 4)
+    class_ratio_data = apply_class_ratio_sampling(data, protected, target_column)
+    add_plot_distribution(fig, class_ratio_data, protected, target_column, 1, 5)
 
-    # Fifth subplot: 'class (ratio)' strategy
-    class_ratio_data = apply_class_ratio_sampling(
-        data, protected_attribute, target_column
-    )
-    add_plot_distribution(
-        fig, class_ratio_data, protected_attribute, target_column, 1, 5
-    )
-
-    # Update subplot title with augmentation ratio
     for i, ax_title in enumerate(subplot_titles):
         if i > 0:  # Skip the first plot (original data)
             # Calculate augmentation ratio
@@ -293,7 +218,7 @@ def plot_sampling_strategies(
     )
 
     # Update all x-axes with the appropriate title
-    x_title = protected_attribute
+    x_title = protected
 
     for i in range(1, 6):
         fig.update_xaxes(title_text=x_title, row=1, col=i)
@@ -392,7 +317,7 @@ def add_plot_distribution(fig, df, protected_attribute, target_column, row, col)
     return fig
 
 
-def apply_class_sampling(df, protected_attribute, target_column):
+def class_sampling(df, protected_attribute, target_column):
     """
     Separately for each group (0/1 in protected attribute) sample instances
     for the minority class to match the number in the majority class.
@@ -433,7 +358,7 @@ def apply_class_sampling(df, protected_attribute, target_column):
     return result
 
 
-def apply_class_protected_sampling(df, protected_attribute, target_column):
+def class_protected_sampling(df, protected_attribute, target_column):
     """
     For the largest group, sample instances for the minority class to match
     the number in the majority class. For all other groups, sample for both classes
@@ -475,81 +400,49 @@ def apply_class_protected_sampling(df, protected_attribute, target_column):
     # For each other group, sample both classes to match largest group's majority class size
     for group in other_groups:
         group_data = df[df[protected_attribute] == group]
-
         for class_val in df[target_column].unique():
             class_samples = group_data[group_data[target_column] == class_val]
             n_samples = len(class_samples)
             n_to_generate = n_majority - n_samples
-            if n_samples == 0:
-                raise Exception(
-                    f"Group {group} has no members in prediction class {target_column}"
-                )
-
+            assert (
+                n_samples
+            ), f"Group {group} has no members in prediction class {target_column}"
             if n_to_generate > 0:
                 synthetic_samples = class_samples.sample(n_to_generate, replace=True)
                 result = pd.concat([result, synthetic_samples])
-
     return result
 
 
-def apply_protected_sampling(df, protected_attribute, target_column):
-    """
-    Do not sample for the largest group, but only for all other groups
-    to match the number in the largest group, without considering class labels.
-    """
+def protected_sampling(df, protected_attribute, target_column):
     import pandas as pd
-    import plotly.graph_objects as go
-    import plotly.express as px
-    from plotly.subplots import make_subplots
 
     result = df.copy()
-
-    # Find the largest group
     group_counts = df[protected_attribute].value_counts()
     largest_group = group_counts.idxmax()
     largest_group_size = group_counts[largest_group]
     other_groups = [g for g in df[protected_attribute].unique() if g != largest_group]
-
-    # For each other group, sample to match the size of the largest group
     for group in other_groups:
         group_data = df[df[protected_attribute] == group]
         n_samples = len(group_data)
         n_to_generate = largest_group_size - n_samples
-
         if n_to_generate > 0:
             synthetic_samples = group_data.sample(n_to_generate, replace=True)
             result = pd.concat([result, synthetic_samples])
-
     return result
 
 
 def apply_class_ratio_sampling(df, protected_attribute, target_column):
-    """
-    Do not sample for the largest group, but only for all other groups to match
-    the class ratio of the largest group.
-
-    This implementation follows the approach described in the prompt.
-    """
     import pandas as pd
-    import plotly.graph_objects as go
-    import plotly.express as px
-    from plotly.subplots import make_subplots
 
     result = df.copy()
-
-    # Find the largest group
     group_counts = df[protected_attribute].value_counts()
     largest_group = group_counts.idxmax()
     largest_group_data = df[df[protected_attribute] == largest_group]
-
-    # Calculate class percentages in largest group
     largest_group_class_counts = largest_group_data[target_column].value_counts()
     largest_group_total_count = len(largest_group_data)
     largest_group_class_percentages = (
         largest_group_class_counts / largest_group_total_count
     )
-
-    # Process other groups
     other_groups = [g for g in df[protected_attribute].unique() if g != largest_group]
 
     for group in other_groups:
@@ -582,12 +475,9 @@ def apply_class_ratio_sampling(df, protected_attribute, target_column):
                     size = int(additional_instances)
 
                 if size > 0:
-                    # Get samples of this class in this group
                     class_group_samples = group_data[
                         group_data[target_column] == class_label
                     ]
-
-                    # Simple oversampling with replacement
                     synthetic_samples = class_group_samples.sample(size, replace=True)
                     result = pd.concat([result, synthetic_samples])
 
@@ -617,7 +507,6 @@ def apply_class_ratio_sampling(df, protected_attribute, target_column):
                     # Set protected attribute to current group
                     synthetic_samples = synthetic_samples.copy()
                     synthetic_samples[protected_attribute] = group
-
                     result = pd.concat([result, synthetic_samples])
 
     return result
@@ -625,7 +514,7 @@ def apply_class_ratio_sampling(df, protected_attribute, target_column):
 
 @metric(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=(
         "fairbench",
@@ -639,21 +528,25 @@ def augmentation_report(
     dataset: Dataset,
     model: EmptyModel,
     sensitive: List[str],
+    representational_allowance: float = 0.9,
 ) -> HTML:
     """
-    <img src="https://raw.githubusercontent.com/arjunroyihrpa/MMM_fair/main/images/mmm-fair.png" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 80px;"/>
+    <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true"
+    alt="MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
+    <h3>intersectional representation imbalances in data</h3>
 
-    This module generates an interactive HTML report featuring a
-    <a href="https://plotly.com/python/sunburst-charts/" target="_blank">Plotly sunburst pie chart</a> visualization
-    to explore imbalances in the dataset based on subgroups defined by sensitive attributes and the target variable.
-    This helps to quickly identify any potential imbalances in the dataset, allowing users to assess fairness and
-    identify areas that may require intervention, such augmentation.
+    This module uses the <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> library to
+    generate an interactive <a href="https://plotly.com/python/sunburst-charts/" target="_blank">sunburst pie chart</a>
+    of dataset imbalances under class and sensitive attribute intersections.
+    This helps to quickly identify representational imbalances in the dataset, allowing users to assess potential
+    biases and identify areas that may require intervention, such augmentation.
 
-    Furthermore, the report visually presents different augmentation strategies designed to mitigate data imbalances,
-    per sensitive attribute, as an interactive <a href="https://plotly.com/python/bar-charts/." target="_blank">Plotly bar chart</a>.
-    These strategies adjust the distribution of the dataset by oversampling specific subgroups with synthetic samples,
-    ensuring more equitable representation of sensitive attributes and target classes. The following
-    augmentation strategies are visualized:
+    <details><summary><i>Recommends data augmentation strategies.</i></summary>
+    Results for experts include bar charts for comparing different augmentation strategies designed to
+    mitigate data imbalances per sensitive attribute. These strategies adjust the distribution of attributes
+    in the dataset by oversampling specific subgroups with synthetic samples,
+    ensuring more equitable representation of sensitive attributes and target classes. Investigation includes
+    the following options:
 
     - **Class:** Balances the class distribution within each subgroup by sampling the minority class.
     - **Class & Protected:** Ensures equal sample distribution across all subgroups by sampling both majority
@@ -667,6 +560,33 @@ def augmentation_report(
     For more information, refer to our full paper:
     **"Synthetic Tabular Data Generation for Class Imbalance and Fairness: A Comparative Study"**
     [Link to paper](https://arxiv.org/pdf/2409.05215).
+    </details>
+
+    <details><summary><i>Why is this needed?</i></summary>
+    <p>This report provides is generated by MAI-BIAS to generate an overview of dataset imbalances across
+    the intersection of sensitive attributes and prediction targets using the MMM-Fair library.
+    Intersectionality emphasizes that people experience overlapping systems of discrimination
+    based on multiple identity characteristics (race, gender, class, sexual orientation,
+    disability, etc.). This is reflected also in how AI systems reproduce forms of discrimination.
+    As an example of intersectional bias <b>[1]</b> race and
+    gender together affect algorithmic performance of commercial facial-analysis systems;
+    worst performance for darker-skinned women demonstrates a compounded disparity
+    that would be missed if the analysis looked only at race or only at gender.
+    <br><br><b>[1]</b><i> Buolamwini, J., & Gebru, T. (2018, January). Gender shades: Intersectional accuracy disparities
+    in commercial gender classification. In Conference on fairness, accountability and transparency
+    (pp. 77-91). PMLR.</i>
+    </p>
+    <p>
+    <br>
+    <p>Imbalanced datasets can lead to biased model behavior, as underrepresented subgroups
+    are more difficult to predict correctly. Intersections of many sensitive attributes (e.g.,
+    low-income hispanic woman) may create tiny or empty groups.
+    Augmentation strategies increase the representation
+    of such subgroups, which can improve fairness and robustness of downstream models.</p>
+    </details>
+
+    Args:
+        representational_allowance: Representation biases are considered if an intersectional group of people deviates from a would-be uniform distribution's value by this percentage. Default value is 0.9 to allow up to 90% deviation from the uniform distribution's value. Value of 0 only allows a perfect uniform distribution (not realistic to be perfectly met), and the maximum is 1.
     """
     import pandas as pd
     import numpy as np
@@ -707,125 +627,126 @@ def augmentation_report(
     fig.update_layout(autosize=True, height=600)
     main_html_content = fig.to_html(include_plotlyjs="cdn", full_html=False)
 
-    faq_html = """
-    <style>
-    .faq-container {
-      max-width: 600px;
-      margin: 20px auto;
-      font-family: Arial, sans-serif;
-    }
-    .faq-box {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-      background: #fff;
-    }
-    .faq-box h3 {
-      margin-top: 0;
-      font-size: 1.2em;
-      color: #333;
-    }
-    .faq-box p {
-      margin: 0;
-      color: #555;
-    }
-    </style>
-    """
+    # bias criterion
+    intersection_cols = [target] + sensitive
+    unique_counts = {col: df[col].nunique() for col in intersection_cols}
+    ideal_p = 1.0
+    for col in intersection_cols:
+        ideal_p /= unique_counts[col]
+    representational_allowance = float(representational_allowance)
+    assert (
+        0 <= representational_allowance <= 1
+    ), "Representational allowance should be in the range [0,1]"
+    min_allowed_p = (1 - representational_allowance) * ideal_p
+    N = len(df)
+    group_counts = df.groupby(intersection_cols).size().reset_index(name="count")
+    group_counts["p_obs"] = group_counts["count"] / N
+    biased = [inter for inter in group_counts[group_counts["p_obs"] < min_allowed_p]]
 
     complete_html = f"""
-    <html>
-    <head>
-        <title>Augmentation Report</title>
         <style>
-            body {{ font-family: Arial, sans-serif; margin: 20px; }}
-            .container {{ max-width: 1200px; margin: 0 auto; }}
-            h1 {{ color: #333; text-align: center; }}
-            h2 {{ color: #555; margin-top: 30px; }}
-            .description {{ margin-bottom: 20px; }}
-            .plot-container {{ margin-bottom: 40px; }}
-
-            /* Make the Attribute Distribution Overview section smaller */
-            .overview-container {{
-                width: 70vw; /* 50% of the viewport width */
-                max-width: 1000px; 
-                height: 600px; 
-                margin: 0 auto 40px auto;
-                padding: 15px;
-                box-sizing: border-box;
-            }}
-            .model-comparison {{
-                background-color: #f9f9f9; 
-                padding: 15px; 
-                border-radius: 5px;
-                margin: 20px 0;
-            }}
+            .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
+            .banner {{width: 100%;  padding: 180px 24px; font-size: 64px; font-weight: 700; text-align: center; color: white; border-radius: 12px margin-bottom: 25px;}}
+            .banner.fair {{ background: #2e8b57; }}
+            .banner.biased {{ background: #c0392b; }}
+            .banner.report {{ background: #7f8c8d; }}
+            .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
+            .pill-btn:hover {{ background: #e0e0e0; }}
+            .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
+            .section-panel {{ display: none; padding: 12px; border: 0px; }}
+            .section-panel.active {{ display: block; }}
+            .overview-title {{font-size: 32px; font-weight: 700; margin-top: 0; margin-bottom: 10px; }}
+            .overview-sub {{ font-size: 18px; opacity: 0.8; margin-bottom: 20px; }}
         </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Augmentation Report</h1>
-            <hr/>
-            {faq_html}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {{
+                const buttons = document.querySelectorAll(".pill-btn");
+                const sections = document.querySelectorAll(".section-panel");
+                buttons.forEach(btn => {{
+                    btn.addEventListener("click", () => {{
+                        let target = btn.getAttribute("data-target");
+                        buttons.forEach(b => b.classList.remove("active"));
+                        sections.forEach(s => s.classList.remove("active"));
+                        btn.classList.add("active");
+                        document.getElementById(target).classList.add("active");
+                    }});
+                }});
+                document.querySelector(".pill-btn").classList.add("active");
+                document.querySelector(".section-panel").classList.add("active");
+                const tabContainer = document.getElementById("expert-tab-header");
+                if (tabContainer) {{
+                    tabContainer.addEventListener("click", function(event) {{
+                        if (event.target.classList.contains("tablinks")) {{
+                            let tabName = event.target.getAttribute("data-tab");
+                            document.querySelectorAll(".tablinks").forEach(tab => tab.classList.remove("active"));
+                            document.querySelectorAll(".tabcontent").forEach(content => content.classList.remove("active"));
+                            event.target.classList.add("active");
+                            document.getElementById(tabName).classList.add("active");
+                        }}
+                    }});
+                    let first = tabContainer.querySelector(".tablinks");
+                    if (first) {{
+                        first.classList.add("active");
+                        document.getElementById(first.getAttribute("data-tab")).classList.add("active");
+                    }}
+                }}
+            }});
+        </script>
+        <h1 class="banner {'biased' if biased else 'fair'}">{'Intersectional representation biases' if biased else 'Fair group intersections'}</h1>
+        <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
+    
+        <h1>based on MMM-fair investigation</h1>
 
-            <div class="faq-container">
-                <div class="faq-box">
-                    <h3>❓ What is this?</h3>
-                    <p>This report provides is generated by MAI-BIAS to generate an overview of dataset imbalances across 
-                    the intersection of sensitive attributes and prediction targets using the MMM-Fair library.
-                    Intersectionality emphasizes that people experience overlapping systems of discrimination 
-                    based on multiple identity characteristics (race, gender, class, sexual orientation, 
-                    disability, etc.). This is reflected also in how AI systems reproduce forms of discrimination. 
-                    As an example of intersectional bias <b>[1]</b> race and 
-                    gender together affect algorithmic performance of commercial facial-analysis systems;
-                    worst performance for darker-skinned women demonstrates a compounded disparity 
-                    that would be missed if the analysis looked only at race or only at gender. 
-                    <br><br><b>[1]</b><i> Buolamwini, J., & Gebru, T. (2018, January). Gender shades: Intersectional accuracy disparities 
-                    in commercial gender classification. In Conference on fairness, accountability and transparency 
-                    (pp. 77-91). PMLR.</i>
-                    </p>
-                    <p>
-                    <br>
-                    <p>Imbalanced datasets can lead to biased model behavior, as underrepresented subgroups 
-                    are more difficult to predict correctly. Intersections of many sensitive attributes (e.g., 
-                    low-income hispanic woman) may create tiny or empty groups.
-                    Augmentation strategies increase the representation
-                    of such subgroups, which can improve fairness and robustness of downstream models.</p>
-                </div>
-        
-                <div class="faq-box">
-                      <h3>❗ Summary</h3>
-                    <p>An interactive <a href="https://plotly.com/python/sunburst-charts/" target="_blank">sunburst chart</a>,
-                    visualizes how subgroups form and how large or small they are compared to the total dataset.
-                    This summarizes the distribution of data across sensitive attributes 
-                    <i>{', '.join(sensitive)}</i> and the prediction target. 
-                    Sensitive attributes are represented as concentric rings, where each segment corresponds 
-                    to an intersectional subgroup. Hover over a segment to view its subgroup path and proportion in 
-                    the dataset, and click on it to focus on the particular intersection.</p>
-                    <br>
-                    <p>This report also contains bar charts compare original and augmented distributions for each 
-                    strategy, as well as references and research findings that you can consult. 
-                    The annotation <i>r_aug</i> indicates the fraction of synthetic samples added to the dataset under 
-                    that strategy.</p>
-                </div>
+        <div class="pill-buttons">
+            <div class="pill-btn" data-target="whatis">Representations
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/donut.png?raw=true" height="128px"/>
             </div>
-            <hr/>
-            
-            <h2>Attribute Distribution Overview</h2>
-            <div class="description">
-                <p>Including the prediction target in the inner disk, each ring represents a sensitive attribute.
-                Segments then correspond to intersectional subgroups that occur by combining each attribute's values
-                with (sub)groups of greater granularity. Click on an inner disk partition, the first ring, etc to progressively
-                focus on subgroups of more intersections. Click on the inner disk if it focuses on a specific partition
-                to go back a step. Hover over a segment to see the intersectional group it represents and the proportion
-                of samples in the population contained in that group.
+            <div class="pill-btn" data-target="warning">
+                Responsible use
+                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true" height="128px"/>
             </div>
+            <div class="pill-btn" data-target="method">Analysis methodology
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="pipeline">Data pipeline
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="details">Augmentation strategies
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/code.png?raw=true" height="128px"/>
+            </div>
+        </div>
+        <div id="whatis" class="section-panel">
+            <p>We used <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> 
+            to create and compare distribution intersections.
+            The prediction target lies in the inner disk, each ring represents a sensitive attribute.
+            Segments then correspond to intersectional subgroups that occur by combining each attribute's values
+            with (sub)groups of greater granularity. Click on an inner disk partition, the first ring, etc to progressively
+            focus on subgroups of more intersections. Click on the inner disk if it focuses on a specific partition
+            to go back a step. Hover over a segment to see the intersectional group it represents and the proportion
+            of samples in the population contained in that group.
             <div class="plot-container overview-container">
                 {main_html_content}
             </div>
+        </div>
+        <div id="warning" class="section-panel">
+            {on_results}
+        </div>
+        <div id="method" class="section-panel">
+            <p>An interactive <a href="https://plotly.com/python/sunburst-charts/" target="_blank">sunburst chart</a>,
+            visualizes how subgroups form and how large or small they are compared to the total dataset.
+            This summarizes the distribution of data across sensitive attributes 
+            <i>{', '.join(sensitive)}</i> and the prediction target. 
+            Sensitive attributes are represented as concentric rings, where each segment corresponds 
+            to an intersectional subgroup. Hover over a segment to view its subgroup path and proportion in 
+            the dataset, and click on it to focus on the particular intersection.</p>
+        </div>
+        <div id="pipeline" class="section-panel">{dataset.to_description()}<br><br>{model.to_description()}</div>
+        <div id="details" class="section-panel">
+            <p>This report also contains bar charts compare original and augmented distributions for each 
+            strategy, as well as references and research findings that you can consult. 
+            The annotation <i>r_aug</i> indicates the fraction of synthetic samples added to the dataset under 
+            that strategy.</p>
             
-            <h2>Data Augmentation Strategies</h2>
             <p>Sampling strategies dictate the number of synthetic samples to generate from each subgroup, to create the final augmented dataset. 
             The following strategies are compared:</p>
             <ul>
@@ -869,10 +790,7 @@ def augmentation_report(
                     <p>[3] Reiter, J.P.: Using CART to generate partially synthetic public use microdata. Journal of Official Statistics 21(3), 441 (2005)</p>
                     <p>[4] Chawla, N.V., Bowyer, K.W., Hall, L.O., Kegelmeyer, W.P.: SMOTE: synthetic minority over-sampling technique. Journal of Artificial Intelligence Research 16, 321-357 (2002)</p>
             </div>
-
         </div>
-    </body>
-    </html>
-    """
+        """
 
     return HTML(complete_html)

@@ -8,7 +8,7 @@ import json
 
 @metric(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=(
         "fairbench",
@@ -30,13 +30,20 @@ def croissant(
     qualitative_creators: List[str] = "",
     distribution: List[str] = "",
 ) -> HTML:
-    """Generate some json dataset metadata that boostraps conversion of your datasets into the
+    """
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/croissant.png?raw=true"
+    alt="croissant" style="float: left; margin-right: 15px; height: 36px;"/>
+    <h3>for data scientists: croissant specification</h3>
+
+    Generate some json dataset metadata that bootstraps conversion of your datasets into the
     <a href="https://github.com/mlcommons/croissant">Croissant</a> format. That format is used to
     standardized how datasets may be indexed and loaded. If your dataset is stored locally, such as
     in minio instances, you can consider either sharing the metadata to explain to others what you
     are working with, or using publicly hosted data by providing https links for files.
     Metadata are displayed as HTML to help you get an overview and are presented as a copy-able block of json.
     """
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",")]
     if isinstance(qualitative_creators, str):
         qualitative_creators = qualitative_creators.split(",")
     if isinstance(distribution, str):

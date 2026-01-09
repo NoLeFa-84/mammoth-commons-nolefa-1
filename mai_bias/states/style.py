@@ -1,51 +1,52 @@
-from PySide6.QtWidgets import QPushButton, QWidget, QSizePolicy
+from PySide6.QtWidgets import QPushButton, QWidget, QSizePolicy, QLabel, QVBoxLayout
+from PySide6.QtCore import Qt
 
 
 class Styled(QWidget):
-    def create_icon_button(self, text, color, tooltip, callback, size=30):
+    def new_action(self, text, color, tooltip, callback, size=30, width=None):
         button = QPushButton(text, self)
         button.setStyleSheet(
             f"""
-            QPushButton {{
-                background-color: {color}; 
-                color: white; 
-                border-radius: 5px;
-                font-size: {size*6//8 if text=='+' else size//2}px;
-                border: 1px solid black;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                border: 2px solid black;
-                background-color: {self.highlight_color(color)};
-            }}
-        """
+            QPushButton {{background-color: {color}; color: #EEEEEE; border-radius: 5px;font-size: {size*6//8 if text=='+' else size//2}px;border: 1px solid black;font-weight: bold;}}
+            QPushButton:hover {{border: 2px solid black;background-color: {self.highlight_color(color)};}}
+            """
         )
 
         button.setFixedSize(size, size)
         button.setToolTip(tooltip)
         button.clicked.connect(callback)
+        if width:
+            button.setFixedWidth(width)
         return button
 
-    def create_tag_button(self, text, tooltip, callback):
+    def new_info_box(self, html_content):
+        frame = QWidget(self)
+        frame.setObjectName("InfoBox")
+        frame.setStyleSheet(
+            """
+                QWidget#InfoBox {background-color: #dddddd;border: 1px solid #e2e8f0; border-radius: 10px;padding: 14px 18px;}
+                QLabel {color: #334155;font-size: 13px;line-height: 1.4em;}
+                ul {margin-left: 16px;}
+                li {margin: 4px 0;}
+            """
+        )
+        label = QLabel(html_content, frame)
+        label.setTextFormat(Qt.TextFormat.RichText)
+        label.setWordWrap(True)
+        label.setOpenExternalLinks(True)
+        layout = QVBoxLayout(frame)
+        layout.setContentsMargins(14, 14, 18, 14)
+        layout.addWidget(label)
+        return frame
+
+    def new_tag(self, text, tooltip, callback):
         button = QPushButton(text, self)
 
         button.setStyleSheet(
             """
-            QPushButton {
-                color: #222;
-                border-radius: 10px;
-                font-size: 12px;
-                border: 0px solid #bbb;
-                padding: 0px 5px;
-            }
-            QPushButton:hover {
-                border-radius: 10px;
-                border: 2px solid #888;
-                background-color: #f5f5f5;
-            }
-            QPushButton:pressed {
-                background-color: #dddddd;
-            }
+            QPushButton {color: #222;border-radius: 10px; font-size: 12px; border: 0px solid #bbb; padding: 0px 5px;}
+            QPushButton:hover {border-radius: 10px;border: 2px solid #888;background-color: #f5f5f5;}
+            QPushButton:pressed {background-color: #dddddd;}
             """
         )
 

@@ -17,6 +17,7 @@ def get_predictions(threshold, embed1, embed2):
 
 class ONNX(Predictor):
     def __init__(self, model, threshold=0):
+        super().__init__()
         assert (
             0 <= threshold < 1
         ), "The model threshold should be either in the range (0,1) or zero to be automatically determined."

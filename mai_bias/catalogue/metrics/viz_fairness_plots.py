@@ -14,7 +14,7 @@ from typing import List
 
 @metric(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=(
         "fairlearn",
@@ -31,23 +31,30 @@ def viz_fairness_plots(
     sensitive: List[str],
 ) -> HTML:
     """
-    <img src="https://raw.githubusercontent.com/fairlearn/fairlearn/29f6d6f67eea061ae5dae72e976f2069cb38772e/docs/static_landing_page/images/fairlearn_logo.svg" alt="Based on FairLearn" style="float: left; margin-right: 15px; margin-bottom: 5px; height: 50px;"/>
+    <img src="https://raw.githubusercontent.com/fairlearn/fairlearn/29f6d6f67eea061ae5dae72e976f2069cb38772e/docs/static_landing_page/images/fairlearn_logo.svg" alt="Based on FairLearn" style="float: left; margin-right: 15px; height: 36px;"/>
+
+    <h3>structured visualization of common types of bias</h3>
 
     <p>
     This module visualizes fairness metrics using the <a href="https://fairlearn.org/" target="_blank">Fairlearn</a> library and interactive Plotly charts.
     It provides visual insights into how a model performs across different groups defined by sensitive features such as gender, race, or age.
-    Two sets of visual outputs are processed:
     </p>
-    <ul>
-        <li><strong>Group-wise metrics</strong>: Shown as grouped bar charts, these display performance metrics (e.g., false positive rate) across subgroups.</li>
-        <li><strong>Scalar metrics</strong>: Displayed as horizontal bar charts, these summarize disparities (e.g., equal opportunity difference) in a compact, interpretable format.</li>
-    </ul>
-    <p>
-        Interactive charts allow users to hover for precise values, compare metrics between groups, and quickly identify fairness gaps.
-        An explanation panel is included to define each metric and guide interpretation.
-        This module is well suited for exploratory analysis, presentations, and fairness monitoring.
-        It makes group disparities visible and intuitive, helping identify where further scrutiny or mitigation may be needed.
-    </p>
+
+    <details><summary><i>What to expect?</i></summary>
+        <p>
+        Two sets of visual outputs are processed:
+        </p>
+        <ul>
+            <li><strong>Group-wise metrics</strong>: Shown as grouped bar charts, these display performance metrics (e.g., false positive rate) across subgroups.</li>
+            <li><strong>Scalar metrics</strong>: Displayed as horizontal bar charts, these summarize disparities (e.g., equal opportunity difference) in a compact, interpretable format.</li>
+        </ul>
+        <p>
+            Interactive charts allow users to hover for precise values, compare metrics between groups, and quickly identify fairness gaps.
+            An explanation panel is included to define each metric and guide interpretation.
+            This module is well suited for exploratory analysis, presentations, and fairness monitoring.
+            It makes group disparities visible and intuitive, helping identify where further scrutiny or mitigation may be needed.
+        </p>
+    </details>
     """
     from mmm_fair_cli.fairlearn_report import generate_reports_from_fairlearn
 

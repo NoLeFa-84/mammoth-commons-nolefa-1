@@ -27,7 +27,7 @@ def test_bias_scan():
         model = env.model_onnx(
             "file://localhost//" + os.path.abspath("./data/model.onnx")
         )
-        markdown_result = env.bias_scan(dataset, model, sensitive=[], penalty=0.5)
+        markdown_result = env.bias_scan(dataset, model, sensitive=[], penalty=0)
         markdown_result.show()
 
 

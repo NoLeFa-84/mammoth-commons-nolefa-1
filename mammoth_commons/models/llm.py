@@ -4,6 +4,7 @@ import requests
 
 class LLM(Model):
     def __init__(self, name, url="http://localhost:11434"):
+        super().__init__()
         self.name = name
         self.url = url.rstrip("/")
 

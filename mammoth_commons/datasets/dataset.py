@@ -41,14 +41,17 @@ class Dataset:
         raise Exception(f"Dataset {self.__class__.__name__} cannot be treated as a csv")
 
     def to_description(self):
-        if self.description is None:
+        if not self.description:
             return ""
-        desc = "<h1>Dataset</h1>"
         if isinstance(self.description, str):
-            desc += self.description + "<br>"
+            desc = self.description.split("Args:")[0] + "<br>"
         elif isinstance(self.description, dict):
+            desc = ""
             for key, value in self.description.items():
                 desc += f"<h3>{key}</h3>" + value.replace("\n", "<br>") + "<br>"
         else:
             raise Exception("Dataset description must be a string or a dictionary.")
-        return desc
+        from mammoth_commons.exports import get_description_header
+
+        header = get_description_header(desc)
+        return header + desc.replace(header, "", 1)

@@ -19,7 +19,12 @@ class ImageLike(Dataset):
         num_set = set(numeric)
         cat = [col for col in cols if col not in num_set if col != self.target]
         label = self.target
-        return CSV(df, num=num, cat=cat, labels=label)
+        csv = CSV(df, num=num, cat=cat, labels=label)
+        csv.description = self.description.replace(
+            "Args:",
+            "<br><br><i>Fairness analysis only accounts for sensitive information encoded in the tabular segment of the dataset.</i>\nArgs:",
+        )
+        return csv
 
 
 class Image(ImageLike):
@@ -44,6 +49,7 @@ class Image(ImageLike):
             shuffle (bool): Set to True to have the data reshuffled every time they are obtained.
             num_workers (int): Number of subprocesses to use for data loading.
         """
+        super().__init__(None)
         target = str(target)
         cols = [str(col) for col in cols]
 

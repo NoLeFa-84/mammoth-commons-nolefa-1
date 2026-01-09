@@ -1,14 +1,14 @@
 import mammoth_commons.integration
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
-from mammoth_commons.exports import HTML
-from typing import List
+from mammoth_commons.exports import HTML, simplified_formatter
+from typing import List, Literal
 from mammoth_commons.integration import metric
 
 
 @metric(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=(
         "aif360",
@@ -23,32 +23,38 @@ def bias_scan(
     model: Predictor,
     sensitive: List[str],
     penalty: float = 0.5,
-    scoring: mammoth_commons.integration.Options(
-        "Bernoulli", "Gaussian", "Poisson", "BerkJones"
-    ) = "Bernoulli",
+    scoring: Literal["Bernoulli", "Gaussian", "Poisson", "BerkJones"] = "Bernoulli",
     discovery: bool = True,
 ) -> HTML:
-    """<p>This module scans your dataset to estimate the most biased attributes or combinations of attributes.
-    You can use those as inputs to other modules.
+    """
+    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
+    alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+    <h3>scan for biased attribute values or their intersections</h3>
+
+    <p>Use <a href="https://aif360.readthedocs.io" target="_blank">AIF360</a>
+    to scans your dataset to estimate the most biased attributes or combinations of attributes.
     For example, gender may only show bias when combined with socioeconomic status, despite the latter not
     bein inherently sensitive. If you have already marked some
     attributes as sensitive (such as race or gender), the module will **exclude** them from the scan. This allows
     searching for additional patterns that contribute to unfair outcomes.</p>
-
-    <p>A paper describing how this approach estimates biased intersection candidates in **linear** rather
-    than **exponential** time is available <a href="https://arxiv.org/pdf/1611.08292">here</a>. Instead of checking
-    every possible combination (which can be very time-consuming), it uses a more efficient method.</p>
 
     <p>To get started, run the module without setting any sensitive attributes. After the first scan,
     advanced users can review the results and mark any problematic attributes it identifies as sensitive.
     Then, run the scan again to uncover additional potential issues—these may be less prominent but still
     worth investigating.</p>
 
+    <details><summary><i>Technical details</i></summary>
+    <p>A paper describing how this approach estimates biased intersection candidates in **linear** rather
+    than **exponential** time is available <a href="https://arxiv.org/pdf/1611.08292">here</a>. Instead of checking
+    every possible combination (which can be very time-consuming), it uses a more efficient method.</p>
+
+
     <p>For convenience, there is a <i>discovery</i> mode available in the parameters. This automatically adds
     attributes suspected of contributing to bias to the list of ignored (already known sensitive) ones, then reruns
     the scan. While this automation helps streamline the process, it removes all attributes contributing to biased
     intersections. A domain expert may prefer to manually remove one attribute at a time by adding it to known
     sensitive attributes and rerun the module to investigate more granular effects on the results.</p>
+    </details>
 
     Args:
         penalty: A positive. The higher the penalty, the less complex the highest scoring subset that gets returned is, but penalties as small as 1.E-12 could also be acceptable to promote finding intersections of many attributes.
@@ -57,6 +63,9 @@ def bias_scan(
     """
     import pandas as pd
     from aif360.sklearn.detectors import bias_scan as aif360bias_scan
+
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
 
     predictions = pd.Series(model.predict(dataset, sensitive))
     dataset = dataset.to_csv(sensitive)
@@ -74,13 +83,12 @@ def bias_scan(
             if len(cats) == 0 and text:
                 text += f"<i>All categorical attributes are already considered sensitive</i>"
                 break
-            assert (
-                len(cats) != 0
-            ), "All categorical attributes are already considered sensitive"
-            if sensitive:
-                text += f"<i>Already known sensitive attributes to be ignored: {', '.join(sensitive)}</i>"
-            else:
-                text += f"<i>No attributes to be ignored (scanning everything)</i>"
+            assert len(cats), "All categorical attributes already known as sensitive"
+            text += (
+                f"<i>Already known sensitive attributes to be ignored: {', '.join(sensitive)}</i>"
+                if sensitive
+                else f"<i>No attributes to be ignored (scanning everything)</i>"
+            )
             X = dataset.df[cats]
             ret = aif360bias_scan(
                 X=X,
@@ -106,70 +114,38 @@ def bias_scan(
             counts = max(counts, len(ret))
             if not discovery:
                 break
-            else:
-                text += f'<h4 class="text-warning">Rerunning for new sensitive attributes</h4>'
+            text += (
+                f'<h4 class="text-warning">Rerunning for new sensitive attributes</h4>'
+            )
 
-    faq_style = """
-        <div class="container">
-        <style>
-        .faq-container {
-          max-width: 600px;
-          margin: 20px auto;
-          font-family: Arial, sans-serif;
-        }
-
-        .faq-box {
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          padding: 16px;
-          margin-bottom: 16px;
-          box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-          background: #fff;
-        }
-
-        .faq-box h3 {
-          margin-top: 0;
-          font-size: 1.2em;
-          color: #333;
-        }
-
-        .faq-box p {
-          margin: 0;
-          color: #555;
-        }
-        </style>
-    """
-
-    html = f"""
-    {'<h1 class="text-success">No concern</h1>' if counts==0 else '<h1 class="text-danger">Biased intersections of up to '+str(counts)+' attributes</h1>'}
-    {faq_style}
-    <hr/>
-    <div class="faq-container">
-        <div class="faq-box">
-              <h3>❓ What is this?</h3>
-              <p>This is a suggestion of potentially biased attribute intersections, computed with a MAI-BIAS module 
-              using the AIF360 library. Results correspond to specific dataset and model loaders and parameters.</p>
-              <br/>
-              <p>Attributes or combinations of attributes that contain potentially sensitive groups may be used as 
-              sensitive attributes by other modules to examine other quantitative aspects. There is a different analysis 
-              for each prediction class.</p>
-        </div>
-        <div class="faq-box">
-              <h3>❗ Summary</h3>
-                {"" if len(dataset.num) == 0 else "<p><b>Numeric attributes have been ignored; the scan can work with only categorical ones.</b></p>"}
-                <p>After scanning for imbalances, the following attribute combinations out of those that were
-                <i>not</i> already marked as sensitive were found to be underestimated. 
-                {'The scan was run in discovery mode, so the process added all indicated sensitive attributes to sensitive ones and retrying the analysis. This was repeated until no more suspicions were shed on data.' if discovery else 'There may be more attribute combinations that could be underestimated, but only the top one is presented here.'}
-                Not all found attributes should necessarily be protected, and you can simplify the problem setting
-                by accounting only for the discovered intersection by adding data annotations.</p>
-                <br>
-                <p><b>{'No biased intersections"' if counts==0 else 'Biased intersections of up to '+str(counts)+' attributes'} were found.</b></p>
-        </div>
-    </div>
-    <hr>
-    {text}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">",
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>"
-    </div>
-    """
-    return HTML(html)
+    return HTML(
+        simplified_formatter(
+            outcome="fair" if counts == 0 else "biased",
+            technology='<div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360\'s bias scan</h1></div>',
+            title=(
+                "No concerns for attribute values"
+                if counts == 0
+                else f"{counts} attribute biases"
+            ),
+            about=f"""
+                <p>This module identifies potentially biased intersections of attributes using 
+                IBM's AIF360 bias scan detector. Already-known sensitive attributes are ignored during scanning. Remaining 
+                attributes (including non-sensitive ones) are tested for imbalances that may 
+                contribute to unfair predictions. There is a separate analysis for each prediction class.</p>
+                {'The following' if sensitive else 'No'} attributes exhibited biases in some of their values or during the 
+                intersection with other attributes{':' if sensitive else '.'}  
+                <br><i>{'<br>'.join(sensitive)}</i>
+            """,
+            methodology=f"""
+                <p>The scan evaluates attribute combinations by computing p-values under a
+                <b>{scoring}</b> statistical model. A penalty parameter <b>{penalty}</b> controls the complexity of
+                discovered intersections: higher penalty → simpler intersections.
+                {'In discovery mode, detected suspicious attributes are added to the ignored list and the scan repeated until no more intersections are detected.'
+                if discovery else
+                'Only the top suspicious attribute combination is reported; further combinations may exist.'}
+                </p>
+            """,
+            pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+            experts=text,
+        )
+    )

@@ -1,5 +1,5 @@
 # autoflake: skip_file
-from typing import get_type_hints, Dict, List, get_origin, get_args, Union
+from typing import get_type_hints, Dict, List, get_origin, get_args, Union, Literal
 from functools import wraps
 import subprocess
 import inspect
@@ -149,11 +149,26 @@ def metric(namespace, version, python=_default_python, packages=_default_package
             ):  # do not consider the sensitive attributes for component types
                 continue
             arg_type = unpack_optionals(type_hints.get(pname, parameter.annotation))
-            if arg_type.__class__ == Options:
+            if isinstance(arg_type, Options):
                 arg_type.__name__ = pname
                 options += "\n        " + pname + ": "
                 options += ", ".join(arg_type.values)
                 arg_type = str
+            else:
+                origin = get_origin(arg_type)
+                args = get_args(arg_type)
+                if origin is Literal:
+                    literal_values = [str(v) for v in args]
+                    options += f"\n        {pname}: " + ", ".join(literal_values)
+                    arg_type = str
+                elif origin is Union and any(a is type(None) for a in args):
+                    inner = [a for a in args if a is not type(None)][0]
+                    inner_origin = get_origin(inner)
+                    if inner_origin is Literal:
+                        literal_values = [str(v) for v in get_args(inner)]
+                        options += f"\n        {pname}: " + ", ".join(literal_values)
+                        arg_type = str
+
             if parameter.default is not inspect.Parameter.empty:  # ignore kwargs
                 defaults[pname] = (
                     "None" if parameter.default is None else parameter.default
@@ -260,14 +275,25 @@ def loader(
         def wrapper_with_installation_outiside_kfp(*args, **kwargs):
             from mammoth_commons.externals import notify_progress, notify_end
 
+            original_doc = method.__doc__
+
             for i, package in enumerate(packages):
                 notify_progress(
                     i / len(packages),
                     "Verifying and installing dependencies: " + package,
                 )
                 install_package(package)
+            notify_progress(0.99, "Running module...")
+            ret = method(*args, **kwargs)
+            if not ret.description:
+                param_description = ""
+                for k, v in kwargs.items():
+                    param_description += (
+                        "<b>" + k.lower().replace("_", " ") + "</b>: " + str(v) + "<br>"
+                    )
+                ret.description = param_description + original_doc
             notify_end()
-            return method(*args, **kwargs)
+            return ret
 
         # Prepare the KFP wrapper given decorator arguments
         name = method.__name__  # Will use this as the component id
@@ -320,6 +346,20 @@ def loader(
                 options += "\n        " + pname + ": "
                 options += ", ".join(arg_type.values)
                 arg_type = str  # Assuming options are string-based; adjust as needed
+            else:
+                origin = get_origin(arg_type)
+                args = get_args(arg_type)
+                if origin is Literal:
+                    literal_values = [str(v) for v in args]
+                    options += f"\n        {pname}: " + ", ".join(literal_values)
+                    arg_type = str
+                elif origin is Union and any(a is type(None) for a in args):
+                    inner = [a for a in args if a is not type(None)][0]
+                    inner_origin = get_origin(inner)
+                    if inner_origin is Literal:
+                        literal_values = [str(v) for v in get_args(inner)]
+                        options += f"\n        {pname}: " + ", ".join(literal_values)
+                        arg_type = str
             if parameter.default is not inspect.Parameter.empty:  # Ignore kwargs
                 defaults[pname] = (
                     "None" if parameter.default is None else parameter.default
@@ -330,6 +370,7 @@ def loader(
                 f"Add both a type annotation and default value in method {name} for the argument: {pname}"
             )
 
+        original_doc = method.__doc__
         if options:
             method.__doc__ += "\n    Options:" + options
             wrapper_with_installation_outiside_kfp.__doc__ += "\n    Options:" + options
@@ -367,6 +408,7 @@ def kfp_method(
     {param_name}: Dict[str, any] = defaults,
 ):
     parameters = {param_name}
+    original_doc = \"\"\"{original_doc}\"\"\"
     """
             + """
     parameters = {
@@ -380,6 +422,11 @@ def kfp_method(
     
     ret = method(**parameters)
     assert isinstance(ret, return_type)
+    if not ret.description:
+        param_description = ""
+        for k, v in parameters.items():
+            param_description += "<b>" + k.lower().replace("_", " ") + "</b>: " + str(v) + "<br>"
+        ret.description = param_description+original_doc  
     with open(output.path, "wb") as file:
         pickle.dump(ret, file)
             """,

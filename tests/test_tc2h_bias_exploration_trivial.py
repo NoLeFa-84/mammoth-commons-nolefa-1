@@ -1,0 +1,33 @@
+from mammoth_commons import testing
+from mai_bias.catalogue.dataset_loaders.custom_csv import data_custom_csv
+from mai_bias.catalogue.model_loaders.trivial_predictor import model_trivial_predictor
+from mai_bias.catalogue.metrics.interactive_report import interactive_report
+
+
+def test_bias_exploration():
+    with testing.Env(
+        data_custom_csv, model_trivial_predictor, interactive_report
+    ) as env:
+        dataset = env.data_custom_csv(
+            path="https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv",
+            categorical=[
+                "job",
+                "marital",
+                "education",
+                "default",
+                "housing",
+                "loan",
+                "contact",
+                "poutcome",
+            ],
+            numeric=["age", "duration", "campaign", "pdays", "previous"],
+            label="y",
+            delimiter=";",
+        )
+        model = env.model_trivial_predictor()
+        html_result = env.interactive_report(dataset, model, sensitive=["marital"])
+        html_result.show()
+
+
+if __name__ == "__main__":
+    test_bias_exploration()

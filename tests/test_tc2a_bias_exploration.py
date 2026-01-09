@@ -28,11 +28,13 @@ def test_bias_exploration():
             path="file://localhost//" + os.path.abspath("./data/model.onnx"),
             trained_with_sensitive=True,
         )
-        env.model_card(dataset, model, sensitive=["marital"]).show()
+        env.model_card(
+            dataset, model, sensitive="marital"
+        ).show()  # robustness test with string instead of list
         env.croissant(
             dataset,
             None,
-            sensitive=["marital"],
+            sensitive="marital",  # robustness test with string instead of list
             name="Bank dataset with marital sensitive attribute",
             license="Creative Commons Attribution 4.0 International (CC BY 4.0)",
             description="The data is related with direct marketing campaigns of a Portuguese banking institution. The marketing campaigns were based on phone calls. Often, more than one contact to the same client was required, in order to access if the product (bank term deposit) would be ('yes') or not ('no') subscribed.",

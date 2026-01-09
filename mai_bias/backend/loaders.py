@@ -42,7 +42,7 @@ from mai_bias.catalogue.metrics.viz_fairness_report import viz_fairness_report
 from mai_bias.catalogue.metrics.optimal_transport import optimal_transport
 from mai_bias.catalogue.metrics.bias_scan import bias_scan
 from mai_bias.catalogue.metrics.croissant import croissant
-from mai_bias.catalogue.metrics.aif360 import aif360
+from mai_bias.catalogue.metrics.aif360_metrics import aif360_metrics
 from mai_bias.catalogue.metrics.augmentation_report import (
     augmentation_report,
 )
@@ -123,7 +123,7 @@ registry.analysis(specific_concerns)
 registry.analysis(interactive_report)
 registry.analysis(sklearn_audit)
 registry.analysis(sklearn_visual_analysis)
-registry.analysis(aif360)
+registry.analysis(aif360_metrics)
 registry.analysis(optimal_transport)
 registry.analysis(bias_scan)
 registry.analysis(image_bias_analysis)

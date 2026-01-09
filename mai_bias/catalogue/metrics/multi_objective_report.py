@@ -9,7 +9,7 @@ from mammoth_commons.externals import fb_categories
 
 @metric(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=(
         "fairbench",
@@ -27,9 +27,11 @@ def multi_objective_report(
     model: ONNXEnsemble,
     sensitive: List[str],
 ) -> HTML:
-    """<img src="https://raw.githubusercontent.com/arjunroyihrpa/MMM_fair/main/images/mmm-fair.png" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 80px;"/>
+    """
+    <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
+    <h3>for data scientists: interactive trade-off exploration</h3>
 
-    <p>This module presents an interactive <a href="https://plotly.com/python/3d-charts/" target="_blank">Plotly 3D plot</a>
+    <p>Presents an interactive <a href="https://plotly.com/python/3d-charts/" target="_blank">Plotly 3D plot</a>
     visualizing multiple objectives to evaluate model fairness and performance trade-offs. The report highlights three
     primary objectives: <b>accuracy loss</b>, <b>balanced accuracy loss</b>, and <b>discrimination (MMM-fairness)
     loss</b>. Each point plotted within the 3D space represents a <i>Pareto-optimal</i> solution, which achieves an
@@ -52,10 +54,11 @@ def multi_objective_report(
     # obtain predictions
     if hasattr(model, "mmm"):
         model = model.mmm
-    if hasattr(model, "pareto") and model.pareto is not None:
-        thetas = model.pareto
-    else:
-        thetas = np.arange(2, len(model.models))
+    thetas = (
+        model.pareto
+        if hasattr(model, "pareto") and model.pareto is not None
+        else np.arange(2, len(model.models))
+    )
     O_1, O_2, O_3 = [], [], []
     labs = list(dataset.labels.__iter__())[-1]
     labs = labs.to_numpy() if hasattr(labs, "to_numpy") else np.array(labs)

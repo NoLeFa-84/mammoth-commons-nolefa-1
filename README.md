@@ -1,4 +1,4 @@
-# MAI-BIAS modules
+ # MAI-BIAS modules
 
 [![Integration Tests](https://github.com/mammoth-eu/mammoth-commons/actions/workflows/integration.yml/badge.svg)](https://github.com/mammoth-eu/mammoth-commons/actions/workflows/integration.yml)
 ![Coverage](./coverage-badge.svg)
@@ -10,7 +10,7 @@
 This repository is created by the [MAMMOth](https://mammoth-ai.eu/)
 project and holds the mammoth-commons library, which contains 
 supporting datatypes and decorators for developing fairness modules.
-It also hosts a catalogue of 30+ modules. 
+It also hosts a catalogue of 35+ modules. 
 Finally, find desktop and terminal applications that 
 run those modules in your local machine.
 
@@ -150,6 +150,10 @@ through *brew*.
 This repository is distributed under the Apache 2.0 License, Copyright 2025 MAMMOth.
 
 Third-party licenses:
+
+- Some of the icons in `docs/icons/` are used by modules and
+and are released by *tabler-icons* under the MIT license 
+here: https://github.com/tabler/tabler-icons
 
 - The file `mammoth_commons/custom_kfp.py` was adjusted from the KFP project to
 handle additional metadata needed for interoperability with the demonstrator 

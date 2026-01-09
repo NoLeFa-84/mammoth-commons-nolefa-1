@@ -4,52 +4,98 @@ from mammoth_commons.models.predictor import Predictor
 
 class ONNX(Predictor):
     def __init__(self, model_bytes, includes_sensitive=False):
+        super().__init__()
         self.model_bytes = model_bytes
         self.includes_sensitive = includes_sensitive
 
     def predict(self, dataset, sensitive: list[str]):
-        includes_sensitive = (
-            not self.includes_sensitive
-        )  # TODO: investigate to_pred if this matches its semnatics in the following line
-        x = (
-            dataset
-            if isinstance(dataset, np.ndarray)
-            else dataset.to_pred(sensitive if includes_sensitive else list())
-        )
+        includes_sensitive = not self.includes_sensitive
+
         import onnxruntime as rt
         from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
 
         sess = rt.InferenceSession(self.model_bytes, providers=["CPUExecutionProvider"])
-        onnx_type_to_np = {
-            "tensor(float)": np.float32,
-            "tensor(double)": np.float64,
-            "tensor(int32)": np.int32,
-            "tensor(int64)": np.int64,
-        }
-        np_type = onnx_type_to_np.get(sess.get_inputs()[0].type, None)
-        if not np_type:
-            raise Exception(
-                "Onnx model has been saved to expect and unknown format: "
-                + sess.get_inputs()[0].type
-            )
-        x = x.astype(np_type)
-        assert (
-            len(sess.get_inputs()[0].shape) == 2
-        ), "Onnx model has been saved to expect a non-2D matrix"
-        assert (
-            sess.get_inputs()[0].shape[1] == x.shape[1]
-        ), f"Onnx model has been saved to expect {sess.get_inputs()[0].shape[1]} input columns but you provided a dataset with {x.shape[1]} columns. Maybe you included/excluded some attributes, like sensitive ones?"
-        input_name = sess.get_inputs()[0].name
         label_name = sess.get_outputs()[0].name
+        inputs = sess.get_inputs()
+        input_count = len(inputs)
+
+        if input_count == 1:
+            x = (
+                dataset
+                if isinstance(dataset, np.ndarray)
+                else dataset.to_pred(sensitive if includes_sensitive else list())
+            )
+            onnx_type_to_np = {
+                "tensor(float)": np.float32,
+                "tensor(double)": np.float64,
+                "tensor(int32)": np.int32,
+                "tensor(int64)": np.int64,
+            }
+            onnx_type = inputs[0].type
+            np_type = onnx_type_to_np.get(onnx_type, None)
+            assert np_type, f"ONNX model expects an unsupported input type: {onnx_type}"
+            x = x.astype(np_type)
+            inp = inputs[0]
+            assert len(inp.shape) == 2, "ONNX model expects a 2D input"
+            expected_cols = (
+                inp.shape[1] if isinstance(inp.shape[1], int) else x.shape[1]
+            )
+            assert expected_cols == x.shape[1], (
+                f"ONNX model expects {expected_cols} columns but dataset has {x.shape[1]}. "
+                f"Sensitive attributes mismatch? Input name={inp.name}"
+            )
+            feed = {inp.name: x}
+        else:
+            # convert dataset to csv format to get the underlying dataframe
+            # note: we do need the dataset itself externally as it's the standardization assumed by metrics
+            dataset = dataset.to_csv(None)
+            df = dataset.to_csv(None).df
+            df = df[
+                dataset.num + dataset.cat
+            ]  # .df was the raw csv dataset so re-filter some stuff
+            if includes_sensitive:
+                df = df.drop(columns=sensitive, errors="ignore")
+            onnx_inputs = [inp.name for inp in inputs]
+            missing = [c for c in onnx_inputs if c not in df.columns]
+            assert (
+                not missing
+            ), f"The dataset is missing required columns for the ONNX model: {missing}"
+            x = df[onnx_inputs].to_numpy()
+            assert x.ndim == 2, f"Dataset must be 2D, got shape {x.shape}"
+            assert (
+                x.shape[1] == input_count
+            ), f"ONNX model expects {input_count} input columns but dataset has {x.shape[1]}"
+            onnx_type_to_np = {
+                "tensor(float)": np.float32,
+                "tensor(double)": np.float64,
+                "tensor(int32)": np.int32,
+                "tensor(int64)": np.int64,
+            }
+            feed = {}
+            for col_idx, inp in enumerate(inputs):
+                onnx_type = inp.type
+                if onnx_type == "tensor(string)":
+                    # ONNX Runtime requires object-dtype numpy arrays for strings
+                    feed[inp.name] = (
+                        df[inp.name]
+                        .astype(str)
+                        .apply(lambda x: x.encode("utf-8"))  # ORT likes bytes
+                        .to_numpy()
+                        .reshape(-1, 1)
+                        .astype(object)
+                    )
+                else:
+                    np_type = onnx_type_to_np.get(onnx_type, None)
+                    assert np_type, f"Unsupported ONNX input type: {onnx_type}"
+                    feed[inp.name] = (
+                        df[inp.name].to_numpy().reshape(-1, 1).astype(np_type)
+                    )
+
         try:
-            return sess.run([label_name], {input_name: x})[0]
+            return sess.run([label_name], feed)[0]
         except InvalidArgument as e:
             raise Exception(
-                "The ONNx loader's runtime encountered an error that typically occurs "
-                "when the selected dataset is incompatible to the loaded model. "
-                "Consult with the model provider whether your are loading the "
-                "model properly. If you are investigating a dataset, "
-                "consider switching to trained-on-the-fly model loaders.<br><br>"
+                "The ONNX loader encountered an error matching this dataset with the model.<br><br>"
                 '<details><summary class="btn btn-secondary">Details</summary><br><br>'
                 "<pre>" + str(e) + "</pre></details>"
             )

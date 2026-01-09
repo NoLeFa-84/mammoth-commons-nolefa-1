@@ -1,6 +1,7 @@
 # autoflake: skip_file
 from mammoth_commons.models.empty import EmptyModel
 from mammoth_commons.models.model import Model
+from mammoth_commons.models.trivial import TrivialPredictor
 from mammoth_commons.models.node_ranking import NodeRanking
 from mammoth_commons.models.onnx import ONNX
 from mammoth_commons.models.onnx_ensemble import ONNXEnsemble

@@ -9,7 +9,7 @@ class WebProfileSingleton:
     @classmethod
     def get_profile(cls):
         if cls._profile is None:
-            cache_dir = os.path.expanduser("~/.cache/mai_bias_app")
+            cache_dir = os.path.abspath("~/.cache/mai_bias_app")
             os.makedirs(cache_dir, exist_ok=True)
 
             cls._profile = QWebEngineProfile("mai-bias")

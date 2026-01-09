@@ -1,6 +1,6 @@
 echo "Building components"
 
-pip install --upgrade -r requirements_gh_build.txt
+pip install --upgrade -r config/requirements_gh_build.txt
 pip install -e .
 
 kfp component build . --component-filepattern mai_bias/catalogue/dataset_loaders/auto_csv.py
@@ -47,7 +47,7 @@ docker system prune -a --force --volumes
 kfp component build . --component-filepattern mai_bias/catalogue/model_loaders/trivial_predictor.py
 docker system prune -a --force --volumes
 
-kfp component build . --component-filepattern mai_bias/catalogue/metrics/aif360.py
+kfp component build . --component-filepattern mai_bias/catalogue/metrics/aif360_metrics.py
 docker system prune -a --force --volumes
 kfp component build . --component-filepattern mai_bias/catalogue/metrics/augmentation_report.py
 docker system prune -a --force --volumes
@@ -82,6 +82,8 @@ docker system prune -a --force --volumes
 kfp component build . --component-filepattern mai_bias/catalogue/metrics/xai_analysis_embeddings.py
 docker system prune -a --force --volumes
 kfp component build . --component-filepattern mai_bias/catalogue/metrics/xai_analysis.py
+docker system prune -a --force --volumes
+kfp component build . --component-filepattern mai_bias/catalogue/metrics/self_critic.py
 docker system prune -a --force --volumes
 
 mkdir yamls

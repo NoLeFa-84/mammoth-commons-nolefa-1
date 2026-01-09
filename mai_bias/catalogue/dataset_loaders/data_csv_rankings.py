@@ -3,26 +3,27 @@ from mammoth_commons.integration import loader
 from mammoth_commons.externals import pd_read_csv
 
 
-@loader(namespace="mammotheu", version="v0049", python="3.13")
+@loader(namespace="mammotheu", version="v054", python="3.13")
 def data_csv_rankings(path: str = "", delimiter: str = "|") -> CSV:
     """
-    This is a Loader to load .csv files with information about researchers
-    The `Path` should be given relative to your locally running instance (e.g.: *./data/researchers/Top&#95;researchers.csv*)
-    The `Delimiter` should match the CSV file you have (e.g.: '|')
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/csv.png?raw=true"
+    alt="csv" style="float: left; margin-right: 15px; height: 36px;"/>
+    <h3>anonymized researcher characteristics</h3>
+
+    Uses <a href="https://pandas.pydata.org/">pandas</a> to load
+    CSV file with information about researcher citations, productivity, gender, nationality,
+    country region, and income.
+
+    Args:
+        path: Url or path relative to your locally running instance (e.g.: *./data/researchers/Top&#95;researchers.csv*)
+        delimiter: Should match the separator of your CSV file columns. Default is '|'.
     """
-    try:
-        raw_data = pd_read_csv(path, on_bad_lines="skip", delimiter=delimiter)
-    except:
-        raise ValueError(
-            "Unable to read the given file.  Please double-check the parameters"
-        )
-
+    raw_data = pd_read_csv(path, on_bad_lines="skip", delimiter=delimiter)
     validate_input(raw_data)
-
     csv_dataset = CSV(
         raw_data,
-        numeric=["Citations", "Productivity"],
-        categorical=[
+        num=["Citations", "Productivity"],
+        cat=[
             "Nationality",
             "Nationality_Region",
             "Nationality_IncomeGroup",

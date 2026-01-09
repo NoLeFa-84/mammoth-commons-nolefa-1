@@ -1,6 +1,4 @@
-from typing import List
-
-import mammoth_commons.integration
+from typing import List, Literal
 from mammoth_commons.exports import HTML
 from mammoth_commons.integration import metric
 from mammoth_commons.models.researcher_ranking import ResearcherRanking
@@ -52,8 +50,8 @@ def Exposure_distance(
         )
         EDr = np.round(
             (
-                sum(ranking_position_protected_attribute[:Min_size])
-                - sum(ranking_position_non_protected_attribute[:Min_size])
+                sum(ranking_position_protected_attribute[:Min_size]) / Min_size
+                - sum(ranking_position_non_protected_attribute[:Min_size]) / Min_size
             ),
             2,
         )
@@ -698,7 +696,7 @@ def plot_network(
 
 @metric(
     namespace="mammotheu",
-    version="v0037",
+    version="v054",
     python="3.11",
     packages=("matplotlib", "statistics", "seaborn"),
 )
@@ -708,14 +706,15 @@ def exposure_distance_comparison(
     sensitive: List[str] = "Gender",
     n_runs: int = 1,
     sampling_attribute: str = "Nationality_IncomeGroup",
-    ranking_variable: mammoth_commons.integration.Options(
-        "Degree", "Citations", "Productivity"
-    ) = "Degree",
+    ranking_variable: Literal["Degree", "Citations", "Productivity"] = "Degree",
 ) -> HTML:
     """
+    <h3>for network analysts: exposure distance</h3>
+
     Compute the exposure distance between the protected and non-protected groups in the dataset and ranking.
     Sensitive attributes is a comma-separated list of the attributes relevant for fairness analysis. Currently,
     only *Gender* is supported.
+
     Args:
         n_runs: Choose a natural number between 1 and 100.
         sampling_attribute: The value by which we group the analysis for finer-grained results. One of *Nationality&#95;IncomeGroup* or *Nationality&#95;Region*.

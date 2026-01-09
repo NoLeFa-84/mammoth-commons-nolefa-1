@@ -204,28 +204,28 @@ def model_normal_ranking() -> ResearcherRanking:
     This function initializes the normal ranking model and returns
     an instance of the ResearcherRanking class containing the ranking data.
 
-    Returns:
-        ResearcherRanking: An instance of the ResearcherRanking class
-        populated with normal ranking data.
+    Returns research rankings populated with normal ranking data.
     """
     return ResearcherRanking(normal_ranking)
 
 
 @loader(
-    namespace="csh", version="v003", python="3.11", packages=("networkx", "hyperfair")
+    namespace="csh", version="v054", python="3.11", packages=("networkx", "hyperfair")
 )
 def model_mitigation_ranking() -> ResearcherRanking:
     """
-    Load the researcher ranking model incorporating a mitigation strategy.
+    <img src="https://github.com/CSHVienna/hyper_fair/blob/main/logo.png?raw=true"
+    alt="pygrank" style="float: left; margin-right: 5px; height: 32px;"/>
+    <h3>mitigate ranking disparities</h3>
 
-    This function implements a fair ranking mechanism utilizing a sampling technique. It applies a
-    mitigation strategy based on Statistical Parity, which aims to ensure equitable treatment
+    This is a <a href="https://github.com/CSHVienna/hyper_fair">hyper-fair</a>
+    algorithm for mitigating researcher ranking disparities.
+
+    <details><summary><i>Technical details.</i></summary>
+    The algorithm utilizes a sampling technique based on Statistical Parity; it aims to ensure equitable treatment
     across different groups by mitigating bias in the ranking process. Additionally, it compares
     the results of this fair ranking with a standard ranking derived from one of the numerical columns.
-
-    Returns:
-        ResearcherRanking: An instance of ResearcherRanking that contains both the mitigation-based
-        ranking and the standard ranking for comparison.
+    </details>
     """
     # Invoke the ResearcherRanking constructor with both mitigation and normal rankings.
     return ResearcherRanking(mitigation_ranking, normal_ranking)
@@ -233,9 +233,10 @@ def model_mitigation_ranking() -> ResearcherRanking:
 
 @loader(
     namespace="csh",
-    version="v003",
+    version="v054",
     python="3.11",
     packages=(
+        "networkx",
         "pandas",
         "numpy",
         "hyperfair",
@@ -248,7 +249,20 @@ def model_hyperfair_ranking(
     test_side: str = "lower",
     k_pc: float = 0.1,
 ) -> ResearcherRanking:
-    """HyperFair-based Ranking Loader"""
+    """
+    <img src="https://github.com/CSHVienna/hyper_fair/blob/main/logo.png?raw=true"
+    alt="pygrank" style="float: left; margin-right: 5px; height: 32px;"/>
+    <h3>mitigate ranking disparities</h3>
+
+    This is a <a href="https://github.com/CSHVienna/hyper_fair">hyper-fair</a>
+    algorithm for mitigating researcher ranking disparities.
+
+    Args:
+        alpha: The model's alpha
+        n_exp: The model's n_exp
+        test_side: The model's test_side
+        k_pc: The model's k_pc
+    """
     import pandas as pd
     from hyperfair.hyperfair import (
         adjust_ranking,
@@ -325,12 +339,24 @@ def model_hyperfair_ranking(
 
 
 @loader(
-    namespace="csh", version="v003", python="3.11", packages=("networkx", "fairsearch")
+    namespace="csh", version="v054", python="3.11", packages=("networkx", "fairsearch")
 )
 def model_fair_ranking(
     alpha: float = 0.1, p: float = 0.25, k_pc: float = 0.1
 ) -> ResearcherRanking:
-    """FA*IR mitigation using for minimum protected group representation in top-k."""
+    """
+    <img src="https://github.com/CSHVienna/hyper_fair/blob/main/logo.png?raw=true"
+    alt="pygrank" style="float: left; margin-right: 5px; height: 32px;"/>
+    <h3>mitigate ranking disparities with the FA*IR algorithm</h3>
+
+    <a href="https://github.com/fair-search/fairsearch-fair-python">FA*IR</a>
+    mitigation using for minimum protected group representation in top-k.
+
+    Args:
+        alpha: The model's alpha
+        p: The model's p
+        k_pc: The model's k_pc
+    """
     from fairsearchcore import Fair
     from fairsearchcore.models import FairScoreDoc
     import pandas as pd

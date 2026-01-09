@@ -1,7 +1,5 @@
 import os
-
 from mammoth_commons import testing
-
 from mai_bias.catalogue.dataset_loaders.custom_csv import data_custom_csv
 from mai_bias.catalogue.model_loaders.onnx import model_onnx
 from mai_bias.catalogue.metrics.specific_concerns import specific_concerns
@@ -32,11 +30,17 @@ def test_bias_exploration():
 
         model_path = "file://localhost//" + os.path.abspath("./data/model.onnx")
         model = env.model_onnx(model_path, trained_with_sensitive=True)
-
-        markdown_result = env.specific_concerns(
+        env.specific_concerns(
             dataset, model, sensitive, base_measure="Accuracy", reduction="Min"
-        )
-        markdown_result.show()
+        ).show()
+        env.specific_concerns(
+            dataset,
+            model,
+            sensitive="marital,age",
+            base_measure="Accuracy",
+            reduction="Min",
+            intersections="Subgroups",
+        ).show()
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ def data_local(raw_data, target: str = None) -> CSV:
 
 @loader(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=("pandas",),
 )
@@ -47,18 +47,15 @@ def data_read_any(
     target: str = None,
 ) -> CSV:
     """
-    <img src="https://raw.githubusercontent.com/arjunroyihrpa/MMM_fair/main/images/mmm-fair.png" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 80px;"/>
+    <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true"
+    alt="MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
+    <h3>flexible tabular data loading</h3>
 
-    Loads a dataset for analysis from either a pre-loaded pandas DataFrame or a file in one of the supported formats:
+    Uses <a href="https://pandas.pydata.org/">pandas</a> to load file stored in one of the formats:
     `.csv`, `.xls`, `.xlsx`, `.xlsm`, `.xlsb`, `.odf`, `.ods`, `.json`, `.html`, or `.htm`.
-    The module accepts either a raw DataFrame or a file path (local or URL). If a file path is provided, the data is
-    automatically loaded using the appropriate pandas function based on the file extension. Basic preprocessing is applied
+    The module is derived from  <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a>
+    to support several data formats. Basic preprocessing is applied
     to infer column types, and the specified target column is treated as the predictive label.
-
-    To customize the loading process (e.g., load a subset of columns, handle missing values, or change column type inference),
-    additional parameters or a custom loader function may be provided.
-    The Data loader module is recommended to load and process local data also while training models which are intended to be tested
-    using the ONNXEnsemble module.
 
     Args:
         dataset_path: Path or URL to the dataset file. Must have one of the supported extensions.
@@ -96,5 +93,5 @@ def data_read_any(
         return data_local(df, target)
     except Exception as e:
         raise ValueError(
-            f"Could not read data. Unsupported or invalid format for: {dataset_path}"
+            f"Could not read data. Unsupported or invalid format for {dataset_path}"
         )

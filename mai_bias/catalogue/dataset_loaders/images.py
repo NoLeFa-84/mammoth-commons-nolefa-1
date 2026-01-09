@@ -5,7 +5,7 @@ from mammoth_commons.externals import safeexec
 
 @loader(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=("torch", "torchvision", "pandas"),
 )
@@ -20,9 +20,12 @@ def data_images(
     num_workers: int = 0,
     safe_libraries="numpy,torch,torchvision,PIL,io,requests,urllib",
 ) -> Image:
-    """
-    Loads image data from a CSV file holding their sensitive and predictive attribute
-    data, as well as paths relative to a root directory. Loaded images are subjected to a Python transformation.
+    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/image.png?raw=true"
+    alt="image" style="float: left; margin-right: 15px; height: 36px;"/>
+
+    <h3>images with metadata</h3>
+    Loads image data from a CSV file that contains their sensitive and predictive attribute
+    data, as well as paths relative to a root directory. Loaded images are accompanied by a preprocessing transformation.
 
     Args:
         path: The path to the CSV file containing information about the dataset.
@@ -35,17 +38,17 @@ def data_images(
         num_workers: Number of subprocesses to use for data loading.
         safe_libraries: A comma-separated list of safe libraries that are allowed in the transformation code. As a safety measure against code injection attacks, an error will be created if libraries other than those are encountered.
     """
-    from mammoth_commons.externals import pd_read_csv
+    from mammoth_commons.externals import pd_read_csv, prepare
 
     batch_size = int(batch_size)
     num_workers = int(num_workers)
     premature_data = pd_read_csv(path, nrows=1)  # just read one row for verification
-
     data_transform = safeexec(
         data_transform_path,
         out=transform_variable,
         whitelist=[lib.strip() for lib in safe_libraries.split(",")],
     )
+    path = prepare(path)
 
     dataset = Image(
         path=path,

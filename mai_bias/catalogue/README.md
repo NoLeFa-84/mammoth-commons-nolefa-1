@@ -42,7 +42,7 @@ pip install docker
 
 ```bash
 pip install -e .
-pip install requirements[main].txt # other requirements automatically installed
+pip install config/requirements[mai].txt # other requirements automatically installed
 pip install docker
 ```
 
@@ -88,10 +88,10 @@ Finally, create and upload a module by running the following
 command (kfp is installed alongside MAMMOth-commons):
 
 ```bash
-kfp component build . --component-filepattern catalogue/metrics/model_card.py 
+kfp component build . --component-filepattern mai_bias/catalogue/metrics/model_card.py
 ```
 
-In this, replace the `test_modules/metric.py` with any other path
+In this, replace the path `mai_bias/catalogue/metrics/model_card.py` with any other path
 that contains the Python file in which you implemented your module. 
 
 If you do *not* want to push the created docker image, for
@@ -100,7 +100,7 @@ bias toolkit without logging in and uploading it to DockerHub, run
 this instead:
 
 ```bash
-kfp component build . --component-filepattern catalogue/fairbench/modelcard.py --no-push-image
+kfp component build . --component-filepattern mai_bias/catalogue/metrics/model_card.py --no-push-image
 ````
 
 :warning: The build should be called from a directory where both your

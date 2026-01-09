@@ -183,7 +183,7 @@ GitHub actions. Everything new is expected to have high
 code coverage (more than 80% right now). Please run the script locally
 to ensure that you did not break anything else.
 
-:bulb: Do not forget to add all requirements to the `requirements[mai].txt` file.
+:bulb: Do not forget to add all requirements to the `config/requirements[mai].txt` file.
 Also install the libraries in that file for tests to run locally.
 
 Pull requests will be reviewed manually, so if you plan to create a complex one

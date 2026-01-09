@@ -1,14 +1,17 @@
+import importlib
+
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML
-from typing import Dict, List
+from mammoth_commons.reminders import on_results
+from typing import List, Literal
 from mammoth_commons.integration import metric, Options
 from mammoth_commons.externals import fb_categories, align_predictions
 
 
 @metric(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=("fairbench", "pandas", "onnxruntime", "ucimlrepo", "pygrank"),
 )
@@ -16,29 +19,31 @@ def specific_concerns(
     dataset: Dataset,
     model: Predictor,
     sensitive: List[str],
-    intersections: Options("Base", "All", "Subgroups") = "Base",
-    base_measure: Options(
+    intersections: Literal["Base", "All", "Subgroups"] = "Subgroups",
+    base_measure: Literal[
         "Accuracy",
         "True positive rate",
         "True negative rate",
         "Area under curve",
         "Positive rate",
-    ) = None,
-    compare_groups: Options("Pairwise", "To the total population") = None,
-    reduction: Options(
+    ] = "Accuracy",
+    compare_groups: Literal["Pairwise", "To the total population"] = "Pairwise",
+    reduction: Literal[
         "Min",
         "Max",
         "Weighted mean",
-        "Max difference",
         "Max relative difference",
         "Max betweeness area",
         "Standard deviation x2",
         "Gini coefficient",
-    ) = None,
-    problematic_deviation: float = 0.1,
+    ] = "Max relative difference",
+    problematic_deviation: float = 0.05,
 ) -> HTML:
     """
-    <img src="https://fairbench.readthedocs.io/fairbench.png" alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 80px;"/>
+    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
+    style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
+
+    <h3>focus on a specific definition of fairness</h3>
 
     <p>Computes a fairness or bias measure that matches a specific type of numerical
     evaluation using the <a href="https://github.com/mever-team/FairBench">FairBench</a>
@@ -49,14 +54,18 @@ def specific_concerns(
     This computes a specific fairness concerns and does not paint a broad enough picture. Make sure that
     you explore prospective biases with other modules first, like <i>model card</i>.</span>
 
-    <p>The assessment is conducted over sensitive attributes like gender, age, and race. Each attribute can have multiple values,
-    such as several genders or races. Numeric attributes, like age, are normalized to the range [0,1] and treated
-    as fuzzy values, where 0 indicates membership to a fuzzy group of "small" values, and 1 indicates membership to
-    a fuzzy group of "large" values. A separate set of fairness metrics is calculated for each prediction label.</p>
+    <details><summary><i>Technical details.</i></summary>
+
+    <p>The assessment is conducted over sensitive attributes like gender, age, and race. Each attribute can have
+    multiple values, such as several genders or races. Numeric attributes, like age, are normalized to the range [0,1]
+    and treated as fuzzy values, where 0 indicates membership to a fuzzy group of "small" values, and 1 indicates
+    membership to a fuzzy group of "large" values. A separate set of fairness metrics is calculated for each prediction
+    label.</p>
 
     <p>If intersectional subgroup analysis is enabled, separate subgroups are created for each combination of sensitive
     attribute values. However, if there are too many attributes, some groups will be small or empty. Empty groups are
-    ignored in the analysis. The report may also include information about built-in datasets.</p>
+    ignored in the analysis.</p>
+    </details>
 
     Args:
         intersections: Whether to consider only the provided groups (Base), all non-empty group intersections (All), or all non-empty intersections while ignoring larger groups during analysis (Subgroups). For example, the last option may not contain a `White` dimension if `White Men` is an existing dimension. This does nothing if there is only one sensitive attribute. It could be computationally intensive if too many group intersections are selected.
@@ -65,18 +74,22 @@ def specific_concerns(
         reduction: The strategy with which to reduce all measure comparisons to one value.
         problematic_deviation: Sets up a threshold of when to consider deviation from ideal values as problematic. If nothing is considered problematic fairness is not necessarily achieved, but this is a good way to identify the most prominent biases. If value of 0 is set, all report values are shown, including those that have no ideal value.
     """
-    import fairbench as fb
-
+    fb = importlib.import_module("fairbench")
+    if isinstance(sensitive, str):
+        sensitive = sensitive.split(",")
     assert len(sensitive) != 0, "At least one sensitive attribute should be selected"
-
     predictions = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
-    sensitive = fb.Dimensions({s: fb_categories(dataset.df[s]) for s in sensitive})
+    sensitive = fb.Dimensions(
+        {s: fb_categories(dataset.df[s]) for s in sensitive}, _separator=" "
+    )
     if intersections != "Base":
-        sensitive = sensitive.intersectional()
+        sensitive = sensitive.intersectional(delimiter=" - ")
     if intersections == "Subgroups":
         sensitive = sensitive.strict()
-    assert len(sensitive.branches()) != 0, "Could not find any intersections"
+    assert (
+        len(sensitive.branches()) != 0
+    ), "Could not find any sensitive attribute intersections"
     predictions, labels = align_predictions(predictions, dataset.labels)
     predictions = predictions.columns
     labels = labels.columns if labels else None
@@ -117,7 +130,7 @@ def specific_concerns(
     assert (
         0 <= problematic_deviation <= 1
     ), "Problematic deviation should be in the range [0,1]"
-    if problematic_deviation != 0:
+    if problematic_deviation:
         report = report.filter(
             fb.investigate.DeviationsOver(problematic_deviation, prune=False)
         )
@@ -127,132 +140,95 @@ def specific_concerns(
         depth=1 if isinstance(predictions, dict) else 0,
     )
 
-    dataset_desc = dataset.to_description()
-    if problematic_deviation == 0:
-        outcome = "Report"
-    else:
-        outcome = (
-            "Fair" if report.flatten(True)[0] < problematic_deviation else "Biased"
-        )
-
-    faq_html = f"""
-    <style>
-    .faq-container {{
-      max-width: 600px;
-      margin: 20px auto;
-      font-family: Arial, sans-serif;
-    }}
-    .faq-box {{
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-      background: #fff;
-    }}
-    .faq-box h3 {{
-      margin-top: 0;
-      font-size: 1.2em;
-      color: #333;
-    }}
-    .faq-box p {{
-      margin: 0;
-      color: #555;
-    }}
-    </style>
-
-    <div class="faq-container">
-        <div class="faq-box">
-            <h3>❓ What is this?</h3>
-            <p>This module computes a <i>specific fairness concern</i> using the 
-            <a href="https://github.com/mever-team/FairBench" target="_blank">FairBench</a> library. 
-            </p>
-            <br/>
-            <p>Unlike broad analyses (e.g. model cards), this focuses narrowly on one fairness 
-            definition. It is most useful when you already know what type of disparity you want 
-            to evaluate, such as accuracy gaps or differences in positive rates between groups.</p>
-        </div>
-
-        <div class="faq-box">
-            <h3>❗ Summary</h3>
-               <p>A report was generated by MAI-BIAS the bias assessment on metric {metric_name}
-               standardized by the <a href="https://github.com/mever-team/FairBench" target="_blank">FairBench</a>
-               library. The standardized metric combines a base performance metric, computed on each group or subgroup, 
-               and an aggregated value that captures notions of bias or fairness across all of those groups.
-               Differences at least {problematic_deviation:.3f} away from their ideal values are colored red, 
-               otherwise green. Orange indicates that ideal values are not known a-priori.
-               Ideal targets are 0 for values that need to be small, like relative differences, and
-                1 for those that need to be large, like minimum accuracy across groups.
-               For some metrics, ideal targets are unknown.
-               </p>
-               <br/>
-               <p>
-               The analysis combines a base measure (e.g. accuracy, true positive rate), 
-               with a method for comparing groups (pairwise or against the population), 
-               and how to reduce differences to a single score. Results include per-class
-               values and distributions of metric values across groups. Pay attention to the
-               caveats and recommendations too.
-               </p>
-           <br>
-           <details><summary>In total {len(sensitive.branches())} protected groups were analysed. </summary>
-           <i>{', '.join(sensitive.branches().keys())}</i></details>
-           <br>
-           <p><b>{'Manual interpretation is required because problematic deviation was zero.' 
-            if problematic_deviation==0 else outcome+' model assessment on the provided data.'}</b></p>
-        </div>
-    </div>
-    """
+    dataset_description = dataset.to_description().split("Args:")[0]
+    model_description = model.to_description().split("Args:")[0]
+    outcome = (
+        "Report"
+        if problematic_deviation == 0
+        else ("Fair" if report.flatten(True)[0] < problematic_deviation else "Biased")
+    ) + f" {base_measure.lower()}"  # " in {len(sensitive.branches())} protected groups"
 
     html_content = f"""
-       <style>
-           .tablinks {{
-               background-color: #ddd;
-               padding: 10px;
-               cursor: pointer;
-               border: none;
-               border-radius: 5px;
-               margin: 5px;
-           }}
-           .tablinks:hover {{ background-color: #bbb; }}
-           .tablinks.active {{ background-color: #aaa; }}
-
-           .tabcontent {{
-               display: none;
-               padding: 10px;
-               border: 1px solid #ccc;
-           }}
-           .tabcontent.active {{ display: block; }}
-       </style>
-       <script>
-           document.addEventListener("DOMContentLoaded", function() {{
-               const tabContainer = document.querySelector("div");
-               tabContainer.addEventListener("click", function(event) {{
-                   if (event.target.classList.contains("tablinks")) {{
-                       let tabName = event.target.getAttribute("data-tab");
-                       document.querySelectorAll(".tablinks").forEach(tab => tab.classList.remove("active"));
-                       document.querySelectorAll(".tabcontent").forEach(content => content.classList.remove("active"));
-                       event.target.classList.add("active");
-                       document.getElementById(tabName).classList.add("active");
-                   }}
-               }});
-
-               // Show the first tab by default
-               let firstTab = document.querySelector(".tablinks");
-               if (firstTab) {{
-                   firstTab.classList.add("active");
-                   document.getElementById(firstTab.getAttribute("data-tab")).classList.add("active");
-               }}
-           }});
-       </script>
-       <h1>{outcome} {metric_name}</h1>
-       <hr/>
-       {faq_html}
-       <hr/>
-       <br>
-       <div>{full_report}</div>
-       <div style="clear: both;">{dataset_desc}</div>
-       """.replace(
-        metric_name, "<i>" + metric_name.replace("_", " ") + "</i>"
-    )
+    <style>
+        .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
+        .banner {{width: 100%;  padding: 180px 24px; font-size: 64px; font-weight: 700; text-align: center; color: white; border-radius: 12px margin-bottom: 25px;}}
+        .banner.fair {{ background: #2e8b57; }}
+        .banner.biased {{ background: #c0392b; }}
+        .banner.report {{ background: #7f8c8d; }}
+        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
+        .pill-btn:hover {{ background: #e0e0e0; }}
+        .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
+        .section-panel {{ display: none; padding: 12px; border: 0px; }}
+        .section-panel.active {{ display: block; }}
+        .overview-title {{font-size: 32px; font-weight: 700; margin-top: 0; margin-bottom: 10px; }}
+        .overview-sub {{ font-size: 18px; opacity: 0.8; margin-bottom: 20px; }}
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {{
+            const buttons = document.querySelectorAll(".pill-btn");
+            const sections = document.querySelectorAll(".section-panel");
+            buttons.forEach(btn => {{
+                btn.addEventListener("click", () => {{
+                    let target = btn.getAttribute("data-target");
+                    buttons.forEach(b => b.classList.remove("active"));
+                    sections.forEach(s => s.classList.remove("active"));
+                    btn.classList.add("active");
+                    document.getElementById(target).classList.add("active");
+                }});
+            }});
+            document.querySelector(".pill-btn").classList.add("active");
+            document.querySelector(".section-panel").classList.add("active");
+        }});
+    </script>
+    <div>
+        <h1 class="banner {outcome.split(' ')[0].lower()}">{outcome}</h1>
+        <div><img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="logo" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on specific concerns by FairBench</h1></div>
+        <div class="pill-buttons">
+            <div class="pill-btn" data-target="whatis">What is this?
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="warning">Responsible use
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="process">Analysis methodology
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="pipeline">Data pipeline
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
+            </div>
+            <div class="pill-btn" data-target="details">For experts
+            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
+            </div>
+        </div>
+        <hr>
+        <div id="whatis" class="section-panel">
+            We analysed how {getattr(fb.measures, fb_measures[base_measure]).descriptor.details.lower()} is 
+            distributed in a model's outputs given a tested dataset by comparing several protected groups 
+            {compare_groups.lower()}. 
+            {'Expert interpretation of numeric details is required.' if problematic_deviation == 0 else 
+            'The assessment depends on specific parameters provided as inputs.'}
+        </div>
+        <div id="warning" class="section-panel">
+            {on_results}
+        </div>
+        <div id="pipeline" class="section-panel">
+            {dataset_description}
+            <br>
+            <br>
+            {model_description}
+        </div>
+        <div id="process" class="section-panel">
+            <p>The {reduction.lower()} of {getattr(fb.measures, fb_measures[base_measure]).descriptor.details.lower()} 
+            is obtained across all protected groups, by comparing them {compare_groups.lower()}.
+            The result is considered biased if it lays <b>{problematic_deviation:.3f}</b> away from its ideal target 
+            that would indicate fairness. For example, the ideal target is 0 for differences between measure values, 
+            and 1 for values that should be large (e.g., the minimum accuracy across all groups).
+            Some metrics have no known ideal values.</p>
+            <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
+            <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p>
+        </div>
+        <div id="details" class="section-panel">{full_report.replace(metric_name, metric_name.replace("_"," "))}</div>
+    </div>
+    """
 
     return HTML(html_content)

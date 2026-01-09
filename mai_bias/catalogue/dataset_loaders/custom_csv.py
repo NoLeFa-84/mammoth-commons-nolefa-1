@@ -6,7 +6,7 @@ from mammoth_commons.externals import pd_read_csv
 
 @loader(
     namespace="mammotheu",
-    version="v0049",
+    version="v054",
     python="3.13",
     packages=("pandas",),
 )
@@ -23,15 +23,14 @@ def data_custom_csv(
     skip_invalid_lines: bool = True,
 ) -> CSV:
     """
-    <img src="https://pandas.pydata.org/static/img/pandas_white.svg" alt="Based on Pandas" style="background-color: #000099; float: left; margin-right: 15px; margin-top: 5px; margin-bottom: 5px; height: 60px;"/>
+    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/csv.png?raw=true"
+    alt="csv" style="float: left; margin-right: 15px; height: 36px;"/>
+    <h3>tabular data with custom formatting</h3>
 
-    Loads a CSV file that contains numeric, categorical, and predictive data columns
-    separated by a user-defined delimiter. Each row corresponds to a different data sample,
-    with the first one sometimes holding column names (this is automatically detected).
-    To use all data in the file and automate discovery of numerical and categorical columns,
-    as well as of delimiters, use the `auto csv` loader instead. Otherwise, set here all loading
-    parameters.
-    A <a href="https://pandas.pydata.org/">pandas</a> CSV reader is employed internally.
+    Uses <a href="https://pandas.pydata.org/">pandas</a> to load
+    a CSV file that contains custom specification of numeric, categorical, and predictive data columns.
+    Each row corresponds to a different data sample, with the first one sometimes holding column names
+    (this is automatically detected).
 
     Args:
         path: The local file path or a web URL of the file.
@@ -41,8 +40,7 @@ def data_custom_csv(
         delimiter: Which character to split loaded csv rows with.
         skip_invalid_lines: Whether to skip invalid lines being read instead of creating an error.
     """
-    if not path.endswith(".csv"):
-        raise Exception("A file or url with .csv extension is needed.")
+    assert path.endswith(".csv"), "A file or url with the .csv extension is expected."
     if isinstance(categorical, str):
         categorical = [cat.strip() for cat in categorical.split(",")]
     if isinstance(numeric, str):
@@ -52,27 +50,23 @@ def data_custom_csv(
         on_bad_lines="skip" if skip_invalid_lines else "error",
         delimiter=delimiter,
     )
-    if raw_data.shape[1] == 1:
-        raise Exception(
-            "Only one column was found. This often indicates that the wrong delimiter was specified."
-        )
-    if label not in raw_data:
-        raise Exception(
-            f"The dataset has no column name `{label}` to set as a label."
-            f"\nAvailable columns are: {', '.join(raw_data.columns)}"
-        )
+    assert (
+        raw_data.shape[1] != 1
+    ), "Only one column was found. This often indicates that the wrong delimiter was specified."
+    assert label in raw_data, (
+        f"The dataset has no column name `{label}` to set as a label. "
+        f"\nAvailable columns are {', '.join(raw_data.columns)}"
+    )
     for col in categorical:
-        if col not in raw_data:
-            raise Exception(
-                f"The dataset has no column name `{col}` to add to categorical attributes."
-                f"\nAvailable column are: {', '.join(raw_data.columns)}"
-            )
+        assert col in raw_data, (
+            f"The dataset has no column name `{col}` to add to categorical attributes. "
+            f"Available column are {', '.join(raw_data.columns)}"
+        )
     for col in numeric:
-        if col not in raw_data:
-            raise Exception(
-                f"The dataset has no column name `{col}` to add to numerical attributes."
-                f"\nAvailable columns are: {', '.join(raw_data.columns)}"
-            )
+        assert col in raw_data, (
+            f"The dataset has no column name `{col}` to add to numerical attributes. "
+            f"Available columns are {', '.join(raw_data.columns)}"
+        )
     csv_dataset = CSV(
         raw_data,
         num=numeric,
