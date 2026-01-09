@@ -51,7 +51,9 @@ def image_bias_analysis(
         "face verification",
         "image classification",
     ], "The provided task should be either face verification or image classification"
-    json = analysis(dataset.path, task, dataset.target, sensitive, output="json")
+    json, title = analysis(
+        dataset.path, task, dataset.target, sensitive, output="json", return_title=True
+    )
 
     def json_to_str_recursively(
         data, indent=0, pending_close=[""]
