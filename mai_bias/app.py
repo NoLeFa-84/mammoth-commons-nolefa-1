@@ -204,6 +204,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("MAI-BIAS local runner")
         self.setGeometry(100, 100, 1200, 900)
         self.stacked_widget = SlidingStackedWidget()
+        self.setStyleSheet("color:black")
         active_run = [None]
         self.stacked_widget.addWidget(
             Dashboard(self.stacked_widget, items, tags, active_run)

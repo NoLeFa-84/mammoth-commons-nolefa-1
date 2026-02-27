@@ -115,6 +115,7 @@ class SelectAnalysis(Step):
             s"""
         )
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.setStyleSheet("color:black;background-color:white")
         popup.exec()
 
     def showEvent(self, event):

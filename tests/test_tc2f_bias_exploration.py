@@ -9,9 +9,14 @@ def test_bias_exploration():
     with testing.Env(data_auto_csv, model_onnx, aif360_metrics) as env:
         sensitive = ["marital"]
         dataset_uri = "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip/bank/bank.csv"
-        dataset = env.data_auto_csv(dataset_uri)
         model_path = "file://localhost//" + os.path.abspath("./data/bank_model.onnx")
+
+        dataset = env.data_auto_csv(dataset_uri)
         model = env.model_onnx(model_path, trained_with_sensitive=True)
+        # yhat = model.predict(dataset, sensitive)
+        # print(yhat.max())
+        # print(yhat.min())
+        # print(yhat.mean())
         markdown_result = env.aif360_metrics(dataset, model, sensitive)
         markdown_result.show()
 

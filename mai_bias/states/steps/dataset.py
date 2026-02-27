@@ -101,6 +101,7 @@ class SelectDataset(Step):
             """
         )
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.setStyleSheet("color:black;background-color:white")
         popup.exec()
 
     def next(self):

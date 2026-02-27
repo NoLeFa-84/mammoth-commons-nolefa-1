@@ -109,6 +109,7 @@ class SelectModel(Step):
             <i>Ethics and Information Technology</i> 24, no. 1: 3 (2022)</p> """
         )
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.setStyleSheet("color:black;background-color:white")
         popup.exec()
 
     def showEvent(self, event):

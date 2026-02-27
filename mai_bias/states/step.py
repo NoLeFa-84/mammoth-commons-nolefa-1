@@ -113,7 +113,7 @@ class ScrollSelector(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setStyleSheet("background:transparent; border: none;")
+        scroll.setStyleSheet("background:transparent; border: none; color:black")
 
         container = QWidget()
         self.layout = QVBoxLayout(container)
