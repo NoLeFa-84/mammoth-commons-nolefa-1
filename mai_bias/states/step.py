@@ -77,16 +77,14 @@ class InfoBox(QFrame):
         super().__init__(parent)
         self.setObjectName("InfoBox")
         self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             QFrame#InfoBox {background-color: #dddddd; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px;}
             QLabel {color: #334155; font-size: 13px; line-height: 1.4em;}
             a {color: #0369a1; text-decoration: none; font-weight: 600;}
             a:hover {text-decoration: underline;}
             ul {margin-left: 16px;}
             li {margin: 4px 0;}
-            """
-        )
+            """)
 
         label = QLabel(html_content, self)
         label.setTextFormat(Qt.TextFormat.RichText)
@@ -510,15 +508,13 @@ class Step(Styled):
                 select_button = QPushButton("...")
                 select_button.setToolTip("Select from options")
                 select_button.setFixedSize(30, 20)
-                select_button.setStyleSheet(
-                    f"""QPushButton {{
+                select_button.setStyleSheet(f"""QPushButton {{
                         background-color: #dddd88; 
                         border-radius: 5px;
                     }}
                     QPushButton:hover {{
                         background-color: {self.highlight_color('#dddd88')};
-                    }}"""
-                )
+                    }}""")
                 select_button.clicked.connect(
                     lambda: self.open_sensitive_modal(
                         f"Select {name}",
@@ -593,16 +589,14 @@ class Step(Styled):
             select_button = QPushButton("...")
             select_button.setToolTip("Select from options")
             select_button.setFixedSize(30, 20)
-            select_button.setStyleSheet(
-                f"""
+            select_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #dddd88; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#dddd88')};
-                }}"""
-            )
+                }}""")
             select_button.clicked.connect(
                 lambda: self.open_sensitive_modal(
                     "Select sensitive attributes", input_widget, columns
@@ -637,16 +631,14 @@ class Step(Styled):
             file_button = QPushButton("...")
             file_button.setToolTip("Navigate")
             file_button.setFixedSize(30, 20)
-            file_button.setStyleSheet(
-                f"""
+            file_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #dddd88; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#dddd88')};
-                }}"""
-            )
+                }}""")
             file_button.clicked.connect(lambda: self.select_dir(input_widget))
             helper = file_button
 
@@ -658,16 +650,14 @@ class Step(Styled):
             file_button = QPushButton("...")
             file_button.setToolTip("Navigate")
             file_button.setFixedSize(30, 20)
-            file_button.setStyleSheet(
-                f"""
+            file_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #dddd88; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#dddd88')};
-                }}"""
-            )
+                }}""")
             file_button.clicked.connect(lambda: self.select_path(input_widget))
             helper = file_button
 
@@ -699,16 +689,14 @@ class Step(Styled):
 
             file_button = QPushButton("Preview")
             file_button.setFixedSize(50, 20)
-            file_button.setStyleSheet(
-                f"""
+            file_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #ddbbdd; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#ddbbdd')};
-                }}"""
-            )
+                }}""")
             file_button.clicked.connect(preview_file)
             preview = file_button
 
@@ -754,16 +742,14 @@ class Step(Styled):
             file_button = QPushButton("Find")
             file_button.setToolTip("Autodetect based on csv rules")
             file_button.setFixedSize(30, 20)
-            file_button.setStyleSheet(
-                f"""
+            file_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #dddd88; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#dddd88')};
-                }}"""
-            )
+                }}""")
             file_button.clicked.connect(recommend_delimiter)
             preview = file_button
 
@@ -772,8 +758,7 @@ class Step(Styled):
             input_widget.setText(str(default) if default != "None" else "")
 
         if input_widget is not None:
-            input_widget.setStyleSheet(
-                """
+            input_widget.setStyleSheet("""
                 QLineEdit {
                     background-color: #fff;
                     border: 0px solid #ccc;
@@ -785,8 +770,7 @@ class Step(Styled):
                     background-color: #fff;
                     border: 0px solid #444;
                 }
-                """
-            )
+                """)
 
         self.param_inputs[name] = input_widget
 

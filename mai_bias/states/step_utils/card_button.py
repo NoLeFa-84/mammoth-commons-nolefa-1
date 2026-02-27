@@ -33,8 +33,7 @@ class CardButton(QFrame):
         self.setObjectName("CardFrame")
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             QFrame#CardFrame {
                 background-color: #f5f5f5;
                 border: 1px solid #cccccc;
@@ -49,8 +48,7 @@ class CardButton(QFrame):
             QFrame:hover {
                 background-color: #ffffff;
             }
-            """
-        )
+            """)
 
         # ------------------------------------------------------
         # Main layout
@@ -121,20 +119,15 @@ class CardButton(QFrame):
 
     def _load_html(self, checked: bool):
         bg = self.HTML_BG_DARK
-        html = prepare_html(
-            """
+        html = prepare_html("""
             <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
                   rel="stylesheet">
-            """
-            + bg
-            + self.full_html
-        )
+            """ + bg + self.full_html)
         self.web.setHtml(html, QUrl("file:///"))
 
     def enterEvent(self, event):
         if not self._checked:
-            self.setStyleSheet(
-                """
+            self.setStyleSheet("""
                 QFrame#CardFrame {
                     background-color: #d0d0d0;
                     border: 1px solid #cccccc;
@@ -142,14 +135,12 @@ class CardButton(QFrame):
                     padding: 5px;
                     padding-left: 15px;
                 }
-            """
-            )
+            """)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
         if not self._checked:
-            self.setStyleSheet(
-                """
+            self.setStyleSheet("""
                 QFrame#CardFrame {
                     background-color: #f5f5f5;
                     border: 1px solid #cccccc;
@@ -161,8 +152,7 @@ class CardButton(QFrame):
                     background-color: #e0e0e0;
                     border-color: #999999;
                 }
-            """
-            )
+            """)
         super().leaveEvent(event)
 
     def setChecked(self, checked: bool):
@@ -182,8 +172,7 @@ class CardButton(QFrame):
             )
 
             # ensure selected card uses selected background, not hover
-            self.setStyleSheet(
-                """
+            self.setStyleSheet("""
                 QFrame#CardFrame[checked="true"] {
                     background-color: #d0d0d0;
                     border: 1px solid #999999;
@@ -191,13 +180,11 @@ class CardButton(QFrame):
                     padding: 5px;
                     padding-left: 15px;
                 }
-            """
-            )
+            """)
 
         else:
             # unselected card: reset to base (non-hover) style
-            self.setStyleSheet(
-                """
+            self.setStyleSheet("""
                 QFrame#CardFrame {
                     background-color: #f5f5f5;
                     border: 1px solid #cccccc;
@@ -205,8 +192,7 @@ class CardButton(QFrame):
                     padding: 5px;
                     padding-left: 15px;
                 }
-            """
-            )
+            """)
 
             self.web.hide()
             self.title_label.show()

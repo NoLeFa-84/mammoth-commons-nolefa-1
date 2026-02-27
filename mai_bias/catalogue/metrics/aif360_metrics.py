@@ -58,9 +58,7 @@ def render_metric_bars(rows, sensitive):
         </table>
         """
 
-    return (
-        render_constant_table()
-        + f"""
+    return render_constant_table() + f"""
 <div id="chart-container"></div>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
@@ -122,7 +120,6 @@ def render_metric_bars(rows, sensitive):
 }})();
 </script>
 """
-    )
 
 
 @metric(

@@ -78,8 +78,7 @@ class SelectModel(Step):
     def show_warnings_popup(self):
         popup = QMessageBox(self)
         popup.setWindowTitle("Responsible model creation")
-        popup.setText(
-            """
+        popup.setText("""
             <p>
             Fairness is a consideration at each step during the lifecycle of an AI system;
             it spans fair design, development interventions, and ongoing practices to maintain quality.
@@ -106,8 +105,7 @@ class SelectModel(Step):
             <br/>
             [2] Giovanola, Benedetta, and Simona Tiribelli.
             "Weapons of moral construction? On the value of fairness in algorithmic decision-making."
-            <i>Ethics and Information Technology</i> 24, no. 1: 3 (2022)</p> """
-        )
+            <i>Ethics and Information Technology</i> 24, no. 1: 3 (2022)</p> """)
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
         self.setStyleSheet("color:black;background-color:white")
         popup.exec()

@@ -92,25 +92,21 @@ class Dashboard(Styled):
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.scroll_area.setStyleSheet(
-            """
+        self.scroll_area.setStyleSheet("""
             QScrollArea {border: none; background: transparent;}
             QScrollArea QWidget {background: transparent;}
             QScrollBar:vertical, QScrollBar:horizontal {border: none;background: transparent;}
-            """
-        )
+            """)
 
         # --- LOGO CARD ---
         logo_card = QPushButton(self)
         logo_card.setCursor(Qt.CursorShape.PointingHandCursor)
         logo_card.setToolTip("New analysis")
         logo_card.clicked.connect(self.create_new_item)
-        logo_card.setStyleSheet(
-            f"""
+        logo_card.setStyleSheet(f"""
             QPushButton {{background-color: white; border: 2px dashed #0369a1; border-radius: 10px; padding: 0px;}}
             QPushButton:hover {{background-color: #d3ecfa; border: 2px solid #0369a1;}}
-            """
-        )
+            """)
         logo_pixmap = QPixmap(
             prepare(
                 "https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_bias/logo.png"
@@ -152,8 +148,7 @@ class Dashboard(Styled):
             frame = QFrame(self)
             frame.setObjectName("InfoBox")
             frame.setFrameShape(QFrame.Shape.StyledPanel)
-            frame.setStyleSheet(
-                """
+            frame.setStyleSheet("""
                         QFrame#InfoBox {
                             background-color: #dddddd;
                             border: 1px solid #e2e8f0;
@@ -179,8 +174,7 @@ class Dashboard(Styled):
                         li {
                             margin: 4px 0;
                         }
-                    """
-            )
+                    """)
             label = QLabel(html_content, frame)
             label.setTextFormat(Qt.TextFormat.RichText)
             label.setWordWrap(True)
@@ -420,8 +414,7 @@ class Dashboard(Styled):
                 card_border = "#ca8a04"  # deep yellow
                 card_hover = "#fff7c2"  # matte yellow
 
-            card_widget.setStyleSheet(
-                f"""
+            card_widget.setStyleSheet(f"""
                 QWidget#ResultCard {{
                     background: white;
                     border: 1px solid {card_border};
@@ -431,8 +424,7 @@ class Dashboard(Styled):
                     background: {card_hover};
                     border: 2px solid {card_border};
                 }}
-            """
-            )
+            """)
 
             # --- Compact one-line layout instead of stacked sections ---
             card_layout = QHBoxLayout(card_widget)
@@ -499,8 +491,7 @@ class Dashboard(Styled):
                 history_btn.setCursor(Qt.CursorShape.PointingHandCursor)
                 history_btn.setFixedHeight(26)
                 history_btn.setFixedWidth(100)
-                history_btn.setStyleSheet(
-                    """
+                history_btn.setStyleSheet("""
                     QPushButton {
                         background: #f1f5f9;
                         border-radius: 5px;
@@ -515,8 +506,7 @@ class Dashboard(Styled):
                         color: #035388;
                         border: 1px solid #38bdf8;
                     }
-                """
-                )
+                """)
                 group_run_indices = [idx for idx, _ in runs]
 
                 def make_on_history(indices):
@@ -592,13 +582,11 @@ class Dashboard(Styled):
         if not latest_per_group and self.runs:
             no_results_label = QLabel("No results found.", self)
             no_results_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            no_results_label.setStyleSheet(
-                """
+            no_results_label.setStyleSheet("""
                 color: #666;
                 font-size: 15px;
                 padding: 20px;
-            """
-            )
+            """)
             # Add to a full-width row under the logo card (use next grid row, col=0 spanning all columns)
             grid_layout.addWidget(no_results_label, row, 0, 1, max_cols)
             row += 1
@@ -609,8 +597,7 @@ class Dashboard(Styled):
             # --- Clear Search Button ---
             clear_search_btn = QPushButton("Back", self)
             clear_search_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            clear_search_btn.setStyleSheet(
-                """
+            clear_search_btn.setStyleSheet("""
                 QPushButton {
                     background: #7c2d12;         /* Very dark orange background */
                     border-radius: 7px;
@@ -625,8 +612,7 @@ class Dashboard(Styled):
                     color: #fff7ed;              /* Lighter text on hover */
                     border: 1.4px solid #fb923c; /* Lighter orange border on hover */
                 }
-            """
-            )
+            """)
 
             def on_clear_search():
                 self.search_field.setText("")
@@ -675,8 +661,7 @@ class Dashboard(Styled):
                 narrow_card.setObjectName("NarrowResultCard")
                 narrow_width = int(card_width)
                 narrow_card.setFixedSize(narrow_width, 35)
-                narrow_card.setStyleSheet(
-                    f"""
+                narrow_card.setStyleSheet(f"""
                     QWidget#NarrowResultCard {{
                         background: {narrow_bg};
                         border: 1.8px solid {narrow_border};
@@ -686,8 +671,7 @@ class Dashboard(Styled):
                         border: 2.2px solid {narrow_border};
                         background: {self.highlight_color(narrow_bg)};
                     }}
-                """
-                )
+                """)
                 narrow_layout = QGridLayout(narrow_card)
                 narrow_layout.setContentsMargins(7, 3, 7, 3)
                 narrow_layout.setSpacing(2)

@@ -99,8 +99,7 @@ class SelectAnalysis(Step):
     def show_warnings_popup(self):
         popup = QMessageBox(self)
         popup.setWindowTitle("Responsible analysis")
-        popup.setText(
-            """
+        popup.setText("""
             <p>💡 <b>Fairness is context-specific.</b> There is no general fairness definition that applies to every context or use case.
             This page lets you select fairness/bias assessment methodologies that contain definitions from the computer science literature. 
             However, which ones are suitable depends on the specific situation you are studying; less common methodologies and definitions 
@@ -112,8 +111,7 @@ class SelectAnalysis(Step):
             be part of the evaluation, but lenders might think it is fair to provide impartial and systematic responses (although these may also contain
             biases that were not accounted for during system creation, like historical racism in training data).
             </p>
-            s"""
-        )
+            s""")
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
         self.setStyleSheet("color:black;background-color:white")
         popup.exec()

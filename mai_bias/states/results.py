@@ -105,13 +105,11 @@ class Results(Styled):
 
     def showEvent(self, event):
         super().showEvent(event)
-        self.results_viewer.setHtml(
-            """
+        self.results_viewer.setHtml("""
             <div style="height:100vh; display:flex; align-items:center; justify-content:center; text-align:center;">
               <h3> Results too complicated to render here.<br>Move them <i>to browser</i> instead.</h3>
             </div>
-            """
-        )
+            """)
         if self.runs:
             run = self.runs[-1]
             self.title_label.setText(format_run(run))

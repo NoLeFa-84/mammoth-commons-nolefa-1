@@ -1,7 +1,6 @@
 from mai_bias.backend.catalogue_loaders import registry
 import re
 
-
 template_prefix = """
 <!DOCTYPE html>
 <html lang="en">
