@@ -111,7 +111,7 @@ class SelectAnalysis(Step):
             be part of the evaluation, but lenders might think it is fair to provide impartial and systematic responses (although these may also contain
             biases that were not accounted for during system creation, like historical racism in training data).
             </p>
-            s""")
+            """)
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
         self.setStyleSheet("color:black;background-color:white")
         popup.exec()
