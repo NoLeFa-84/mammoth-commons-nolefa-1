@@ -80,6 +80,22 @@ sudo apt install libx11-xcb1 libxcb-xinerama0 libxcb-cursor0
 
 </details>
 
+
+<details><summary>The app never opens</summary>
+
+First time, it needs to hypdrate itself with some images. 
+If it crashes nonetheless, there could be an issue with
+GPU acceleration in your environment. Try starting the 
+app with the following command
+as a first remedy (after making a virtual environment as
+described above, if not there).
+
+```bash
+python -m mai_bias.app_safe
+```
+
+</details>
+
 <details><summary>MAC: Illegal hardware instruction</summary> 
 
 We have encountered this error in at least one M2 machine.
@@ -158,5 +174,5 @@ here: https://github.com/tabler/tabler-icons
 - The file `mammoth_commons/custom_kfp.py` was adjusted from the KFP project to
 handle additional metadata needed for interoperability with the demonstrator 
 and our metaprogramming decorators. Modifications were made on an original 
-version that is released under Apache 2.0 License under the KFP here: 
+version that is released under Apache 2.0 License under the KFP project here: 
 https://github.com/kubeflow/pipelines
