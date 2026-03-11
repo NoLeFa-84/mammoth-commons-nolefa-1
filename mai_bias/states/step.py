@@ -305,7 +305,7 @@ class Step(Styled):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
         )
         left_col = QVBoxLayout()
-        label = QLabel("Configure", self)
+        label = QLabel("Configure the selection", self)
         label.setStyleSheet("font-size:32px;font-weight:bold")
         left_col.addWidget(label)
         left_col.addWidget(self.form_widget)

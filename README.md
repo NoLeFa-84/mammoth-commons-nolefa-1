@@ -163,7 +163,7 @@ through *brew*.
 
 ## License
 
-This repository is distributed under the Apache 2.0 License, Copyright 2025 MAMMOth.
+This repository is distributed under the Apache 2.0 License, Copyright 2026 MAMMOth.
 
 Third-party licenses:
 

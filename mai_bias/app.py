@@ -202,12 +202,12 @@ class MainWindow(QMainWindow):
         )
         self.stacked_widget.addWidget(
             SelectDataset(
-                "Data", self.stacked_widget, registry.dataset_loaders, active_run, items
+                "Data format", self.stacked_widget, registry.dataset_loaders, active_run, items
             )
         )
         self.stacked_widget.addWidget(
             SelectModel(
-                "Model", self.stacked_widget, registry.model_loaders, active_run, items
+                "Model format", self.stacked_widget, registry.model_loaders, active_run, items
             )
         )
         self.stacked_widget.addWidget(
