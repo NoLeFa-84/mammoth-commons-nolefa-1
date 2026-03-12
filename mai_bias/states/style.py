@@ -3,10 +3,12 @@ from PySide6.QtCore import Qt
 
 
 class Styled(QWidget):
-    def new_action(self, text, color, tooltip, callback, size=30, width=None):
+    def new_action(
+        self, text, color, tooltip, callback, size=30, width=None, icon=None
+    ):
         button = QPushButton(text, self)
         button.setStyleSheet(f"""
-            QPushButton {{background-color: {color}; color: #EEEEEE; border-radius: 5px;font-size: {size*6//8 if text=='+' else size//2}px;border: 1px solid black;font-weight: bold;}}
+            QPushButton {{background-color: {color}; color: black; border-radius: 5px;font-size: {size*6//8 if text=='+' else size//2}px;border: 1px solid black;font-weight: bold;}}
             QPushButton:hover {{border: 2px solid black;background-color: {self.highlight_color(color)};}}
             """)
 
@@ -15,6 +17,9 @@ class Styled(QWidget):
         button.clicked.connect(callback)
         if width:
             button.setFixedWidth(width)
+        if icon:
+            button.setIcon(icon)
+            # button.setIconSize(QSize(int(size * 0.6), int(size * 0.6)))
         return button
 
     def new_info_box(self, html_content):

@@ -1,6 +1,7 @@
 from kfp import dsl
 import base64
 import re
+from datetime import datetime
 from typing import Literal
 from mammoth_commons.reminders import on_results
 
@@ -67,6 +68,23 @@ def simplified_formatter(
     technology: str = "",
     warning: str = on_results,
 ):
+    EN_MONTHS = {
+        1: "January",
+        2: "February",
+        3: "March",
+        4: "April",
+        5: "May",
+        6: "June",
+        7: "July",
+        8: "August",
+        9: "September",
+        10: "October",
+        11: "November",
+        12: "December",
+    }
+    now = datetime.now()
+    english_date = f"{now.day:02d} {EN_MONTHS[now.month]} {now.year}"
+    technology = technology + " on " + english_date
     return f"""
         <style>
             .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
@@ -104,7 +122,7 @@ def simplified_formatter(
             .tablinks.active {{ background-color: #aaa; }}
             .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
             .tabcontent.active {{ display: block; }}
-            .technology {{position:absolute;right:30px;top:400px;font-size:24px;color:white}}
+            .technology {{position:absolute;right:20px;top:390px;font-size:24px;color:white}}
         </style>
 
         <script>
