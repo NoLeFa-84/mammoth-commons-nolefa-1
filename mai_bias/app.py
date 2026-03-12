@@ -17,7 +17,10 @@ from PySide6.QtCore import (
 from PySide6.QtGui import QColor
 import os
 import sys
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist"
+
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
+    "--enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist"
+)
 
 """from PySide6.QtGui import QSurfaceFormat
 from PySide6.QtWebEngineCore import QWebEngineSettings
@@ -202,12 +205,20 @@ class MainWindow(QMainWindow):
         )
         self.stacked_widget.addWidget(
             SelectDataset(
-                "Data format", self.stacked_widget, registry.dataset_loaders, active_run, items
+                "Data format",
+                self.stacked_widget,
+                registry.dataset_loaders,
+                active_run,
+                items,
             )
         )
         self.stacked_widget.addWidget(
             SelectModel(
-                "Model format", self.stacked_widget, registry.model_loaders, active_run, items
+                "Model format",
+                self.stacked_widget,
+                registry.model_loaders,
+                active_run,
+                items,
             )
         )
         self.stacked_widget.addWidget(

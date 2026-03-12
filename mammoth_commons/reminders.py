@@ -10,3 +10,10 @@ high-stakes, or rights-impacting contexts. Human oversight prevents overreliance
 catches context-specific errors, and enables ethical judgment, accountability, and recourse for 
 affected people.</p></div>
 """
+
+logo_mmm_fair = """<img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true"
+alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>"""
+logo_aif360 = """<img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
+alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>"""
+logo_fairbench = """<img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" 
+alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>"""
