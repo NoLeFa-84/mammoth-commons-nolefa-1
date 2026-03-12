@@ -325,7 +325,7 @@ def aif360_metrics(
     )
     html_content = simplified_formatter(
         outcome="biased" if "bias" in verdict else "fair",
-        technology=logo_aif360 + "<h1>&nbsp;based on AIF360 metrics</h1>",
+        technology=logo_aif360 + "based on AIF360 metrics",
         title=verdict,
         about="<p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>"
         + (

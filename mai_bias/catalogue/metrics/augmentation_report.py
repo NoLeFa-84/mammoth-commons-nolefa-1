@@ -644,7 +644,7 @@ def augmentation_report(
 
     html_content = simplified_formatter(
         outcome="biased" if biased else "fair",
-        technology=logo_mmm_fair + "<h1>based on MMM-fair investigation</h1>",
+        technology=logo_mmm_fair + "based on MMM-fair investigation",
         title=(
             "Intersectional representation biases"
             if biased

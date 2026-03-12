@@ -195,7 +195,7 @@ def sklearn_audit(
             if problematic
             else "No dataset concerns"
         ),
-        technology=logo_fairbench + "<h1>based on FairBench reporting</h1>",
+        technology=logo_fairbench + "based on FairBench reporting",
         about=f"""
             <p>This is a dataset audit using a {predictor} model trained on-the-fly. The model is deliberately simple,
             so that, if it exhibits bias, more complex models (e.g., deep learning ones) will likely carry or 

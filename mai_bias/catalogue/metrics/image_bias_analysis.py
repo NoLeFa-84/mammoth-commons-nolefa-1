@@ -143,7 +143,7 @@ def image_bias_analysis(
 
     html_content = simplified_formatter(
         outcome="biased" if "bias" in title else "fair",
-        technology=logo_vbmitigator + "<h1>based on vb-mitigator</h1>",
+        technology=logo_vbmitigator + "based on vb-mitigator",
         title=title,
         about=info["about"],
         methodology=f"""

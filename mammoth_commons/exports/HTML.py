@@ -73,13 +73,13 @@ def simplified_formatter(
             .banner {{
                 width: 100%;
                 padding: 180px 24px;
-                font-size: 64px;
                 font-weight: 700;
                 text-align: center;
                 color: white;
                 border-radius: 12px;
                 margin-bottom: 25px;
             }}
+            .banner h1 {{font-size: 64px;}}
             .banner.fair {{ background: #2e8b57; }}
             .banner.biased {{ background: #c0392b; }}
             .banner.report {{ background: #7f8c8d; }}
@@ -103,6 +103,7 @@ def simplified_formatter(
             .tablinks.active {{ background-color: #aaa; }}
             .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
             .tabcontent.active {{ display: block; }}
+            .technology {{position:absolute;right:10px;top:400px;font-size:24px}}
         </style>
 
         <script>
@@ -139,8 +140,7 @@ def simplified_formatter(
                 }}
             }});
         </script>
-        <h1 class="banner {outcome}">{title}</h1>
-        {technology}
+        <div class="banner {outcome}"><h1>{title}</h1><div class="technology">{technology}</div></div>
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">What is this?
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>

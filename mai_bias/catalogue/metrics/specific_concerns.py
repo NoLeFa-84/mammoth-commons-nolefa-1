@@ -145,7 +145,7 @@ def specific_concerns(
     html_content = simplified_formatter(
         outcome=outcome.split(" ")[0].lower(),
         title=outcome,
-        technology=logo_fairbench + "<h1>based on FairBench reporting</h1>",
+        technology=logo_fairbench + "based on FairBench reporting",
         about=f"""
             We analysed how {getattr(fb.measures, fb_measures[base_measure]).descriptor.details.lower()} is 
             distributed in a model's outputs given a tested dataset by comparing several protected groups 

@@ -4,6 +4,7 @@ from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
 from typing import List
 from mammoth_commons.integration import metric
+from mammoth_commons.reminders import logo_aif360
 
 
 @metric(
@@ -19,13 +20,12 @@ from mammoth_commons.integration import metric
         "pygrank",
         "scikit-image",
     ),
+    logo=logo_aif360
 )
 def optimal_transport(
     dataset: Dataset, model: Predictor, sensitive: List[str], threshold: float = 0.01
 ) -> HTML:
     """
-    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
-    alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
     <h3>representational disparities in predictions</h3>
 
     Evaluates the cost of transforming distribution differences between the predictions of different
@@ -118,7 +118,7 @@ def optimal_transport(
             if worst_distance >= threshold
             else "No concerns about discrimination"
         ),
-        technology='<div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360\'s optimal transport</h1></div>',
+        technology=logo_aif360+"based on AIF360\'s optimal transport",
         about=f"""
             <p>We searched for potentially biased attribute values, or intersections of attribute values.
             We employed IBM's AIF360 bias scan detector, and ignored already known sensitive attributes during 

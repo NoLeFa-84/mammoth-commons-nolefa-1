@@ -118,7 +118,7 @@ def model_card(
             if problematic
             else "no concerns"
         ),
-        technology=logo_fairbench + "<h1>based on FairBench reporting</h1>",
+        technology=logo_fairbench + "based on FairBench reporting",
         about=f"""
             <p>{('Some system performance metrics, which indicate obtained benefits like correct or favorable '
               'operation, were found unevenly distributed across the population. '

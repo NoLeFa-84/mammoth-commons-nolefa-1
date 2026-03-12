@@ -118,7 +118,7 @@ def bias_scan(
 
     html_content = simplified_formatter(
         outcome="fair" if counts == 0 else "biased",
-        technology=logo_aif360 + "<h1>&nbsp;based on AIF360's bias scan</h1></div>",
+        technology=logo_aif360 + "based on AIF360's bias scan",
         title=(
             "No concerns for attribute values"
             if counts == 0
