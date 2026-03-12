@@ -411,7 +411,7 @@ def sklearn_visual_analysis(
     notify_end()
     predictions = model.predict(X_test)
     scores = model.predict_proba(X_test)[:, 1]
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     sensitive = fb.Dimensions(
         {attr + " ": fb_categories(dataset.df[attr][idx_test]) for attr in sensitive}
     )

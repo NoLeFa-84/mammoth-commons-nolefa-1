@@ -64,7 +64,7 @@ def bias_scan(
 
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
 
     predictions = pd.Series(model.predict(dataset, sensitive))
     dataset = dataset.to_csv(sensitive)

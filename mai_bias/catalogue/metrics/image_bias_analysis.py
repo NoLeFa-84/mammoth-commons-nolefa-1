@@ -56,7 +56,7 @@ def image_bias_analysis(
     assert sensitive, "No sensitive attributes provided"
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",")]
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     json, title = analysis(
         dataset.path, task, dataset.target, sensitive, output="json", return_title=True
     )

@@ -69,7 +69,7 @@ def model_card(
     min_group_size = int(min_group_size)
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",")]
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     assert len(sensitive) != 0, "At least one sensitive attribute is required"
     assert 0 <= prob <= 1, "Problematic deviation should be in [0,1]"
     presentation = fb.export.HtmlBars if presentation == "Bars" else fb.export.HtmlTable

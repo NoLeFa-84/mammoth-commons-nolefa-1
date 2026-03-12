@@ -169,7 +169,7 @@ def aif360_metrics(
     threshold = float(bias_threshold)
     if isinstance(sensitive, str):
         sensitive = [s.strip() for s in sensitive.split(",")]
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     assert len(sensitive) > 0, "Must specify at least one sensitive attribute"
     y_pred = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)

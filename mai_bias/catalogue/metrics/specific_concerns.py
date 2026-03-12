@@ -76,7 +76,7 @@ def specific_concerns(
     if isinstance(sensitive, str):
         sensitive = sensitive.split(",")
     assert len(sensitive) != 0, "At least one sensitive attribute should be selected"
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     predictions = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
     sensitive = fb.Dimensions(

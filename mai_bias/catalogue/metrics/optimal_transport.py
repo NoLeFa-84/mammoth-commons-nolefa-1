@@ -62,7 +62,7 @@ def optimal_transport(
     import pandas as pd
 
     assert len(sensitive) != 0, "At least one sensitive attribute should be selected"
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     threshold = float(threshold)
     text = ""
     predictions = pd.Series(model.predict(dataset, sensitive))

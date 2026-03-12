@@ -88,7 +88,7 @@ def sklearn_audit(
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",")]
     assert len(sensitive) != 0, "Set at least one sensitive attribute"
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     presentation = fb.export.HtmlBars if presentation == "Bars" else fb.export.HtmlTable
     reject = not bool(show_non_problematic)
     X = dataset.to_pred(sensitive)

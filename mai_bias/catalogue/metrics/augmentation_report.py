@@ -592,7 +592,7 @@ def augmentation_report(
 
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
-    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     dataset = dataset.to_csv(sensitive)
     non_categorical = [col for col in sensitive if col not in dataset.cat]
     assert not non_categorical, (

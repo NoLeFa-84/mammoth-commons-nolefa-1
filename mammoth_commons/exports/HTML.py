@@ -83,7 +83,9 @@ def simplified_formatter(
         11: "November",
         12: "December",
     }
-    subtitle = logo_mai_bias+"MAI-BIAS analysis"+(" "+subtitle if subtitle else "")
+    subtitle = (
+        logo_mai_bias + "MAI-BIAS analysis" + (" " + subtitle if subtitle else "")
+    )
     now = datetime.now()
     english_date = f"{now.day:02d} {EN_MONTHS[now.month]} {now.year}"
     technology = technology + " on " + english_date

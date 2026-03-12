@@ -39,11 +39,14 @@ EN_MONTHS = {
     12: "December",
 }
 
+
 def now():
     return datetime.now().strftime("%y-%m-%d %H:%M")
 
+
 def get_timestamp(run):
     return run.get("timestamp") or ""
+
 
 def _category_from_ts(ts_str: str) -> str:
     try:
@@ -60,6 +63,7 @@ def _category_from_ts(ts_str: str) -> str:
     if dt.year == now.year and dt.month == now.month:
         return "This month"
     return f"{EN_MONTHS[dt.month]} {dt.year}"
+
 
 def convert_to_readable(date_str):
     dt = datetime.strptime(date_str, "%y-%m-%d %H:%M")
@@ -359,7 +363,6 @@ class Dashboard(Styled):
             )
             groups[group_key].append((i, run))
 
-
         latest_per_group = {}
         for group_key, runs in groups.items():
             runs_sorted = sorted(runs, key=lambda x: get_timestamp(x[1]), reverse=True)
@@ -409,8 +412,7 @@ class Dashboard(Styled):
             if not cat or cat == current_category:
                 return
             sep_lbl = QLabel(cat, self)
-            sep_lbl.setStyleSheet(
-                """
+            sep_lbl.setStyleSheet("""
                 QLabel {
                     font-weight: 600;
                     font-size: 14px;
@@ -420,8 +422,7 @@ class Dashboard(Styled):
                     border-radius: 4px;
                     margin-top: 10px;
                 }
-                """
-            )
+                """)
             grid_layout.addWidget(sep_lbl, row, 0, 1, max_cols)  # span all columns
             row += 1
             col = 0
@@ -429,9 +430,11 @@ class Dashboard(Styled):
 
         # --- RESULT CARDS ---
         for group_key, runs in sorted(
-                latest_per_group.items(),
-                key=lambda kv: get_timestamp(kv[1][0][1]),  # timestamp of the first (newest) run
-                reverse=True,
+            latest_per_group.items(),
+            key=lambda kv: get_timestamp(
+                kv[1][0][1]
+            ),  # timestamp of the first (newest) run
+            reverse=True,
         ):
             latest_index, latest_run = runs[0]
             _maybe_add_separator(_category_from_ts(latest_run.get("timestamp", "")))
