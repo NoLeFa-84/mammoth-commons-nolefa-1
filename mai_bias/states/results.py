@@ -154,18 +154,10 @@ class Results(Styled):
             )
             return
         run = self.runs[-1]
-        html_content = run.get("analysis", {}).get(
+        # DO NOT prepare_html AS WE NEED TO AVOID THE CACHE FOR TRANSPORTABILITY
+        html_to_save = run.get("analysis", {}).get(
             "return", "<p>No results available.</p>"
         )
-        # html_to_save = prepare_html(html_content) # DO NOT DO THIS AS WE NEED TO AVOID THE CACHE FOR TRANSPORTABILITY
-        html_to_save = html_content
-        timestamp = run.get("timestamp", now()).replace(":", "-").replace(" ", "_")
-        default_name = f"run-{timestamp}.html"
-        # cannot be determined).
-        start_dir = os.path.expanduser("~/Documents")
-        if not os.path.isdir(start_dir):
-            start_dir = os.getcwd()
-
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             caption="Save analysis as a file that you can share.",

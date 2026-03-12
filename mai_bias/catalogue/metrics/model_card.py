@@ -69,7 +69,8 @@ def model_card(
     min_group_size = int(min_group_size)
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",")]
-    assert len(sensitive) != 0, "At least one sensitive attribute should be provided"
+    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
+    assert len(sensitive) != 0, "At least one sensitive attribute is required"
     assert 0 <= prob <= 1, "Problematic deviation should be in [0,1]"
     presentation = fb.export.HtmlBars if presentation == "Bars" else fb.export.HtmlTable
     report_type = reps.pairwise if compare_groups == "Pairwise" else reps.vsall
@@ -118,6 +119,7 @@ def model_card(
             if problematic
             else "no concerns"
         ),
+        subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
         about=f"""
             <p>{('Some system performance metrics, which indicate obtained benefits like correct or favorable '

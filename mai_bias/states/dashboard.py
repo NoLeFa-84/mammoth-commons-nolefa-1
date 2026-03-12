@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import QTimer
 from PySide6.QtCore import Qt, QUrl
-from datetime import datetime
+from datetime import datetime, timedelta
 from mammoth_commons.externals import prepare, prepare_html
 from PySide6.QtGui import QPixmap, QDesktopServices
 from functools import partial
@@ -22,32 +22,48 @@ from .cache import ExternalLinkPage
 from .step import save_all_runs
 from .style import Styled
 import re
+from collections import defaultdict
 
+EN_MONTHS = {
+    1: "January",
+    2: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December",
+}
 
 def now():
     return datetime.now().strftime("%y-%m-%d %H:%M")
 
+def get_timestamp(run):
+    return run.get("timestamp") or ""
 
-ENGLISH_MONTHS = [
-    "",
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-]
-
+def _category_from_ts(ts_str: str) -> str:
+    try:
+        dt = datetime.strptime(ts_str, "%y-%m-%d %H:%M")
+    except Exception:
+        return ""
+    now = datetime.now()
+    if now - dt < timedelta(hours=1):
+        return "Last hour"
+    if dt.date() == now.date():
+        return "Today"
+    if dt.date() == (now - timedelta(days=1)).date():
+        return "Yesterday"
+    if dt.year == now.year and dt.month == now.month:
+        return "This month"
+    return f"{EN_MONTHS[dt.month]} {dt.year}"
 
 def convert_to_readable(date_str):
     dt = datetime.strptime(date_str, "%y-%m-%d %H:%M")
-    return f"{dt.day} {ENGLISH_MONTHS[dt.month]} {dt.year} - {dt.strftime('%H:%M')}"
+    return f"{dt.day} {EN_MONTHS[dt.month]} {dt.year} - {dt.strftime('%H:%M')}"
 
 
 class Dashboard(Styled):
@@ -330,10 +346,7 @@ class Dashboard(Styled):
     def refresh_dashboard(self):
         scroll_bar = self.scroll_area.verticalScrollBar()
         scroll_value = scroll_bar.value()
-
         self.clear_layout(self.layout)
-        from collections import defaultdict
-
         groups = defaultdict(list)
         for i, run in enumerate(self.runs):
             if i in self.hidden:
@@ -346,8 +359,6 @@ class Dashboard(Styled):
             )
             groups[group_key].append((i, run))
 
-        def get_timestamp(run):
-            return run.get("timestamp") or ""
 
         latest_per_group = {}
         for group_key, runs in groups.items():
@@ -364,6 +375,7 @@ class Dashboard(Styled):
         if len(latest_per_group) == 1:
             max_cols = 1
 
+        current_category = None
         grid_layout = QGridLayout()
         grid_layout.setSpacing(card_spacing)
         row = 0
@@ -390,10 +402,39 @@ class Dashboard(Styled):
             row += 1
             col = 0
 
-        # --- RESULT CARDS ---
-        for group_key, runs in latest_per_group.items():
-            latest_index, latest_run = runs[0]
+        def _maybe_add_separator(cat: str):
+            """Insert a full‑width QLabel if *cat* is non‑empty and different
+            from the previously printed heading."""
+            nonlocal row, col, current_category
+            if not cat or cat == current_category:
+                return
+            sep_lbl = QLabel(cat, self)
+            sep_lbl.setStyleSheet(
+                """
+                QLabel {
+                    font-weight: 600;
+                    font-size: 14px;
+                    color: #444;
+                    background: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    margin-top: 10px;
+                }
+                """
+            )
+            grid_layout.addWidget(sep_lbl, row, 0, 1, max_cols)  # span all columns
+            row += 1
+            col = 0
+            current_category = cat
 
+        # --- RESULT CARDS ---
+        for group_key, runs in sorted(
+                latest_per_group.items(),
+                key=lambda kv: get_timestamp(kv[1][0][1]),  # timestamp of the first (newest) run
+                reverse=True,
+        ):
+            latest_index, latest_run = runs[0]
+            _maybe_add_separator(_category_from_ts(latest_run.get("timestamp", "")))
             card_widget = QWidget(self)
             card_widget.setObjectName("ResultCard")
             card_widget.setFixedSize(card_width, card_height)
@@ -623,23 +664,12 @@ class Dashboard(Styled):
             grid_layout.addWidget(clear_search_btn, row, 0, 1, max_cols)
             row += 1
 
-        # if len(latest_per_group) == 1 and len(runs)==1:
-        #     no_results_label = QLabel("Showing history." if  len(runs)>1 else "Found one run: no history.", self)
-        #     no_results_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        #     no_results_label.setStyleSheet("""
-        #         color: #666;
-        #         font-size: 15px;
-        #         padding: 20px;
-        #     """)
-        #     # Add to a full-width row under the logo card (use next grid row, col=0 spanning all columns)
-        #     grid_layout.addWidget(no_results_label, row, 0, 1, max_cols)
-        #     row += 1
-
         if len(latest_per_group) == 1 and len(runs) > 1:
             # other runs, sorted by timestamp DESC (latest first, skip runs[0])
             for sub_index, (index, run) in enumerate(
                 sorted(runs[1:], key=lambda x: get_timestamp(x[1]), reverse=True)
             ):
+                _maybe_add_separator(_category_from_ts(run.get("timestamp", "")))
                 special = get_special_title(run).lower()
                 if "fail" in special or "bias" in special:
                     narrow_border = "#b91c1c"  # deep red

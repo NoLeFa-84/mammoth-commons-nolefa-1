@@ -18,4 +18,8 @@ alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px;
 logo_fairbench = """<img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" 
 alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>"""
 logo_vbmitigator = """<img src="https://github.com/mever-team/vb-mitigator/blob/main/assets/vb-mitigator%20logo_250.png?raw=true"
-alt="Based on vb-mitigator" style="float: left; margin-right: 15px; height: 36px;"/>"""
+alt="Based on vb-mitigator" style="float: left; margin-right: 5px; height: 36px;"/>"""
+logo_mai_bias = """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/mai_bias/logo.png?raw=true"
+alt="Produced with MAI‑BIAS"
+style="float:left;margin-right:5px;height:32px;background:#fff;border-radius:50%;">
+"""

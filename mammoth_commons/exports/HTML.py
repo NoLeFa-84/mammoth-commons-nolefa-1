@@ -3,7 +3,7 @@ import base64
 import re
 from datetime import datetime
 from typing import Literal
-from mammoth_commons.reminders import on_results
+from mammoth_commons.reminders import on_results, logo_mai_bias
 
 
 def _encode_image_to_base64(filepath):
@@ -67,6 +67,7 @@ def simplified_formatter(
     experts: str,
     technology: str = "",
     warning: str = on_results,
+    subtitle: str = None,
 ):
     EN_MONTHS = {
         1: "January",
@@ -82,6 +83,7 @@ def simplified_formatter(
         11: "November",
         12: "December",
     }
+    subtitle = logo_mai_bias+"MAI-BIAS analysis"+(" "+subtitle if subtitle else "")
     now = datetime.now()
     english_date = f"{now.day:02d} {EN_MONTHS[now.month]} {now.year}"
     technology = technology + " on " + english_date
@@ -90,7 +92,7 @@ def simplified_formatter(
             .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
             .banner {{
                 width: calc(100%-40px);
-                padding: 180px 0px;
+                padding: 200px 0px;
                 font-weight: 700;
                 text-align: center;
                 color: white;
@@ -122,7 +124,8 @@ def simplified_formatter(
             .tablinks.active {{ background-color: #aaa; }}
             .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
             .tabcontent.active {{ display: block; }}
-            .technology {{position:absolute;right:20px;top:390px;font-size:24px;color:white}}
+            .technology {{position:absolute;left:20px;top:420px;font-size:24px;color:white}}
+            .subtitle {{position:absolute;left:20px;top:380px;font-size:24px;color:white}}
         </style>
 
         <script>
@@ -159,7 +162,7 @@ def simplified_formatter(
                 }}
             }});
         </script>
-        <h1 class="banner {outcome}">{title}</h1><div class="technology">{technology}</div>
+        <h1 class="banner {outcome}">{title}</h1><div class="subtitle">{subtitle}</div><div class="technology">{technology}</div>
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">What is this?
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
@@ -230,7 +233,7 @@ class HTML:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>MAI-BIAS run</title>
+            <title>MAI-BIAS analysis</title>
             {self.header}
         </head>
         <body>
