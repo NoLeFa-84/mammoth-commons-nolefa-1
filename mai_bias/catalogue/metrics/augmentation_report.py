@@ -724,5 +724,4 @@ def augmentation_report(
             </div>
             """,
     )
-
     return HTML(html_content)

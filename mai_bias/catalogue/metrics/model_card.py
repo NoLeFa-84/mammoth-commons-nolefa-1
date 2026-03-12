@@ -1,10 +1,10 @@
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
-from typing import List, Literal
 from mammoth_commons.integration import metric
 from mammoth_commons.externals import fb_categories, align_predictions
 from mammoth_commons.reminders import logo_fairbench
+from typing import List, Literal
 
 
 @metric(
@@ -127,7 +127,7 @@ def model_card(
               'The biased metrics are:')
             if problematic else 'No biases were found.'}
             <br><br>
-            <i>{'<br>'.join(problematic)}</i>
+            <i>{'<br>'.join(problematic)}</i></p>
         """,
         methodology=f"""
             <p>Groups were compared <b>{compare_groups.lower()}</b>.
@@ -138,7 +138,7 @@ def model_card(
             and 1 for values that should be large (e.g., the minimum accuracy across all groups).
             Some metrics have no known ideal values.</p>
             <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
-            <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p></p>
+            <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p>
         """,
         pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
         experts=f"""

@@ -17,3 +17,5 @@ logo_aif360 = """<img src="https://avatars.githubusercontent.com/u/56103733?s=48
 alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>"""
 logo_fairbench = """<img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" 
 alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>"""
+logo_vbmitigator = """<img src="https://github.com/mever-team/vb-mitigator/blob/main/assets/vb-mitigator%20logo_250.png?raw=true"
+alt="Based on vb-mitigator" style="float: left; margin-right: 15px; height: 36px;"/>"""
