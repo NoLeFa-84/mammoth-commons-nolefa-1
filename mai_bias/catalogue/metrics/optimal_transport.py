@@ -20,7 +20,7 @@ from mammoth_commons.reminders import logo_aif360
         "pygrank",
         "scikit-image",
     ),
-    logo=logo_aif360
+    logo=logo_aif360,
 )
 def optimal_transport(
     dataset: Dataset, model: Predictor, sensitive: List[str], threshold: float = 0.01
@@ -118,7 +118,7 @@ def optimal_transport(
             if worst_distance >= threshold
             else "No concerns about discrimination"
         ),
-        technology=logo_aif360+"based on AIF360\'s optimal transport",
+        technology=logo_aif360 + "based on AIF360's optimal transport",
         about=f"""
             <p>We searched for potentially biased attribute values, or intersections of attribute values.
             We employed IBM's AIF360 bias scan detector, and ignored already known sensitive attributes during 

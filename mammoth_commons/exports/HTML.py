@@ -71,15 +71,16 @@ def simplified_formatter(
         <style>
             .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
             .banner {{
-                width: 100%;
-                padding: 180px 24px;
+                width: calc(100%-40px);
+                padding: 180px 0px;
                 font-weight: 700;
                 text-align: center;
                 color: white;
                 border-radius: 12px;
                 margin-bottom: 25px;
+                justify-content: center;
+                font-size: 64px;
             }}
-            .banner h1 {{font-size: 64px;}}
             .banner.fair {{ background: #2e8b57; }}
             .banner.biased {{ background: #c0392b; }}
             .banner.report {{ background: #7f8c8d; }}
@@ -103,7 +104,7 @@ def simplified_formatter(
             .tablinks.active {{ background-color: #aaa; }}
             .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
             .tabcontent.active {{ display: block; }}
-            .technology {{position:absolute;right:10px;top:400px;font-size:24px}}
+            .technology {{position:absolute;right:30px;top:400px;font-size:24px;color:white}}
         </style>
 
         <script>
@@ -140,7 +141,7 @@ def simplified_formatter(
                 }}
             }});
         </script>
-        <div class="banner {outcome}"><h1>{title}</h1><div class="technology">{technology}</div></div>
+        <h1 class="banner {outcome}">{title}</h1><div class="technology">{technology}</div>
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">What is this?
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>

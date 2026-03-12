@@ -672,7 +672,7 @@ def augmentation_report(
             to an intersectional subgroup. Hover over a segment to view its subgroup path and proportion in 
             the dataset, and click on it to focus on the particular intersection.</p>
             """,
-        pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+        pipeline=dataset.to_description(),
         experts=f"""
             <p>This report also contains bar charts compare original and augmented distributions for each 
             strategy, as well as references and research findings that you can consult. 

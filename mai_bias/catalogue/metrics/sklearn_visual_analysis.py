@@ -612,7 +612,7 @@ def sklearn_visual_analysis(
                 {'Set a problematic deviation parameter for this analysis to simplify what is shown or control coloring thresholds.' if problematic_deviation == 0 else f'Only those that differ at least {problematic_deviation:.3f} from their ideal values are {"shown" if reject else "highlighted in orange or red"}; this is the problematic deviation threshold of the analysis.'}
                 Ideal targets are 0 for metrics that need to be minimized and 1 for those that need to be maximized.</p>  
             """,
-        pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+        pipeline=dataset.to_description(),
         experts=f"""
                 <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
                 <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>

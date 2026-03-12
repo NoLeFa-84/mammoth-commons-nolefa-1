@@ -220,7 +220,7 @@ def sklearn_audit(
             <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
             <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p></p>
         """,
-        pipeline=f"{dataset.to_description()}<br><br>{original_model.to_description()}",
+        pipeline=dataset.to_description(),
         experts=f"""
             <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
             <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>
