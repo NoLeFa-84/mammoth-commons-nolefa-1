@@ -169,6 +169,7 @@ def aif360_metrics(
     threshold = float(bias_threshold)
     if isinstance(sensitive, str):
         sensitive = [s.strip() for s in sensitive.split(",")]
+    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
     assert len(sensitive) > 0, "Must specify at least one sensitive attribute"
     y_pred = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
@@ -327,6 +328,7 @@ def aif360_metrics(
         outcome="biased" if "bias" in verdict else "fair",
         technology=logo_aif360 + "based on AIF360 metrics",
         title=verdict,
+        subtitle=subtitle,
         about="<p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>"
         + (
             "<i>" + "<br>".join(biases) + "</i>"

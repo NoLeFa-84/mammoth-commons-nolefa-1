@@ -64,6 +64,7 @@ def bias_scan(
 
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
+    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
 
     predictions = pd.Series(model.predict(dataset, sensitive))
     dataset = dataset.to_csv(sensitive)
@@ -124,6 +125,7 @@ def bias_scan(
             if counts == 0
             else f"{counts} attribute biases"
         ),
+        subtitle=subtitle,
         about=f"""
             <p>This module identifies potentially biased intersections of attributes using 
             IBM's AIF360 bias scan detector. Already-known sensitive attributes are ignored during scanning. 

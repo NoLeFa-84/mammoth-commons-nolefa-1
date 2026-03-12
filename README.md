@@ -37,23 +37,9 @@ curl -fsSL https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_
 
 Modules will install further missing dependencies they need to run. **This may take some time, especially for modules depending on torch or tensorflow.**
 
-<div style="overflow-x:auto; white-space:nowrap; padding-bottom:8px;">
-  <img src="docs/screenshot1.png"
-       alt="Screenshot1"
-       style="height:400px; display:inline-block; margin-right:12px;">
-  <img src="docs/screenshot2.png"
-       alt="Screenshot2"
-       style="height:400px; display:inline-block; margin-right:12px;">
-  <img src="docs/screenshot3.png"
-       alt="Screenshot3"
-       style="height:400px; display:inline-block; margin-right:12px;">
-  <img src="docs/screenshot4.png"
-       alt="Screenshot4"
-       style="height:400px; display:inline-block; margin-right:12px;">
-  <img src="docs/screenshot5.png"
-       alt="Screenshot5"
-       style="height:400px; display:inline-block;">
-</div>
+<img src="docs/screenshot1.png"
+   alt="Screenshot1"
+   style="height:600px; display:inline-block; margin-right:12px;">
 
 <details><summary>Ubuntu: Example of full installation pipeline</summary>
 

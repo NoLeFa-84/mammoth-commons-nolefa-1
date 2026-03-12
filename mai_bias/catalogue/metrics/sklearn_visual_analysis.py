@@ -1,3 +1,5 @@
+from docutils.nodes import subtitle
+
 from mammoth_commons.datasets import CSV
 from mammoth_commons.models import EmptyModel
 from mammoth_commons.exports import HTML, simplified_formatter
@@ -409,6 +411,7 @@ def sklearn_visual_analysis(
     notify_end()
     predictions = model.predict(X_test)
     scores = model.predict_proba(X_test)[:, 1]
+    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
     sensitive = fb.Dimensions(
         {attr + " ": fb_categories(dataset.df[attr][idx_test]) for attr in sensitive}
     )
@@ -591,6 +594,7 @@ def sklearn_visual_analysis(
     html_content = simplified_formatter(
         outcome="report",
         title=f"Audit of {len(sensitive.branches())} groups",
+        subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
         about=f"""
             <p>This is a dataset audit using a {predictor} model trained on-the-fly. The model is deliberately simple,

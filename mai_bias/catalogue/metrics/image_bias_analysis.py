@@ -56,6 +56,7 @@ def image_bias_analysis(
     assert sensitive, "No sensitive attributes provided"
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",")]
+    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
     json, title = analysis(
         dataset.path, task, dataset.target, sensitive, output="json", return_title=True
     )
@@ -145,6 +146,7 @@ def image_bias_analysis(
         outcome="biased" if "bias" in title else "fair",
         technology=logo_vbmitigator + "based on vb-mitigator",
         title=title,
+        subtitle=subtitle,
         about=info["about"],
         methodology=f"""
             <p>We used the <a href="https://github.com/gsarridis/cv-bias-mitigation-library">CV bias mitigation library</a>

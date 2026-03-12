@@ -590,6 +590,9 @@ def augmentation_report(
     import pandas as pd
     import numpy as np
 
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
+    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
     dataset = dataset.to_csv(sensitive)
     non_categorical = [col for col in sensitive if col not in dataset.cat]
     assert not non_categorical, (
@@ -650,6 +653,7 @@ def augmentation_report(
             if biased
             else "Fair group intersections"
         ),
+        subtitle=subtitle,
         about=f"""
             <p>We used <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> 
             to create and compare distribution intersections.

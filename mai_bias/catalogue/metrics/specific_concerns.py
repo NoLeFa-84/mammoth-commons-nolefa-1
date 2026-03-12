@@ -76,6 +76,7 @@ def specific_concerns(
     if isinstance(sensitive, str):
         sensitive = sensitive.split(",")
     assert len(sensitive) != 0, "At least one sensitive attribute should be selected"
+    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
     predictions = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
     sensitive = fb.Dimensions(
@@ -145,6 +146,7 @@ def specific_concerns(
     html_content = simplified_formatter(
         outcome=outcome.split(" ")[0].lower(),
         title=outcome,
+        subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
         about=f"""
             We analysed how {getattr(fb.measures, fb_measures[base_measure]).descriptor.details.lower()} is 

@@ -62,6 +62,7 @@ def optimal_transport(
     import pandas as pd
 
     assert len(sensitive) != 0, "At least one sensitive attribute should be selected"
+    subtitle = "for sensitive attributes: <i>"+", ".join(sensitive)+"</i>"
     threshold = float(threshold)
     text = ""
     predictions = pd.Series(model.predict(dataset, sensitive))
@@ -118,6 +119,7 @@ def optimal_transport(
             if worst_distance >= threshold
             else "No concerns about discrimination"
         ),
+        subtitle=subtitle,
         technology=logo_aif360 + "based on AIF360's optimal transport",
         about=f"""
             <p>We searched for potentially biased attribute values, or intersections of attribute values.
