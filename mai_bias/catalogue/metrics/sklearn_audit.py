@@ -132,7 +132,6 @@ def sklearn_audit(
                 min(1.0, (i + batch_size) / len(X)),
                 f"Fitting a Gaussian naive Bayes classifier on {i}/{len(y)} data points",
             )
-
     notify_end()
     predictions = model.predict(X_test)
     scores = model.predict_proba(X_test)[:, 1]

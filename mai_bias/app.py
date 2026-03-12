@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
         )
         self.stacked_widget.addWidget(
             SelectDataset(
-                "Data format",
+                "What kind of data do you have?",
                 self.stacked_widget,
                 registry.dataset_loaders,
                 active_run,
@@ -214,7 +214,7 @@ class MainWindow(QMainWindow):
         )
         self.stacked_widget.addWidget(
             SelectModel(
-                "Model format",
+                "What kind of model do you have?",
                 self.stacked_widget,
                 registry.model_loaders,
                 active_run,
@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
         )
         self.stacked_widget.addWidget(
             SelectAnalysis(
-                "Analysis method",
+                "Please select what you want to investigate.",
                 self.stacked_widget,
                 registry.analysis_methods,
                 active_run,

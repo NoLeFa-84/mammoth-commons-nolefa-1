@@ -78,7 +78,7 @@ class Dashboard(Styled):
             self.new_action(
                 "🌐",
                 "#0369a1",
-                "Module catalogue",
+                "Developer portal",
                 lambda: QDesktopServices.openUrl(
                     QUrl("https://mammoth-eu.github.io/mammoth-commons/")
                 ),

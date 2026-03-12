@@ -7,7 +7,7 @@ def no_model() -> EmptyModel:
     """
     <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/donut.png?raw=true" alt="dataset focus" style="float: left; margin-right: 15px; height: 36px;"/>
 
-    <h3>focus on dataset bias</h3>
+    <h3>no model: focus on dataset bias</h3>
     Signifies that the analysis should focus solely on the bias/fairness of the dataset. Different means are used
     to verify the latter. Also consider alternate models that can help analyze dataset biases, like the <i>trivial
     predictor</i>. Not auditing datasets from early on in system creation may irrevocably embed their biases in
