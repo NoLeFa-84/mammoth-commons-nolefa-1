@@ -10,7 +10,6 @@ from .step_utils.card_button import CardButton
 class ScrollSelector(QWidget):
     def __init__(self, items, specs, on_change, parent=None):
         super().__init__(parent)
-
         self.on_change = on_change
         self.items = list(items)
         self.specs = dict(specs)
@@ -28,7 +27,6 @@ class ScrollSelector(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(4)
 
-        # Create cards
         for name in self.items:
             html = self.specs.get(name, dict()).get("description", "")
             if not html:
@@ -48,9 +46,6 @@ class ScrollSelector(QWidget):
         if self.items:
             self.set_selected(self.items[0])
 
-    # ----------------------------
-    # Selection logic
-    # ----------------------------
     def _select(self, name):
         self.selected = name
         for card in self.cards:
@@ -66,9 +61,6 @@ class ScrollSelector(QWidget):
             card.setChecked(card.name == name)
         self.on_change(name)
 
-    # ----------------------------
-    # ComboBox compatibility
-    # ----------------------------
     def currentText(self):
         return self.selected
 
@@ -111,7 +103,6 @@ class ScrollSelector(QWidget):
         card.clicked.connect(self._select)
         self.cards.append(card)
         self.layout.addWidget(card)
-
         if self.selected is None:
             self.set_selected(name)
 

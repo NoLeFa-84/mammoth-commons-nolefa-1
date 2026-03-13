@@ -639,7 +639,7 @@ class Step(Styled):
         label.setFixedSize(150, 20)
         label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-        help_button = QPushButton("?")
+        help_button = QPushButton("\u2139")
         help_button.setFixedSize(20, 20)
         help_button.setStyleSheet(
             f"""
