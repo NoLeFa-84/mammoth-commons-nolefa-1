@@ -115,7 +115,7 @@ def model_card(
     html_content = simplified_formatter(
         outcome="biased" if problematic else "fair",
         title=(
-            f"Biases in {len(problematic)} types of benefits"
+            f"{len(problematic)} model biases for given dataset"
             if problematic
             else "no concerns"
         ),

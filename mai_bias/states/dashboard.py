@@ -232,7 +232,7 @@ class Dashboard(Styled):
             and QMessageBox.question(
                 self,
                 "Delete?",
-                f"The analysis will be permanently deleted.",
+                f"The analysis, which is the most recent of its kind,\nwill be permanently deleted. This message does\nnot appear for older history items.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -289,7 +289,7 @@ class Dashboard(Styled):
 
         # --- Card layout constants ---
         card_width = 1100
-        card_height = 40
+        card_height = 50
         card_spacing = 6
         # Responsive cols
         window_width = self.scroll_area.viewport().width() or 700
@@ -361,20 +361,16 @@ class Dashboard(Styled):
             card_widget.setFixedSize(card_width, card_height)
             special = get_special_title(latest_run).lower()
             if "fail" in special or "bias" in special:
-                card_border = "#b91c1c"  # deep red
-                card_hover = "#fcd8dd"  # matte red
+                card_border = "#b91c1c"
             elif any(
                 word in special
                 for word in ["report", "audit", "scan", "analysis", "explanation"]
             ):
-                card_border = "#0369a1"  # deep blue
-                card_hover = "#d3ecfa"  # matte blue
+                card_border = "#0369a1"
             else:
-                card_border = "#047857"  # deep green
-                card_hover = "#bff2c1"  # matte green (more green)
+                card_border = "#047857"
             if latest_run["status"] != "completed":
-                card_border = "#ca8a04"  # deep yellow
-                card_hover = "#fff7c2"  # matte yellow
+                card_border = "#ca8a04"
 
             card_widget.setStyleSheet(f"""
                 QWidget#ResultCard {{
@@ -388,65 +384,45 @@ class Dashboard(Styled):
                     border-radius: 0px;
                 }}
             """)
-
-            # --- Compact one-line layout instead of stacked sections ---
             card_layout = QHBoxLayout(card_widget)
             card_layout.setContentsMargins(10, 6, 10, 6)
-            card_layout.setSpacing(8)
+            card_layout.setSpacing(2)
 
             # --- Title / status label ---
             desc_label = QLabel(
                 (
-                    get_special_title(latest_run)
+                    "<b>"
+                    + latest_run.get("analysis", {}).get("module", "")[0]
+                    + latest_run.get("analysis", {}).get("module", "")[1:].lower()
+                    + " for "
+                    + latest_run.get("dataset", {}).get("module", "").lower()
+                    + " and "
+                    + latest_run.get("model", {}).get("module", "").lower()
+                    + " model </b><br>"
+                    + get_special_title(latest_run)
                     if latest_run["status"] == "completed"
                     else "INCOMPLETE"
-                ),
+                ).replace("model model", "model"),
                 card_widget,
             )
             desc_label.setStyleSheet(
-                f"font-size: 13px; font-weight: bold; color: black; border: none; background: none;"
+                f"font-size: 13px; color: black; border: none; background: none;"
             )
-            desc_label.setFixedHeight(26)
-            desc_label.setFixedWidth(360)
+            desc_label.setFixedHeight(40)
             card_layout.addWidget(desc_label)
-
-            # --- Tags inline (dataset/model/analysis) ---
-            tags_row = QHBoxLayout()
-            tags_row.setSpacing(4)
-            tags_row.setContentsMargins(0, 0, 0, 0)
-            tags_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-            for key in ["dataset", "model", "analysis"]:
-                mod = latest_run.get(key, {}).get("module", "")
-                if mod:
-                    tag_btn = self.new_tag(
-                        f"{mod}",
-                        "Module info",
-                        partial(lambda mod=mod: self.show_tag_description(mod)),
-                    )
-                    tag_btn.setFixedHeight(24)
-                    tags_row.addWidget(tag_btn)
-            tags_widget = QWidget(card_widget)
-            tags_widget.setLayout(tags_row)
-
-            # --- Timestamp ---
             timestamp_label = QLabel(
                 convert_to_readable(latest_run["timestamp"]),
-                # if latest_run["status"] == "completed"
-                # else "not yet run",
                 card_widget,
             )
-            timestamp_label.setFixedWidth(140)
+            timestamp_label.setFixedWidth(160)
             timestamp_label.setStyleSheet(
-                "font-size: 12px; color: #666; background: none; border: none;"
+                "font-size: 12px; color: #666; background: none; border: none;padding-right:2px"
             )
             timestamp_label.setAlignment(
                 Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight
             )
-            card_layout.addWidget(timestamp_label)
-
-            # --- Spacer ---
-            card_layout.addWidget(tags_widget)
             card_layout.addStretch()
+            card_layout.addWidget(timestamp_label)
 
             # --- Actions inline (History, New, Delete) ---
             if len(runs) > 1 and len(latest_per_group) != 1:
@@ -486,7 +462,7 @@ class Dashboard(Styled):
                 card_layout.addWidget(
                     self.new_action(
                         "+",
-                        "#007bff",
+                        "#FFFFFF",
                         "New variation",
                         partial(lambda i=latest_index: self.create_variation(i)),
                         size=26,
@@ -495,28 +471,25 @@ class Dashboard(Styled):
 
             card_layout.addWidget(
                 self.new_action(
-                    "🗑",
-                    "#dc3545",
+                    "X",
+                    "#FFFFFF",
                     "Delete",
                     partial(lambda i=latest_index: self.delete_item(i)),
                     size=26,
                 )
             )
 
-            # --- Make card clickable except buttons and tags ---
             def card_mouse_press(
                 event,
                 i=latest_index,
                 r=latest_run,
-                runs_in_group=[idx for idx, _ in runs],
+                runs_in_group=(idx for idx, _ in runs),
             ):
-                # Get click pos as QPoint (ints)
-                if hasattr(event, "position"):
-                    pos = event.position().toPoint()
-                else:
-                    pos = event.pos()
-
-                # Check if click was on a child button
+                pos = (
+                    event.position().toPoint()
+                    if hasattr(event, "position")
+                    else event.pos()
+                )
                 for btn in card_widget.findChildren(QPushButton):
                     local_pos = btn.mapFromParent(pos)
                     if btn.rect().contains(local_pos):
@@ -526,13 +499,11 @@ class Dashboard(Styled):
                 else:
                     self.edit_item(i)
 
-            # Assign directly; do NOT use lambda+partial, just a closure:
             card_widget.mousePressEvent = partial(
-                lambda event, i=latest_index, r=latest_run, runs_in_group=[
+                lambda event, i=latest_index, r=latest_run, runs_in_group=(
                     idx for idx, _ in runs
-                ]: card_mouse_press(event, i, r, runs_in_group)
+                ): card_mouse_press(event, i, r, runs_in_group)
             )
-
             grid_layout.addWidget(card_widget, row, col)
             col += 1
             if col >= max_cols:
@@ -587,32 +558,26 @@ class Dashboard(Styled):
             row += 1
 
         if len(latest_per_group) == 1 and len(runs) > 1:
-            # other runs, sorted by timestamp DESC (latest first, skip runs[0])
             for sub_index, (index, run) in enumerate(
                 sorted(runs[1:], key=lambda x: get_timestamp(x[1]), reverse=True)
             ):
                 _maybe_add_separator(_category_from_ts(run.get("timestamp", "")))
                 special = get_special_title(run).lower()
                 if "fail" in special or "bias" in special:
-                    narrow_border = "#b91c1c"  # deep red
-                    narrow_bg = "#fcd8dd"  # matte red
+                    narrow_border = "#b91c1c"
                 elif any(
                     word in special
                     for word in ["report", "audit", "scan", "analysis", "explanation"]
                 ):
-                    narrow_border = "#0369a1"  # deep blue
-                    narrow_bg = "#d3ecfa"  # matte blue
+                    narrow_border = "#0369a1"
                 else:
-                    narrow_border = "#047857"  # deep green
-                    narrow_bg = "#bff2c1"  # matte green
+                    narrow_border = "#047857"
                 if run["status"] != "completed":
-                    narrow_border = "#ca8a04"  # deep yellow
-                    narrow_bg = "#fff7c2"  # matte yellow
+                    narrow_border = "#ca8a04"
 
                 narrow_card = QWidget(self)
                 narrow_card.setObjectName("NarrowResultCard")
-                narrow_width = int(card_width)
-                narrow_card.setFixedSize(narrow_width, 35)
+                narrow_card.setFixedSize(card_width, 35)
                 narrow_card.setStyleSheet(f"""
                     QWidget#NarrowResultCard {{
                         background: white;
@@ -624,28 +589,28 @@ class Dashboard(Styled):
                         background: #EEEEEE;
                     }}
                 """)
-                narrow_layout = QGridLayout(narrow_card)
-                narrow_layout.setContentsMargins(7, 3, 7, 3)
-                narrow_layout.setSpacing(2)
-
-                # --- Special title and date ---
-                info_label = QLabel(
-                    "{} <span style='color:#666'>{}</span>".format(
-                        (
-                            get_special_title(run)
-                            if run["status"] == "completed"
-                            else "INCOMPLETE"
-                        ),
-                        convert_to_readable(run["timestamp"]),
-                    ),
-                    self,
+                h_layout = QHBoxLayout(narrow_card)
+                h_layout.setContentsMargins(7, 3, 7, 3)
+                h_layout.setSpacing(2)
+                title_txt = (
+                    get_special_title(run)
+                    if run["status"] == "completed"
+                    else "INCOMPLETE"
                 )
-                info_label.setTextFormat(Qt.TextFormat.RichText)
-                info_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-                info_label.setStyleSheet(
-                    "border: none; background: none; font-size: 12px; margin-top: 2px;"
+                title_lbl = QLabel(title_txt, narrow_card)
+                title_lbl.setStyleSheet(
+                    "border:none;background:none;font-size:12px;color:#000;"
                 )
-                narrow_layout.addWidget(info_label, 0, 0)
+                h_layout.addWidget(title_lbl)
+                h_layout.addStretch()
+                ts_lbl = QLabel(convert_to_readable(run["timestamp"]), narrow_card)
+                ts_lbl.setStyleSheet(
+                    "border:none;background:none;font-size:12px;color:#666;padding-left:8px;"
+                )
+                ts_lbl.setAlignment(
+                    Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight
+                )
+                h_layout.addWidget(ts_lbl)
                 delete_button = self.new_action(
                     "🗑",
                     "#dc3545",
@@ -653,7 +618,7 @@ class Dashboard(Styled):
                     partial(lambda i=index: self.delete_item(i, confirm=False)),
                     size=25,
                 )
-                narrow_layout.addWidget(delete_button, 0, 1)
+                h_layout.addWidget(delete_button)
 
                 def narrow_card_mouse_press(event, i=index, r=run):
                     if event.button() == Qt.MouseButton.LeftButton:
@@ -662,6 +627,7 @@ class Dashboard(Styled):
                             if hasattr(event, "position")
                             else event.pos()
                         )
+                        # ignore clicks on any child button
                         for b in narrow_card.findChildren(QPushButton):
                             if b.geometry().contains(int(pos.x()), int(pos.y())):
                                 return
