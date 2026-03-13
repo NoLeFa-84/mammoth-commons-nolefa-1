@@ -35,18 +35,15 @@ class CardButton(QFrame):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setStyleSheet("""
             QFrame#CardFrame {
-                background-color: #f5f5f5;
-                border: 1px solid #cccccc;
+                border: 0px solid white;
                 border-radius: 8px;
                 padding: 5px;
                 padding-left: 15px;
             }
             QFrame#CardFrame[checked="true"] {
-                background-color: #d0d0d0;
                 border-color: #999999;
             }
             QFrame:hover {
-                background-color: #ffffff;
             }
             """)
 
@@ -129,8 +126,8 @@ class CardButton(QFrame):
         if not self._checked:
             self.setStyleSheet("""
                 QFrame#CardFrame {
-                    background-color: #d0d0d0;
-                    border: 1px solid #cccccc;
+                    background-color: #eeeeee;
+                    border: 0px solid #cccccc;
                     border-radius: 8px;
                     padding: 5px;
                     padding-left: 15px;
@@ -142,14 +139,12 @@ class CardButton(QFrame):
         if not self._checked:
             self.setStyleSheet("""
                 QFrame#CardFrame {
-                    background-color: #f5f5f5;
-                    border: 1px solid #cccccc;
+                    border: 0px solid #cccccc;
                     border-radius: 8px;
                     padding: 5px;
                     padding-left: 15px;
                 }
                 QFrame#CardFrame[checked="true"] {
-                    background-color: #e0e0e0;
                     border-color: #999999;
                 }
             """)
@@ -168,14 +163,14 @@ class CardButton(QFrame):
             self.title_label.hide()
             self.web.show()
             self.web.setFixedHeight(
-                28 + 12 * len(self.full_html.split("<details>")[0].split("\n"))
+                100  # 28 + 12 * len(self.full_html.split("<details>")[0].split("\n"))
             )
 
             # ensure selected card uses selected background, not hover
             self.setStyleSheet("""
                 QFrame#CardFrame[checked="true"] {
                     background-color: #d0d0d0;
-                    border: 1px solid #999999;
+                    border: 0px solid #999999;
                     border-radius: 8px;
                     padding: 5px;
                     padding-left: 15px;
@@ -186,8 +181,7 @@ class CardButton(QFrame):
             # unselected card: reset to base (non-hover) style
             self.setStyleSheet("""
                 QFrame#CardFrame {
-                    background-color: #f5f5f5;
-                    border: 1px solid #cccccc;
+                    border: 0px solid #cccccc;
                     border-radius: 8px;
                     padding: 5px;
                     padding-left: 15px;

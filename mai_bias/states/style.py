@@ -8,7 +8,7 @@ class Styled(QWidget):
     ):
         button = QPushButton(text, self)
         button.setStyleSheet(f"""
-            QPushButton {{background-color: {color}; color: black; border-radius: 5px;font-size: {size*6//8 if text=='+' else size//2}px;border: 1px solid black;font-weight: bold;}}
+            QPushButton {{background-color: {color}; color: black; border-radius: 5px;font-size: {size*6//8 if text=='+' else size//2}px;border: 1px solid #cccccc;font-weight: bold;}}
             QPushButton:hover {{border: 2px solid black;background-color: {self.highlight_color(color)};}}
             """)
 

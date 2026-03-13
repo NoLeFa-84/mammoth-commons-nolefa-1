@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QThread, Signal, QMutex
 from mai_bias.backend.loaders import registry
 import traceback
-from mai_bias.states.step import Step, save_all_runs, InfoBox
+from mai_bias.states.step import Step, save_all_runs
 from mammoth_commons import integration_callback
 
 global items

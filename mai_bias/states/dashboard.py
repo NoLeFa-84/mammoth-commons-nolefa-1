@@ -146,8 +146,6 @@ class Dashboard(Styled):
         self.logo_pixmap = logo_pixmap
         self.logo_card = logo_card
         self.logo_label = logo_label
-
-        # Content Widget
         self.content_widget = QWidget()
         self.layout = QVBoxLayout(self.content_widget)
         self.layout.setAlignment(
@@ -155,93 +153,14 @@ class Dashboard(Styled):
         )
         self.layout.setSpacing(0)
         self.scroll_area.setWidget(self.content_widget)
-
         self.main_layout.addWidget(self.scroll_area)
-
-        # --- Informational Sections ---
 
         info_container = QVBoxLayout()
         info_container.setAlignment(Qt.AlignmentFlag.AlignTop)
         info_container.setSpacing(16)
-
-        def make_info_box(html_content):
-            frame = QFrame(self)
-            frame.setObjectName("InfoBox")
-            frame.setFrameShape(QFrame.Shape.StyledPanel)
-            frame.setStyleSheet("""
-                        QFrame#InfoBox {
-                            background-color: #dddddd;
-                            border: 1px solid #e2e8f0;
-                            border-radius: 10px;
-                            padding: 14px 18px;
-                        }
-                        QLabel {
-                            color: #334155;
-                            font-size: 13px;
-                            line-height: 1.4em;
-                        }
-                        a {
-                            color: #0369a1;
-                            text-decoration: none;
-                            font-weight: 600;
-                        }
-                        a:hover {
-                            text-decoration: underline;
-                        }
-                        ul {
-                            margin-left: 16px;
-                        }
-                        li {
-                            margin: 4px 0;
-                        }
-                    """)
-            label = QLabel(html_content, frame)
-            label.setTextFormat(Qt.TextFormat.RichText)
-            label.setWordWrap(True)
-            label.setOpenExternalLinks(True)
-            layout = QVBoxLayout(frame)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(label)
-            return frame
-
-        # 1️⃣ Fairness is multi-layered
-        fairness_html = """
-                <p><b>Fairness is multi-layered</b> in that it needs to account for various aspects, 
-                such as technical, social, legal, and ethical. MAI-BIAS is meant for AI system creators, 
-                so it focuses on the technical aspects. However, these make up only a part of the problem; 
-                we recommend close cooperation with other disciplines to properly address the issue of fairness:
-                </p>
-
-                💡 Consult with legal experts to ensure compliance with laws and regulations.
-                <br>💡 Work with social scientists to gather interests of 
-                stakeholders and ensure that they are adequately represented and integrated.
-                <br>💡 Combine research principles with fairness concerns. This requires co-designing AI systems with stakeholders.</li>
-                <br><br>
-                
-                <a href='https://github.com/mammoth-eu/FairnessDefinitionGuide' target='_blank'>AI fairness definition guide</a><br/>
-                <span>Learn more about an interdisciplinary approach to fairness in this guide by the MAMMOth project.</span>
-                <br>
-                <a href='https://www.trail-ml.com/eu-ai-act-compliance-checker' target='_blank'>Am I affected by the EU AI Act?</a><br/>
-                <span>Visit this self-assessment checklist by the third-party European AI Alliance.</span>
-                <br>
-                <b>A social science perspective</b>
-                <br>
-                AI “bias” originates from historical and present social inequalities 
-                and systems of oppression at the expense of marginalized groups, which should be understood 
-                in your domain.
-                """
-        """
-                Stakeholders include individuals or social groups who might be positively or negatively affected 
-                by AI, like developers, users, profiting organizations, policymakers, 
-                and vulnerable groups who might be discriminated against by its use. They may also include product 
-                owners that drive main technical specifications, such as parent or funding organizations."""
-        # info_container.addWidget(make_info_box(fairness_html))
-
         self.main_layout.addLayout(info_container)
-
         self.setLayout(self.main_layout)
         self.tag_descriptions = tag_descriptions
-
         self.hidden = set()
         self.refresh_dashboard()
 
@@ -414,8 +333,7 @@ class Dashboard(Styled):
             sep_lbl = QLabel(cat, self)
             sep_lbl.setStyleSheet("""
                 QLabel {
-                    font-weight: 600;
-                    font-size: 14px;
+                    font-size: 18px;
                     color: #444;
                     background: white;
                     padding: 4px 8px;
@@ -461,12 +379,13 @@ class Dashboard(Styled):
             card_widget.setStyleSheet(f"""
                 QWidget#ResultCard {{
                     background: white;
-                    border: 1px solid {card_border};
-                    border-radius: 10px;
+                    border-left: 3px solid {card_border};
+                    border-radius: 0px;
                 }}
                 QWidget#ResultCard:hover {{
-                    background: {card_hover};
-                    border: 2px solid {card_border};
+                    background: #EEEEEE;
+                    border-left: 4px solid {card_border};
+                    border-radius: 0px;
                 }}
             """)
 
@@ -485,7 +404,7 @@ class Dashboard(Styled):
                 card_widget,
             )
             desc_label.setStyleSheet(
-                f"font-size: 13px; font-weight: bold; color: {card_border}; border: none; background: none;"
+                f"font-size: 13px; font-weight: bold; color: black; border: none; background: none;"
             )
             desc_label.setFixedHeight(26)
             desc_label.setFixedWidth(360)
@@ -643,10 +562,10 @@ class Dashboard(Styled):
             clear_search_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             clear_search_btn.setStyleSheet("""
                 QPushButton {
-                    background: #7c2d12;         /* Very dark orange background */
-                    border-radius: 7px;
-                    border: 1.1px solid #ea580c; /* Strong orange border */
-                    color: #fde68a;              /* Light orange text for contrast */
+                    background: #7c2d12;
+                    border-radius: 0px;
+                    border-left: 3px solid #ea580c; /* Strong orange border */
+                    color: #fde68a;
                     font-size: 13px;
                     font-weight: 500;
                     padding: 6px 22px;
@@ -654,7 +573,7 @@ class Dashboard(Styled):
                 QPushButton:hover {
                     background: #a53f13;         /* Brighter/darker orange on hover */
                     color: #fff7ed;              /* Lighter text on hover */
-                    border: 1.4px solid #fb923c; /* Lighter orange border on hover */
+                    border-left: 4px solid #fb923c; /* Lighter orange border on hover */
                 }
             """)
 
@@ -696,13 +615,13 @@ class Dashboard(Styled):
                 narrow_card.setFixedSize(narrow_width, 35)
                 narrow_card.setStyleSheet(f"""
                     QWidget#NarrowResultCard {{
-                        background: {narrow_bg};
-                        border: 1.8px solid {narrow_border};
-                        border-radius: 7px;
+                        background: white;
+                        border-left: 3px solid {narrow_border};
+                        border-radius: 0px;
                     }}
                     QWidget#NarrowResultCard:hover {{
-                        border: 2.2px solid {narrow_border};
-                        background: {self.highlight_color(narrow_bg)};
+                        border-left: 4px solid {narrow_border};
+                        background: #EEEEEE;
                     }}
                 """)
                 narrow_layout = QGridLayout(narrow_card)
@@ -711,7 +630,7 @@ class Dashboard(Styled):
 
                 # --- Special title and date ---
                 info_label = QLabel(
-                    "<b>{}</b> <span style='color:#666'>{}</span>".format(
+                    "{} <span style='color:#666'>{}</span>".format(
                         (
                             get_special_title(run)
                             if run["status"] == "completed"
@@ -734,11 +653,7 @@ class Dashboard(Styled):
                     partial(lambda i=index: self.delete_item(i, confirm=False)),
                     size=25,
                 )
-                narrow_layout.addWidget(
-                    delete_button,
-                    0,
-                    1,
-                )
+                narrow_layout.addWidget(delete_button, 0, 1)
 
                 def narrow_card_mouse_press(event, i=index, r=run):
                     if event.button() == Qt.MouseButton.LeftButton:
@@ -756,8 +671,6 @@ class Dashboard(Styled):
                             self.edit_item(i)
 
                 narrow_card.mousePressEvent = narrow_card_mouse_press
-
-                # Add to grid (use next col/row, just like normal cards)
                 grid_layout.addWidget(narrow_card, row, col)
                 col += 1
                 if col >= max_cols:
