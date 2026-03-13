@@ -28,6 +28,7 @@ class CardButton(QFrame):
     • The widget can be marked *checked* – the background becomes #d0d0d0.
     • Emits ``clicked(str)`` when the title area (not the info button) is pressed.
     """
+
     clicked = Signal(str)
 
     # -----------------------------------------------------------------
@@ -52,8 +53,7 @@ class CardButton(QFrame):
         self.setObjectName("CardFrame")
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             QFrame#CardFrame {
                 border: 0px solid white;
                 border-radius: 8px;
@@ -67,8 +67,7 @@ class CardButton(QFrame):
             QFrame#CardFrame[checked="true"] {
                 background-color: #d0d0d0;   /* colour used for a selected card */
             }
-            """
-        )
+            """)
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         title_row = QHBoxLayout()
@@ -114,8 +113,7 @@ class CardButton(QFrame):
         self.info_btn.setToolTip("Show module information")
         self.info_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.info_btn.setFixedSize(QSize(24, 24))
-        self.info_btn.setStyleSheet(
-            """
+        self.info_btn.setStyleSheet("""
             QPushButton {
                 border: none;
                 background: transparent;
@@ -124,10 +122,9 @@ class CardButton(QFrame):
             QPushButton:hover {
                 color: #5555ff;
             }
-            """
-        )
+            """)
         self.info_btn.setText("\u2139")
-        title_row.addWidget(self.title_label, 1)   # stretch → fill available width
+        title_row.addWidget(self.title_label, 1)  # stretch → fill available width
         title_row.addWidget(self.info_btn)
         main_layout.addLayout(title_row)
         self.title_label.mousePressEvent = lambda e: self.clicked.emit(self.name)
@@ -147,16 +144,14 @@ class CardButton(QFrame):
         web.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
 
         # Build HTML – we want a **white** page, so the body background is overridden.
-        html = prepare_html(
-            f"""
+        html = prepare_html(f"""
             <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
                   rel="stylesheet">
             <style>
                 html, body {{ background-color: white !important; margin:0; padding:0; }}
             </style>
             {self.full_html}
-            """
-        )
+            """)
         web.setHtml(html, QUrl("file:///"))
         vbox.addWidget(web)
         btn_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Close, dlg)
@@ -167,7 +162,7 @@ class CardButton(QFrame):
     def setChecked(self, checked: bool):
         """Mark the card as checked / unchecked."""
         if self._checked == checked:
-            return                       # no work needed
+            return  # no work needed
 
         self._checked = checked
         self.setProperty("checked", "true" if checked else "false")
