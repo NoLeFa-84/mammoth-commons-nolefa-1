@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
         )
         self.stacked_widget.addWidget(
             SelectAnalysis(
-                "Please select what you want to investigate.",
+                "What to investigate?",
                 self.stacked_widget,
                 registry.analysis_methods,
                 active_run,

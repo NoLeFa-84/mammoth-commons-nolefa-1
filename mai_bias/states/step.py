@@ -30,6 +30,38 @@ import mammoth_commons.externals
 from .style import Styled
 from .vertical_selector import ScrollSelector
 
+from PySide6.QtGui import QIcon, QPixmap, QPainter
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtCore import QByteArray, QSize
+
+
+def svg_icon(svg_data: str, size: QSize = QSize(48, 48)) -> QIcon:
+    """Create a QIcon from an SVG string."""
+    renderer = QSvgRenderer(QByteArray(svg_data.encode()))
+    pix = QPixmap(size)
+    pix.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pix)
+    renderer.render(painter)
+    painter.end()
+    return QIcon(pix)
+
+
+LOADING_SVG = """
+<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="25" cy="25" r="20" fill="none" stroke="#555"
+          stroke-width="5" stroke-linecap="round"
+          stroke-dasharray="31.4 31.4">
+    <animateTransform attributeName="transform"
+                      type="rotate"
+                      from="0 25 25"
+                      to="360 25 25"
+                      dur="1s"
+                      repeatCount="indefinite"/>
+  </circle>
+</svg>
+"""
+
 
 def save_all_runs(path, runs):
     copy_runs = list()
@@ -84,7 +116,9 @@ class Step(Styled):
         layout = QVBoxLayout()
 
         self.label = QLabel(step_name, self)
-        self.label.setStyleSheet("font-size:32px;font-weight:bold")
+        self.label.setStyleSheet(
+            "font-size:32px;font-weight:bold;margin-bottom:10px;margin-top:30px"
+        )
         layout.addWidget(self.label, 0)
 
         selector_row = QWidget()
@@ -148,13 +182,6 @@ class Step(Styled):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         layout.addWidget(selector_row, 1)
-        # selector_row.setMinimumHeight(400)
-        # layout.addStretch(2)
-
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setStyleSheet("color:#444;margin:6px 0;")
-        layout.addWidget(separator, 0)
 
         content_layout = QVBoxLayout()
         self.param_form = QFormLayout()
@@ -181,10 +208,6 @@ class Step(Styled):
         content_layout.addLayout(container_row)
 
         layout.addLayout(content_layout, 0)
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setStyleSheet("color:#444;margin:6px 0;")
-        content_layout.addWidget(separator, 0)
         content_layout.addSpacing(32)
 
         button_layout = QHBoxLayout()
@@ -665,12 +688,12 @@ class Step(Styled):
 
     def select_dir(self, input_field):
         path = QFileDialog.getExistingDirectory(self, "Select directory")
-        if path:
+        if path and path[0]:
             input_field.setText(path)
 
     def select_path(self, input_field):
         path = QFileDialog.getOpenFileName(self, "Select file")
-        if path:
+        if path and path[0]:
             input_field.setText(path[0])
 
     def show_help_popup(self, param_name, description):
