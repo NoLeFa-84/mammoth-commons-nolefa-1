@@ -5,20 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAI-BIAS portal</title>
     <style>
-        .scale-wrap {
-            width: 100%;
-            overflow: hidden;
-            max-height: 80%;
-        }
-        .scale-wrap iframe {
-            transform: scale(0.5);
-            transform-origin: top left;
-            width: 200%;
-            height: 1000px;
-            border: 0;
-        }
-
-
         /* (Keep your existing CSS styles here) */
         /* --- General Styles --- */
         :root {
@@ -54,6 +40,7 @@
 
         .nav-container {
             max-width: 1100px;
+            width: 90%:
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
@@ -364,7 +351,8 @@
         <section>
             <h2>Model</h2>
             <p>Moving to next steps shows a progress bar about loading and -the first time you run each module-
-            installation of missing software. You will be notified about errors like missing files, but otherwise
+            installation of missing software. You will be notified about issues like missing files (in which case you
+            can fix them and try again), but if everything is alright
             the toolkit moves to the next screen for selecting an AI model.</p>
             <p>Similarly to before, we need to <b>click</b> on the kind of model we are analyzing.
             Options like the preselected default can help analyze plain datasets by
@@ -399,9 +387,11 @@
 
         <section>
             <h2>Results</h2>
-            <p>That's it! You are now seeing the outcomes of fairness analysis. This a summary judgement
-            that tells you whether -or how many- biases have been found alongside some basic information
-            about the technologies and sensitive attributes involved. At the bottom you can find various
+            <p>That's it! You are now seeing the outcomes of fairness analysis. This starts with a short
+            phrase that is summary judgment of whether -or how many- biases have been found. This is presented
+            alongside some information about the sensitive attributes analyzed, as well as the date and the
+            main technologies involved in the analysis itself.</p>
+            <p>Underneath, you can find various
             tabs that contain more details, and are suited for different kinds of users. </p>
             <p>Use the <code>save and share</code> button on top to export the analysis outcome as a
             file. That can be shared with others to open in their browser.</p>
