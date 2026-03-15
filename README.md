@@ -154,8 +154,6 @@ through *brew*.
 ``` 
 </details>
 
-## 🖥️ [Run in terminal](README_terminal.md)
- 
 ## ☁️ [Deploy in a server](https://github.com/mammoth-eu/mammoth-toolkit-releases)
 
 ## 🦣 [Website](https://mammoth-eu.github.io/mammoth-commons/)
