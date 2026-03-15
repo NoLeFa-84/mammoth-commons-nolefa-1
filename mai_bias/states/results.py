@@ -154,10 +154,10 @@ class Results(Styled):
             )
             return
         run = self.runs[-1]
-        # DO NOT prepare_html AS WE NEED TO AVOID THE CACHE FOR TRANSPORTABILITY
         html_to_save = run.get("analysis", {}).get(
             "return", "<p>No results available.</p>"
         )
+        html_to_save = prepare_html(html_to_save, cache_copy_if_possible=False)
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             caption="Save analysis as a file that you can share.",

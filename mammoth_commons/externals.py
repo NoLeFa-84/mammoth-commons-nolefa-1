@@ -1,6 +1,8 @@
 import urllib.request
 import urllib.parse
 import os
+import base64
+import mimetypes
 from typing import Any
 
 from mammoth_commons.datasets import Labels
@@ -190,6 +192,15 @@ def _toextract(path):
 
 
 def prepare(url, cache=".cache"):
+    if "/icons/" in url:
+        from importlib.resources import files
+        path = str(files("mai_bias.icons").joinpath(url.split("/icons/")[1].split("?")[0]))
+        if os.path.exists(path):
+            return path
+        else:
+            raise Exception("Could not find icon path: "+path)
+
+
     url = url.replace("\\", "/")
     if (
         ".zip/" in url
@@ -219,8 +230,9 @@ def to_file_url(path: str) -> str:
     encoded = urllib.parse.quote(path)
     return f"file:///{encoded}"
 
+__failed_to_parse = set()
 
-def prepare_html(html: str) -> str:
+def prepare_html(html: str, cache_copy_if_possible: bool=True) -> str:
     pattern = r'(src|href)=(["\'])([^"\']+)\2'
 
     def repl(match):
@@ -235,12 +247,33 @@ def prepare_html(html: str) -> str:
             or ".jpg" in url
             or "githubusercontent" in url
         ):
+            if url in __failed_to_parse:
+                return ""
+            file_url = url
             try:
-                cached_path = prepare(url)
-                file_url = to_file_url(cached_path)
+                if "/icons/" in url:
+                    from importlib.resources import files
+
+                    file_url = str(
+                        files("mai_bias.icons").joinpath(
+                            url.split("/icons/")[1].split("?")[0]
+                        )
+                    )
+                else:
+                    if not cache_copy_if_possible:
+                        return match.group(0)
+                    file_url = prepare(url)
+                with open(file_url, "rb") as f:
+                    data = f.read()
+                if ".png" in url or ".jpg" in url: # hardcode images
+                    b64_data = base64.b64encode(data).decode("utf-8")
+                    mime_type, _ = mimetypes.guess_type(file_url)
+                    return f"{attr}={quote}data:{mime_type};base64,{b64_data}{quote}"
+                file_url = to_file_url(prepare(url))
                 return f"{attr}={quote}{file_url}{quote}"
             except Exception as e:
-                print("prepare_html WARNING:", e)
+                __failed_to_parse.add(url)
+                print("Failed to cache resource '"+file_url +"': " + str(e))
                 return match.group(0)  # keep original
         return match.group(0)
 

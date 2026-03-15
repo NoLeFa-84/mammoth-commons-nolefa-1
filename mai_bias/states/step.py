@@ -360,13 +360,11 @@ class Step(Styled):
         cancel_button = QPushButton("Cancel", dialog)
         cancel_button.clicked.connect(cancel)
         layout.addWidget(cancel_button)
-
         confirm_button = QPushButton("Done", dialog)
         confirm_button.clicked.connect(
             lambda: self.set_sensitive_values(dialog, list_widget, input_field)
         )
         layout.addWidget(confirm_button)
-
         dialog.setLayout(layout)
         dialog.exec()
 
@@ -532,6 +530,7 @@ class Step(Styled):
             self.last_url = input_widget
 
             file_button = QPushButton("...")
+            # file_button.setIcon(svg_icon(LOADING_SVG))
             file_button.setToolTip("Navigate")
             file_button.setFixedSize(30, 20)
             file_button.setStyleSheet(f"""

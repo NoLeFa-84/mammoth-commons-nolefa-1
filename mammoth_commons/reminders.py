@@ -15,11 +15,11 @@ logo_mmm_fair = """<img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main
 alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>"""
 logo_aif360 = """<img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
 alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>"""
-logo_fairbench = """<img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" 
+logo_fairbench = """<img src="https:///icons/fairbench.png" 
 alt="Based on FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>"""
 logo_vbmitigator = """<img src="https://github.com/mever-team/vb-mitigator/blob/main/assets/vb-mitigator%20logo_250.png?raw=true"
 alt="Based on vb-mitigator" style="float: left; margin-right: 5px; height: 36px;"/>"""
-logo_mai_bias = """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/mai_bias/logo.png?raw=true"
+logo_mai_bias = """<img src="https:///icons/mai_bias.png" 
 alt="Produced with MAI‑BIAS"
-style="float:left;margin-right:5px;height:32px;background:#fff;border-radius:50%;">
+style="float:left;margin-right:5px;height:36px;">
 """

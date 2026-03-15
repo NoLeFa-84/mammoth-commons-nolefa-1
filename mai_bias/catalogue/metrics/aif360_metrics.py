@@ -11,7 +11,6 @@ import json
 
 
 def render_metric_bars(rows, sensitive):
-    # (unchanged original function)
     constant_metrics = []
     varying_metrics = []
     for row in rows:
@@ -37,8 +36,8 @@ def render_metric_bars(rows, sensitive):
             try:
                 val = float(val)
             except:
-                val = None
-            chart_data.append({"metric": metric, "group": attr, "value": val})
+                val = math.nan
+            chart_data.append({"metric": metric, "group": attr, "value": val if not math.isnan(val) else 0})
 
     data_json = json.dumps(chart_data)
 
@@ -60,7 +59,7 @@ def render_metric_bars(rows, sensitive):
 
     return render_constant_table() + f"""
 <div id="chart-container"></div>
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
 (function() {{
     const data = {data_json};

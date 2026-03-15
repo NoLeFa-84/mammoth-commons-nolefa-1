@@ -62,10 +62,10 @@ class DatasetLoaderThread(QThread):
 
             self.finished_success.emit(self.pipeline)
         except Exception as e:
-            traceback.print_exception(e)
+            # traceback.print_exception(e)
             if not self._is_canceled:
                 self.pipeline["status"] = "failed"
-                traceback.print_exception(e)
+                # traceback.print_exception(e)
                 self.finished_failure.emit(str(e))
             else:
                 self.mutex.lock()
