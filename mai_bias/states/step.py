@@ -36,7 +36,6 @@ from PySide6.QtCore import QByteArray, QSize
 
 
 def svg_icon(svg_data: str, size: QSize = QSize(48, 48)) -> QIcon:
-    """Create a QIcon from an SVG string."""
     renderer = QSvgRenderer(QByteArray(svg_data.encode()))
     pix = QPixmap(size)
     pix.fill(Qt.GlobalColor.transparent)
@@ -99,7 +98,6 @@ def load_all_runs(path):
 
 
 def format_name(name):
-    """Format parameter names for better display."""
     return name.replace("_", " ").capitalize()
 
 
@@ -136,9 +134,7 @@ class Step(Styled):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
 
-        icon_path = prepare(
-            "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/params.png?raw=true"
-        )
+        icon_path = prepare("https:///icons/params.png")
         icon = QIcon(QPixmap(icon_path))
 
         self.param_toggle_button = QToolButton(self)
@@ -155,9 +151,7 @@ class Step(Styled):
         self.param_toggle_button.clicked.connect(self.toggle_param_visibility)
         self.param_toggle_button.hide()
 
-        icon_path = prepare(
-            "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true"
-        )
+        icon_path = prepare("https:///icons/warning.png")
         icon = QIcon(QPixmap(icon_path))
         self.warnings_toggle_button = QToolButton(self)
         self.warnings_toggle_button.setCheckable(True)
@@ -294,6 +288,7 @@ class Step(Styled):
         )
 
     def toggle_param_visibility(self):
+        self.direct_save()
         self.show_all_params = self.param_toggle_button.isChecked()
         self.update_param_form(self.dataset_selector.currentText())
 

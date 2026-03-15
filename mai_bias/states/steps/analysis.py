@@ -146,8 +146,11 @@ class SelectAnalysis(Step):
         )
         super().showEvent(event)
 
-    def next(self):
+    def direct_save(self):
         self.save("analysis")
+
+    def next(self):
+        self.direct_save()
         pipeline = self.runs[-1]
 
         self.loading_message = QMessageBox(self)

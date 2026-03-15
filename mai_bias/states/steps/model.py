@@ -132,8 +132,11 @@ class SelectModel(Step):
         )
         super().showEvent(event)
 
-    def next(self):
+    def direct_save(self):
         self.save("model")
+
+    def next(self):
+        self.direct_save()
         save_all_runs("history.json", self.dataset)
         pipeline = self.runs[-1]
 

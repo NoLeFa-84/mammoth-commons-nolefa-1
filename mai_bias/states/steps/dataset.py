@@ -103,8 +103,11 @@ class SelectDataset(Step):
         self.setStyleSheet("color:black;background-color:white")
         popup.exec()
 
-    def next(self):
+    def direct_save(self):
         self.save("dataset")
+
+    def next(self):
+        self.direct_save()
         save_all_runs("history.json", self.dataset)
 
         self.loading_message = QMessageBox(self)
