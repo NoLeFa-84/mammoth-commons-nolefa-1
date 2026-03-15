@@ -92,20 +92,24 @@ def simplified_formatter(
     return f"""
         <style>
             .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
+            .banner-container {{
+                position: relative;
+                border-radius: 12px;
+                margin-bottom: 25px;
+            }}
             .banner {{
-                width: calc(100%-40px);
+                width: 100%;
                 padding: 200px 0px;
                 font-weight: 700;
                 text-align: center;
                 color: white;
                 border-radius: 12px;
-                margin-bottom: 25px;
-                justify-content: center;
                 font-size: 64px;
             }}
             .banner.fair {{ background: #2e8b57; }}
             .banner.biased {{ background: #c0392b; }}
             .banner.report {{ background: #7f8c8d; }}
+            body {{margin: 20px}}
             .pill-btn {{
                 width:100%; text-align:center; padding: 10px 18px;
                 background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc;
@@ -126,8 +130,20 @@ def simplified_formatter(
             .tablinks.active {{ background-color: #aaa; }}
             .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
             .tabcontent.active {{ display: block; }}
-            .technology {{position:absolute;left:20px;top:420px;font-size:24px;color:white}}
-            .subtitle {{position:absolute;left:20px;top:380px;font-size:24px;color:white}}
+            .subtitle {{
+                position: absolute;
+                left: 20px;
+                bottom: 55px;
+                font-size: 24px;
+                color: white;
+            }}
+            .technology {{
+                position: absolute;
+                left: 20px;
+                bottom: 15px;
+                font-size: 24px;
+                color: white;
+            }}
         </style>
 
         <script>
@@ -164,7 +180,11 @@ def simplified_formatter(
                 }}
             }});
         </script>
-        <h1 class="banner {outcome}">{title}</h1><div class="subtitle">{subtitle}</div><div class="technology">{technology}</div>
+        <div class="banner-container">
+            <h1 class="banner {outcome}">{title}</h1>
+            <div class="subtitle">{subtitle}</div>
+            <div class="technology">{technology}</div>
+        </div>
         <div class="pill-buttons">
             <div class="pill-btn" data-target="whatis">What is this?
             <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>

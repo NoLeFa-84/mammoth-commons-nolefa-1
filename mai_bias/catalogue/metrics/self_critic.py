@@ -14,8 +14,7 @@ from mammoth_commons.exports import HTML
 def llm_audit(
     dataset: Text, model: LLM, sensitive: list[str], chain_of_votes: int = 10
 ) -> HTML:
-    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/ai.png?raw=true" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>
-
+    """<img src="https:///icons/ai.png" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>use an LLM as text auditor</h3>
 
     This assessment methodology sets an LLM at the role of fairness auditor and asks it to provide

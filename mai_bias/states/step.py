@@ -253,6 +253,19 @@ class Step(Styled):
         if dataset_name not in self.dataset_loaders:
             return
         loader = self.dataset_loaders[dataset_name]
+
+        # repopulate defaults based on selection
+        self.defaults = {}
+        if self.runs:
+            for step_key in ["dataset", "model", "analysis"]:
+                step_data = self.runs[-1].get(step_key)
+                if step_data and step_data.get("module") == dataset_name:
+                    params = step_data.get("params", {})
+                    if params:
+                        self.defaults = dict(params)
+                    break
+
+        # create all widgets
         self.last_url = None
         self.last_delimiter = None
         self.count_hidden_params = 0
@@ -530,7 +543,6 @@ class Step(Styled):
             self.last_url = input_widget
 
             file_button = QPushButton("...")
-            # file_button.setIcon(svg_icon(LOADING_SVG))
             file_button.setToolTip("Navigate")
             file_button.setFixedSize(30, 20)
             file_button.setStyleSheet(f"""

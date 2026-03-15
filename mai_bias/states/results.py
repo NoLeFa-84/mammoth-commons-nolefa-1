@@ -187,7 +187,7 @@ class Results(Styled):
         run = self.runs[-1]
         results = run.get("analysis", dict()).get("return", "No results available.")
         with open("temp.html", "w", encoding="utf-8") as file:
-            file.write(results)
+            file.write(prepare_html(results))
         try:
             import webbrowser
 
