@@ -120,18 +120,14 @@ class Dashboard(Styled):
 
         # --- LOGO CARD ---
         logo_card = QPushButton(self)
+        logo_card.setText("\n\n\n\n\n\nStart new MAI-BIAS analysis")
         logo_card.setCursor(Qt.CursorShape.PointingHandCursor)
-        logo_card.setToolTip("New analysis")
         logo_card.clicked.connect(self.create_new_item)
         logo_card.setStyleSheet(f"""
-            QPushButton {{background-color: white; border: 2px dashed #0369a1; border-radius: 10px; padding: 0px;}}
-            QPushButton:hover {{background-color: #d3ecfa; border: 2px solid #0369a1;}}
+            QPushButton {{background-color: white; border-left: 3px solid #0369a1; border-radius: 0px; padding: 0px;}}
+            QPushButton:hover {{background-color: #d3ecfa; border-left: 4px solid #0369a1;}}
             """)
-        logo_pixmap = QPixmap(
-            prepare(
-                "https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_bias/logo.png"
-            )
-        )
+        logo_pixmap = QPixmap(prepare("https:///icons/mai_bias.png"))
         # Fit logo to ~60% width of card, keep aspect
         img_max_width = int(1100 * 0.60)
         img_max_height = int(40 * 2)
@@ -288,14 +284,10 @@ class Dashboard(Styled):
             latest_per_group[group_key] = runs_sorted
 
         # --- Card layout constants ---
-        card_width = 1100
+        card_width = (self.width() or 1200) - 80
         card_height = 50
         card_spacing = 6
-        # Responsive cols
-        window_width = self.scroll_area.viewport().width() or 700
-        max_cols = max(1, window_width // (card_width + card_spacing))
-        if len(latest_per_group) == 1:
-            max_cols = 1
+        max_cols = 1
 
         current_category = None
         grid_layout = QGridLayout()
@@ -357,6 +349,7 @@ class Dashboard(Styled):
             latest_index, latest_run = runs[0]
             _maybe_add_separator(_category_from_ts(latest_run.get("timestamp", "")))
             card_widget = QWidget(self)
+            card_widget.setCursor(Qt.CursorShape.PointingHandCursor)
             card_widget.setObjectName("ResultCard")
             card_widget.setFixedSize(card_width, card_height)
             special = get_special_title(latest_run).lower()
@@ -577,6 +570,7 @@ class Dashboard(Styled):
 
                 narrow_card = QWidget(self)
                 narrow_card.setObjectName("NarrowResultCard")
+                narrow_card.setCursor(Qt.CursorShape.PointingHandCursor)
                 narrow_card.setFixedSize(card_width, 35)
                 narrow_card.setStyleSheet(f"""
                     QWidget#NarrowResultCard {{
