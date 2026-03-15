@@ -4,9 +4,7 @@ os.environ["QT_QUICK_BACKEND"] = "software"
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
 # if "XDG_RUNTIME_DIR" not in os.environ:
 #     os.environ["XDG_RUNTIME_DIR"] = "/tmp"
-
 from PySide6.QtWidgets import QApplication, QMainWindow
-import sys
 from mai_bias.states.dashboard import Dashboard
 from mai_bias.states.step import load_all_runs
 from mai_bias.states.steps.dataset import SelectDataset
@@ -14,7 +12,6 @@ from mai_bias.states.steps.model import SelectModel
 from mai_bias.states.steps.analysis import SelectAnalysis
 from mai_bias.states.results import Results
 from mai_bias.backend.loaders import registry
-from mammoth_commons.externals import prepare_html
 from PySide6.QtWidgets import QStackedWidget, QWidget, QGraphicsOpacityEffect
 from PySide6.QtCore import (
     QEasingCurve,
@@ -24,15 +21,7 @@ from PySide6.QtCore import (
     Signal,
 )
 from PySide6.QtGui import QColor
-
-"""from PySide6.QtGui import QSurfaceFormat
-from PySide6.QtWebEngineCore import QWebEngineSettings
-fmt = QSurfaceFormat()
-fmt.setVersion(3, 3)  # OpenGL 3.3 or higher
-fmt.setProfile(QSurfaceFormat.CoreProfile)
-fmt.setDepthBufferSize(24)
-QSurfaceFormat.setDefaultFormat(fmt)
-"""
+import sys
 
 items = load_all_runs("history.json")
 
@@ -199,29 +188,34 @@ class MainWindow(QMainWindow):
                 | registry.analysis_methods
             ).items()
         }
-        for description in tags.values():
-            prepare_html(description)
         self.setWindowTitle("MAI-BIAS local runner")
         self.setGeometry(100, 100, 1200, 900)
         self.stacked_widget = SlidingStackedWidget()
-        self.setStyleSheet("color:black")
         active_run = [None]
         self.stacked_widget.addWidget(
             Dashboard(self.stacked_widget, items, tags, active_run)
         )
         self.stacked_widget.addWidget(
             SelectDataset(
-                "Data", self.stacked_widget, registry.dataset_loaders, active_run, items
+                "What kind of data do you have?",
+                self.stacked_widget,
+                registry.dataset_loaders,
+                active_run,
+                items,
             )
         )
         self.stacked_widget.addWidget(
             SelectModel(
-                "Model", self.stacked_widget, registry.model_loaders, active_run, items
+                "What kind of model do you have?",
+                self.stacked_widget,
+                registry.model_loaders,
+                active_run,
+                items,
             )
         )
         self.stacked_widget.addWidget(
             SelectAnalysis(
-                "Analysis method",
+                "What to investigate?",
                 self.stacked_widget,
                 registry.analysis_methods,
                 active_run,
