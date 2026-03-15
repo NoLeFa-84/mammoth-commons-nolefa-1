@@ -189,6 +189,7 @@ class Step(Styled):
         left_col = QVBoxLayout()
         label = QLabel("Parameters", self)
         label.setStyleSheet("font-size:32px;font-weight:bold")
+        self.param_label = label
         left_col.addWidget(label)
         left_col.addWidget(self.form_widget)
         right_col = QHBoxLayout()
@@ -263,6 +264,7 @@ class Step(Styled):
         self.last_url = None
         self.last_delimiter = None
         self.count_hidden_params = 0
+        count_nonhidden_params = 0
         for name, param_type, default, description in loader["parameters"]:
             can_be_hidden = name != "sensitive" and default != "" and default != "None"
             if can_be_hidden:
@@ -277,10 +279,9 @@ class Step(Styled):
             if can_be_hidden and not self.show_all_params:
                 param_widget.hide()
             self.param_form.addRow(param_widget)
-        if self.count_hidden_params:
-            self.param_toggle_button.show()
-        else:
-            self.param_toggle_button.hide()
+            count_nonhidden_params += 1
+        self.param_label.setVisible(bool(count_nonhidden_params))
+        self.param_toggle_button.setVisible(bool(self.count_hidden_params))
         self.param_toggle_button.setText(
             "hide details"
             if self.show_all_params

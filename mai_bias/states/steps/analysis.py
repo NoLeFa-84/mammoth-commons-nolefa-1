@@ -155,9 +155,7 @@ class SelectAnalysis(Step):
 
         self.loading_message = QMessageBox(self)
         self.loading_message.setWindowTitle("Running fairness analysis")
-        self.loading_message.setText(
-            "Please wait while the fairness analysis is running..."
-        )
+        self.loading_message.setText("The fairness analysis is running...")
         self.loading_message.setStandardButtons(QMessageBox.StandardButton.Cancel)
         self.loading_message.setModal(True)
         self.loading_message.button(QMessageBox.StandardButton.Cancel).clicked.connect(
