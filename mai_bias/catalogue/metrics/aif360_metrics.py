@@ -37,7 +37,13 @@ def render_metric_bars(rows, sensitive):
                 val = float(val)
             except:
                 val = math.nan
-            chart_data.append({"metric": metric, "group": attr, "value": val if not math.isnan(val) else 0})
+            chart_data.append(
+                {
+                    "metric": metric,
+                    "group": attr,
+                    "value": val if not math.isnan(val) else 0,
+                }
+            )
 
     data_json = json.dumps(chart_data)
 

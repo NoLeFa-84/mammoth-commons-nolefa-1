@@ -12,7 +12,7 @@ from mammoth_commons.reminders import logo_fairbench
     version="v054",
     python="3.13",
     packages=("fairbench", "pandas", "onnxruntime", "ucimlrepo", "pygrank"),
-    logo=logo_fairbench
+    logo=logo_fairbench,
 )
 def interactive_report(
     dataset: Dataset,
