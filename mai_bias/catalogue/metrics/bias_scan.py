@@ -129,7 +129,7 @@ def bias_scan(
         outcome="fair" if counts == 0 else "biased",
         technology=logo_aif360 + "based on AIF360's bias scan",
         title_prefix=str(counts) if counts else "",
-        title=("No new biases" if counts == 0 else f"biased attributes")
+        title=("No new concerns" if counts == 0 else f"biased attributes")
         + compute_benefits(
             business_benefits, *align_predictions(raw_predictions, dataset.labels)
         ),

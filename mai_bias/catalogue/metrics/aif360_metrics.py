@@ -310,7 +310,7 @@ def aif360_metrics(
         "False Discovery Rate Ratio": 1.0,
         "False Omission Rate Ratio": 1.0,
         "False Omission Rate Difference": 0.0,
-        "False Positive Rate Ratio": 0.0,
+        "False Positive Rate Ratio": 1.0,
     }
     biases = {
         r["Metric"].lower()
@@ -323,7 +323,7 @@ def aif360_metrics(
         and abs(IDEAL_VALUES[r["Metric"]] - float(v)) > threshold
     }
     html_content = simplified_formatter(
-        outcome="biased" if "bias" in biases else "fair",
+        outcome="biased" if biases else "fair",
         technology=logo_aif360 + "based on AIF360 metrics",
         title_prefix=(
             (
