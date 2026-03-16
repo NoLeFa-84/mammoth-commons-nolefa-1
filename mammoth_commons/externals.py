@@ -12,7 +12,8 @@ import bz2
 import pathlib
 import shutil
 import re
-from typing import Union
+
+SEPARATOR = " --- "
 
 
 def get_import_list(code):
@@ -138,7 +139,7 @@ def compute_benefits(
         metric = (pred_cls == true_cls).mean()
     else:
         if pred_arr.shape[1] != 2:
-            return ""
+            raise Exception(f"Cannot compute {benefit} for non-binary predictions")
         tp = np.sum((pred_cls == 1) & (true_cls == 1))
         tn = np.sum((pred_cls == 0) & (true_cls == 0))
         fp = np.sum((pred_cls == 1) & (true_cls == 0))
@@ -155,7 +156,7 @@ def compute_benefits(
             raise Exception(f"Unknown benefit: {benefit}")
     percent = int(round(metric * 100))
     readable_name = benefit.lower()
-    return f" | {percent}% {readable_name}"
+    return f"{SEPARATOR}{percent}% {readable_name}"
 
 
 def fb_categories(it):

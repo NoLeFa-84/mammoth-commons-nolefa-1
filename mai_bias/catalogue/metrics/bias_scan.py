@@ -34,7 +34,7 @@ def bias_scan(
     business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
-    <h3>scan for biased attribute values or their intersections</h3>
+    <h3>scan for new biased attributes or attribute intersections</h3>
 
     <p>Use <a href="https://aif360.readthedocs.io" target="_blank">AIF360</a>
     to scans your dataset to estimate the most biased attributes or combinations of attributes.
@@ -128,7 +128,7 @@ def bias_scan(
     html_content = simplified_formatter(
         outcome="fair" if counts == 0 else "biased",
         technology=logo_aif360 + "based on AIF360's bias scan",
-        title=("No concerns" if counts == 0 else f"{counts} biased attributes")
+        title=("No new biases" if counts == 0 else f"{counts} biased attributes")
         + compute_benefits(
             business_benefits, *align_predictions(raw_predictions, dataset.labels)
         ),

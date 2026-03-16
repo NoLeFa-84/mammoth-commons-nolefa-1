@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QTimer
 from PySide6.QtCore import Qt, QUrl
 from datetime import datetime, timedelta
-from mammoth_commons.externals import prepare, prepare_html
+from mammoth_commons.externals import prepare, prepare_html, SEPARATOR
 from PySide6.QtGui import QPixmap, QDesktopServices
 from functools import partial
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -605,11 +605,11 @@ class Dashboard(Styled):
                 )
                 h_layout.addWidget(ts_lbl)
                 delete_button = self.new_action(
-                    "🗑",
-                    "#dc3545",
+                    "X",
+                    "#FFFFFF",
                     "Delete",
                     partial(lambda i=index: self.delete_item(i, confirm=False)),
-                    size=25,
+                    size=24,
                 )
                 h_layout.addWidget(delete_button)
 
@@ -678,6 +678,7 @@ class Dashboard(Styled):
 
 
 def get_special_title(run):
+    ret = ""
     try:
         match = re.search(
             r"<h1\b[^>]*>.*?</h1>",
@@ -685,7 +686,14 @@ def get_special_title(run):
             re.DOTALL,
         )
         if match:
-            return match.group().replace("h1", "span")
+            ret = match.group().replace("h1", "span")
     except Exception:
         pass
-    return ""
+    if run.get("analysis", {}).get("params", {}).get("sensitive", ""):
+        ret += (
+            SEPARATOR
+            + "Sensitive: <i>"
+            + run.get("analysis", {}).get("params", {}).get("sensitive", "")
+            + "</i>"
+        )
+    return ret

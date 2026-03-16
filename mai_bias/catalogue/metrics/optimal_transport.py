@@ -126,7 +126,7 @@ def optimal_transport(
         title=(
             f"{len(offenders)} biased distributions"
             if worst_distance >= threshold
-            else "No concerns about discrimination"
+            else "No discrimination concerns"
         )
         + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
