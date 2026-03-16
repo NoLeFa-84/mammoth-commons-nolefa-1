@@ -689,6 +689,7 @@ def get_special_title(run):
             ret = match.group().replace("h1", "span")
     except Exception:
         pass
+    ret = ret.replace("background:#f8f8cc;", ";")
     if run.get("analysis", {}).get("params", {}).get("sensitive", ""):
         ret += (
             SEPARATOR

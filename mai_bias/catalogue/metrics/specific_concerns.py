@@ -144,14 +144,14 @@ def specific_concerns(
         env=fb.export.Html(view=False, filename=None),
         depth=1 if isinstance(predictions, dict) else 0,
     )
+    value = report.flatten(True)[0]
     outcome = (
-        "Report"
-        if problematic_deviation == 0
-        else ("Fair" if report.flatten(True)[0] < problematic_deviation else "Biased")
+        "Fair" if value < problematic_deviation else "biased"
     ) + f" {base_measure.lower()}"  # " in {len(sensitive.branches())} protected groups"
 
     html_content = simplified_formatter(
         outcome=outcome.split(" ")[0].lower(),
+        title_prefix="" if value < problematic_deviation else f"{value*100:.0f}%",
         title=outcome + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",

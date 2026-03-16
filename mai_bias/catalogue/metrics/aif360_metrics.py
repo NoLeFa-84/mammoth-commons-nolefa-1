@@ -322,23 +322,24 @@ def aif360_metrics(
         and not math.isnan(v)
         and abs(IDEAL_VALUES[r["Metric"]] - float(v)) > threshold
     }
-    verdict = (
-        (
-            list(biases)[0][0].upper()
-            + list(biases)[0][1:]
-            + f" bias"  # " in {len(sensitive)} groups"
-        )
-        if len(biases) == 1
-        else (
-            f"{len(biases)} types of bias"  # " in {len(sensitive)} groups"
-            if len(biases)
-            else f"No concerns"  # " among {len(sensitive)} groups"
-        )
-    )
     html_content = simplified_formatter(
-        outcome="biased" if "bias" in verdict else "fair",
+        outcome="biased" if "bias" in biases else "fair",
         technology=logo_aif360 + "based on AIF360 metrics",
-        title=verdict + compute_benefits(business_benefits, y_pred, y_true),
+        title_prefix=(
+            (
+                list(biases)[0][0].upper() + list(biases)[0][1:]
+                if len(biases) == 1
+                else str(len(biases))
+            )
+            if biases
+            else ""
+        ),
+        title=(
+            " bias"
+            if len(biases) == 1
+            else ("types of bias" if len(biases) else "No concerns")
+        )
+        + compute_benefits(business_benefits, y_pred, y_true),
         subtitle=subtitle,
         about="<p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>"
         + (

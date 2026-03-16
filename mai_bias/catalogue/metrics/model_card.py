@@ -121,7 +121,8 @@ def model_card(
     }
     html_content = simplified_formatter(
         outcome="biased" if problematic else "fair",
-        title=(f"{len(problematic)} model biases" if problematic else "no concerns")
+        title_prefix=str(len(problematic)) if problematic else "",
+        title=(f"model biases" if problematic else "no concerns")
         + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",

@@ -68,7 +68,10 @@ def simplified_formatter(
     technology: str = "",
     warning: str = on_results,
     subtitle: str = None,
+    title_prefix: str = None,
 ):
+    if title_prefix:
+        title = f"<span style='border-radius:20px;background:#f8f8cc;padding:5px 10px;color:black;border:2px solid black'>{title_prefix}</span>&nbsp;{title}"
     EN_MONTHS = {
         1: "January",
         2: "February",

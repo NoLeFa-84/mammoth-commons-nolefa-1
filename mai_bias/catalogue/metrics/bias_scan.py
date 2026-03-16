@@ -128,7 +128,8 @@ def bias_scan(
     html_content = simplified_formatter(
         outcome="fair" if counts == 0 else "biased",
         technology=logo_aif360 + "based on AIF360's bias scan",
-        title=("No new biases" if counts == 0 else f"{counts} biased attributes")
+        title_prefix=str(counts) if counts else "",
+        title=("No new biases" if counts == 0 else f"biased attributes")
         + compute_benefits(
             business_benefits, *align_predictions(raw_predictions, dataset.labels)
         ),

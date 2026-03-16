@@ -191,11 +191,8 @@ def sklearn_audit(
     )
     html_content = simplified_formatter(
         outcome="biased" if problematic else "fair",
-        title=(
-            f"{len(problematic)} dataset biases"
-            if problematic
-            else "No dataset concerns"
-        ),
+        title_prefix=str(len(problematic)) if problematic else "",
+        title="dataset biases" if problematic else "No dataset concerns",
         subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
         about=f"""

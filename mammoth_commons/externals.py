@@ -13,7 +13,7 @@ import pathlib
 import shutil
 import re
 
-SEPARATOR = " --- "
+SEPARATOR = " <span style='width:4em'>&nbsp;</span> "
 
 
 def get_import_list(code):
@@ -156,7 +156,7 @@ def compute_benefits(
             raise Exception(f"Unknown benefit: {benefit}")
     percent = int(round(metric * 100))
     readable_name = benefit.lower()
-    return f"{SEPARATOR}{percent}% {readable_name}"
+    return f"{SEPARATOR}<span style='border-radius:20px;background:#f8f8cc;padding:5px 10px;color:black;border:2px solid black'>{percent}%</span> {readable_name}"
 
 
 def fb_categories(it):
