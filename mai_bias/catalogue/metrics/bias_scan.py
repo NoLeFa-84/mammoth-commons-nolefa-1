@@ -1,4 +1,9 @@
 from mammoth_commons.datasets import Dataset
+from mammoth_commons.externals import (
+    CommonClassificationBenefits,
+    compute_benefits,
+    align_predictions,
+)
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
 from mammoth_commons.integration import metric
@@ -26,6 +31,7 @@ def bias_scan(
     penalty: float = 0.5,
     scoring: Literal["Bernoulli", "Gaussian", "Poisson", "BerkJones"] = "Bernoulli",
     discovery: bool = True,
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
     <h3>scan for biased attribute values or their intersections</h3>
@@ -58,6 +64,7 @@ def bias_scan(
         penalty: A positive. The higher the penalty, the less complex the highest scoring subset that gets returned is, but penalties as small as 1.E-12 could also be acceptable to promote finding intersections of many attributes.
         scoring: The distribution used to compute p-values. Can be Bernoulli, Gaussian, Poisson, or BerkJones.
         discovery: Whether the scan should attempt to create a list of problematic attribute combinations in decreasing order of importance. That list will contain only non-overlapping attribute intersections.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
     import pandas as pd
     from aif360.sklearn.detectors import bias_scan as aif360bias_scan
@@ -66,7 +73,8 @@ def bias_scan(
         sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
     subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
 
-    predictions = pd.Series(model.predict(dataset, sensitive))
+    raw_predictions = model.predict(dataset, sensitive)
+    predictions = pd.Series(raw_predictions)
     dataset = dataset.to_csv(sensitive)
     penalty = float(penalty)
     text = ""
@@ -120,10 +128,9 @@ def bias_scan(
     html_content = simplified_formatter(
         outcome="fair" if counts == 0 else "biased",
         technology=logo_aif360 + "based on AIF360's bias scan",
-        title=(
-            "No concerns for attribute values"
-            if counts == 0
-            else f"{counts} attribute biases"
+        title=("No concerns" if counts == 0 else f"{counts} biased attributes")
+        + compute_benefits(
+            business_benefits, *align_predictions(raw_predictions, dataset.labels)
         ),
         subtitle=subtitle,
         about=f"""

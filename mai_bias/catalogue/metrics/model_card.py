@@ -2,7 +2,12 @@ from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
 from mammoth_commons.integration import metric
-from mammoth_commons.externals import fb_categories, align_predictions
+from mammoth_commons.externals import (
+    fb_categories,
+    align_predictions,
+    CommonClassificationBenefits,
+    compute_benefits,
+)
 from mammoth_commons.reminders import logo_fairbench
 from typing import List, Literal
 
@@ -24,6 +29,7 @@ def model_card(
     show_non_problematic: bool = False,
     min_group_size: int = 1,
     presentation: Literal["Numbers", "Bars"] = "Numbers",
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
     <h3>cover a broad picture of imbalances</h3>
@@ -60,6 +66,7 @@ def model_card(
         show_non_problematic: Determine whether deviations less than the problematic one should be shown or not. If they are shown, the coloring scheme is adjusted to identify problematic values as red.
         min_group_size: The minimum number of samples per group that should be considered during analysis - groups with less memers are ignored.
         presentation: Whether to focus on showing numbers or showing accompanying bars for easier comparison. Prefer a number comparison to avoid being influenced by comparisons between incomparable measure values.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
     # fb = importlib.import_module("fairbench")
     import fairbench as fb
@@ -114,11 +121,8 @@ def model_card(
     }
     html_content = simplified_formatter(
         outcome="biased" if problematic else "fair",
-        title=(
-            f"{len(problematic)} model biases for given dataset"
-            if problematic
-            else "no concerns"
-        ),
+        title=(f"{len(problematic)} model biases" if problematic else "no concerns")
+        + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
         about=f"""

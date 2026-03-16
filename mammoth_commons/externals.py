@@ -3,7 +3,7 @@ import urllib.parse
 import os
 import base64
 import mimetypes
-from typing import Any
+from typing import Any, Literal
 
 from mammoth_commons.datasets import Labels
 from mammoth_commons.integration_callback import notify_progress, notify_end
@@ -12,6 +12,7 @@ import bz2
 import pathlib
 import shutil
 import re
+from typing import Union
 
 
 def get_import_list(code):
@@ -56,17 +57,21 @@ def get_model_layer_list(model):
         return []
 
 
-def align_predictions(predictions: Any, labels: Labels) -> (Labels, Labels | None):
+def align_predictions(
+    predictions: Any, labels: Labels | str
+) -> (Labels, Labels | None):
     if labels is None:
         assert isinstance(
             predictions, Labels
         ), "Internal error: align_predictions with no labels requires predictions of class Labels"
         return predictions, None
+    if isinstance(predictions, dict):
+        predictions = Labels(predictions)
+    if isinstance(labels, dict):
+        labels = Labels(labels)
     assert isinstance(
         labels, Labels
     ), "Internal error: align_predictions requires labels of class Labels"
-    if isinstance(predictions, dict):
-        predictions = Labels(predictions)
     if isinstance(predictions, Labels):
         try:
             assert len(predictions) == len(labels)
@@ -100,6 +105,57 @@ def align_predictions(predictions: Any, labels: Labels) -> (Labels, Labels | Non
     predictions = Labels({f"class {k}": v for k, v in predictions.items()})
     labels = Labels({f"class {k}": v for k, v in labels.items()})
     return predictions, labels
+
+
+CommonClassificationBenefits = Literal[
+    "Accuracy", "Precision", "Recall", "F1 score", "Ignore"
+]
+
+
+def compute_benefits(
+    benefit: CommonClassificationBenefits,
+    predictions: dict | Labels,
+    labels: dict | Labels | None,
+) -> str:
+    import numpy as np
+
+    def _as_numpy(labels: Labels) -> np.ndarray:
+        cols = [np.asarray(v) for _, v in labels.items()]
+        if not cols:
+            raise ValueError("Labels object contains no columns")
+        return np.column_stack(cols)
+
+    if labels is None:
+        return ""
+    if benefit == "Ignore":
+        return ""
+    predictions, labels = align_predictions(predictions, labels)
+    pred_arr = _as_numpy(predictions)
+    true_arr = _as_numpy(labels)
+    pred_cls = np.argmax(pred_arr, axis=1)
+    true_cls = np.argmax(true_arr, axis=1)
+    if benefit == "Accuracy":
+        metric = (pred_cls == true_cls).mean()
+    else:
+        if pred_arr.shape[1] != 2:
+            return ""
+        tp = np.sum((pred_cls == 1) & (true_cls == 1))
+        tn = np.sum((pred_cls == 0) & (true_cls == 0))
+        fp = np.sum((pred_cls == 1) & (true_cls == 0))
+        fn = np.sum((pred_cls == 0) & (true_cls == 1))
+
+        if benefit == "Recall":
+            metric = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        elif benefit == "Precision":
+            metric = tp / (tp + fp) if (fp + tn) > 0 else 0.0
+        elif benefit == "F1 score":
+            denom = 2 * tp + fp + fn
+            metric = (2 * tp) / denom if denom > 0 else 0.0
+        else:
+            raise Exception(f"Unknown benefit: {benefit}")
+    percent = int(round(metric * 100))
+    readable_name = benefit.lower()
+    return f" | {percent}% {readable_name}"
 
 
 def fb_categories(it):

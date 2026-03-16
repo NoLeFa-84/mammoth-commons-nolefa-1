@@ -4,7 +4,11 @@ from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
 from typing import List
 from mammoth_commons.integration import metric
-from mammoth_commons.externals import align_predictions
+from mammoth_commons.externals import (
+    align_predictions,
+    CommonClassificationBenefits,
+    compute_benefits,
+)
 from mammoth_commons.integration_callback import notify_progress, notify_end
 from mammoth_commons.reminders import on_results, logo_aif360
 import json
@@ -148,6 +152,7 @@ def aif360_metrics(
     favorable_label: int = 1,
     unfavorable_label: int = 0,
     bias_threshold: float = 0.05,
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
     <h3>popular types of bias</h3>
@@ -166,6 +171,7 @@ def aif360_metrics(
         favorable_label: The prediction label value which is considered favorable (i.e. "positive"). Default is 1 for binary classifiers.
         unfavorable_label: The prediction label value which is considered unfavorable (i.e. "negative"). Default is 0 for binary classifiers.
         bias_threshold: The maximum value of bias assessment. Common literature default is 0.1 or 0.2, but stakeholder engagement in the MAMMOth project suggests that this value should be lower for measures of bias that matter. Hence a more conservative default of 0.05 is used.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
 
     from aif360.metrics import ClassificationMetric
@@ -332,7 +338,7 @@ def aif360_metrics(
     html_content = simplified_formatter(
         outcome="biased" if "bias" in verdict else "fair",
         technology=logo_aif360 + "based on AIF360 metrics",
-        title=verdict,
+        title=verdict + compute_benefits(business_benefits, y_pred, y_true),
         subtitle=subtitle,
         about="<p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>"
         + (

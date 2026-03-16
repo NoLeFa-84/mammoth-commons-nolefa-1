@@ -5,8 +5,13 @@ from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
 from mammoth_commons.reminders import logo_fairbench
 from typing import List, Literal
-from mammoth_commons.integration import metric, Options
-from mammoth_commons.externals import fb_categories, align_predictions
+from mammoth_commons.integration import metric
+from mammoth_commons.externals import (
+    fb_categories,
+    align_predictions,
+    CommonClassificationBenefits,
+    compute_benefits,
+)
 
 
 @metric(
@@ -39,6 +44,7 @@ def specific_concerns(
         "Gini coefficient",
     ] = "Max relative difference",
     problematic_deviation: float = 0.05,
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
     <h3>focus on a specific definition of fairness</h3>
@@ -71,6 +77,7 @@ def specific_concerns(
         compare_groups: Whether to compare groups pairwise, or each group to the behavior of the whole population.
         reduction: The strategy with which to reduce all measure comparisons to one value.
         problematic_deviation: Sets up a threshold of when to consider deviation from ideal values as problematic. If nothing is considered problematic fairness is not necessarily achieved, but this is a good way to identify the most prominent biases. If value of 0 is set, all report values are shown, including those that have no ideal value.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
     fb = importlib.import_module("fairbench")
     if isinstance(sensitive, str):
@@ -145,7 +152,7 @@ def specific_concerns(
 
     html_content = simplified_formatter(
         outcome=outcome.split(" ")[0].lower(),
-        title=outcome,
+        title=outcome + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
         about=f"""

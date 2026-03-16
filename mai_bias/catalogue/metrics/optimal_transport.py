@@ -1,5 +1,9 @@
 from mammoth_commons.datasets import Dataset, ImageLike
-from mammoth_commons.externals import align_predictions
+from mammoth_commons.externals import (
+    align_predictions,
+    CommonClassificationBenefits,
+    compute_benefits,
+)
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
 from typing import List
@@ -23,7 +27,11 @@ from mammoth_commons.reminders import logo_aif360
     logo=logo_aif360,
 )
 def optimal_transport(
-    dataset: Dataset, model: Predictor, sensitive: List[str], threshold: float = 0.01
+    dataset: Dataset,
+    model: Predictor,
+    sensitive: List[str],
+    threshold: float = 0.01,
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
     <h3>representational disparities in predictions</h3>
@@ -57,6 +65,7 @@ def optimal_transport(
 
     Args:
         threshold: Transport distances below the given threshold are considered negligible.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
     from aif360.sklearn.metrics import ot_distance
     import pandas as pd
@@ -118,7 +127,8 @@ def optimal_transport(
             f"{len(offenders)} biased distributions"
             if worst_distance >= threshold
             else "No concerns about discrimination"
-        ),
+        )
+        + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
         technology=logo_aif360 + "based on AIF360's optimal transport",
         about=f"""
