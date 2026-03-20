@@ -6,7 +6,24 @@
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 [![Downloads](https://static.pepy.tech/badge/mai-bias)](https://pepy.tech/projects/mai-bias)
 
-*Quickly develop and locally run MAI-BIAS toolkit modules.*
+This software is part of MAI-BIAS; a low-code toolkit for fairness analysis 
+and mitigation, with an accompanying suite of coding tools. Our ecosystem 
+operates in multidimensional and multi-attribute settings 
+(safeguarding multiple races, genders, etc), and across multiple data modalities 
+(like tabular data, images, text, graphs). Learn more 
+[here](https://mammoth-eu.github.io/mammoth-commons/).
+
+*This repository holds the toolkit's local runner, as well as implementation
+and documentation of 40+ modules.*
+
+## 👥 Who is this for?
+
+- *ML engineers and data scientists* building or evaluating models in Python.
+- *Researchers* studying AI bias across data modalities (tabular, vision, LLMs, etc).
+- *Bias auditors and compliance teams* needing standardized, traceable fairness reports, and system comparison across different datasets, parameters, and over time.
+- *Policymakers and analysts* who seek reproducible evidence for decision‑making.
+
+## ✨ About
 
 This repository is created by the [MAMMOth](https://mammoth-ai.eu/)
 project and holds the mammoth-commons library, which contains 
@@ -17,7 +34,15 @@ run those modules in your local machine.
 
 <img src="mai_bias/logo.png" alt="logo" style="width: 50%;" />
 
-## 🔬 Run locally
+## 🔗 Links
+
+- [MAI-BIAS portal](https://mammoth-eu.github.io/mammoth-commons/)
+
+- [Server deployment repository](https://github.com/mammoth-eu/mammoth-toolkit-releases)
+
+- [Contribute](CONTRIBUTING.md)
+
+## ⚡ Manual local runner installation
 
 1. Make **sure** you are on Python 3.11. Most modules also work in Python 3.13, with the exception of text debiasing.
 2. Install the *mai-bias* package.
@@ -154,14 +179,8 @@ through *brew*.
 ``` 
 </details>
 
-## ☁️ [Deploy in a server](https://github.com/mammoth-eu/mammoth-toolkit-releases)
 
-## 🦣 [Website](https://mammoth-eu.github.io/mammoth-commons/)
-
-## 👍 [Contribute](CONTRIBUTING.md)
-
-
-## License
+## 📜 License
 
 This repository is distributed under the Apache 2.0 License, Copyright 2026 MAMMOth.
 
