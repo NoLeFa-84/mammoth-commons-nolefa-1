@@ -93,7 +93,9 @@ class Options:
         pass
 
 
-def metric(namespace, version, python=_default_python, packages=_default_packages):
+def metric(
+    namespace, version, python=_default_python, packages=_default_packages, logo=None
+):
     # if "numpy" not in packages:
     #    packages = ["numpy"] + list(
     #        packages
@@ -103,6 +105,9 @@ def metric(namespace, version, python=_default_python, packages=_default_package
     import yaml
 
     def wrapper(method):
+        if logo:
+            method.__doc__ = logo + method.__doc__
+
         @wraps(method)
         def wrapper_with_installation_outiside_kfp(*args, **kwargs):
             from mammoth_commons.externals import notify_progress, notify_end
@@ -264,13 +269,21 @@ def kfp_method(
 
 
 def loader(
-    namespace, version, ltype=None, python=_default_python, packages=_default_packages
+    namespace,
+    version,
+    ltype=None,
+    python=_default_python,
+    packages=_default_packages,
+    logo=None,
 ):
     packages = [fixed_version(package) for package in packages]
     from mammoth_commons import custom_kfp
     import yaml
 
     def wrapper(method, ltype):
+        if logo:
+            method.__doc__ = logo + method.__doc__
+
         @wraps(method)
         def wrapper_with_installation_outiside_kfp(*args, **kwargs):
             from mammoth_commons.externals import notify_progress, notify_end

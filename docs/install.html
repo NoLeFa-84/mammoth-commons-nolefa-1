@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAI-BIAS portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Top Menu -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo"><a href="index.html">MAI-BIAS</a></div>
+            <div class="nav-links">
+                <a href="#install">Install</a>
+                <a href="#gallery">Gallery</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Introduction -->
+    <header class="intro">
+        <h1>MAI-BIAS toolkit</h1>
+        <p>Your companion for AI fairness in the wild.</p>
+    </header>
+
+    <main class="container">
+
+        <section id="install">
+            <h2>Install</h2>
+            <p style="margin-top: 1rem; font-size: 1rem;">
+                <i>Choose your needs: fast work on local data, or easily share results via your organization's server.</i>
+            </p>
+            <div class="mammoth-tabs">
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="openMammothTab(event, 'Local')">Run locally</button>
+                    <button class="tab-btn" onclick="openMammothTab(event, 'Server')">Server setup</button>
+                </div>
+                <div id="Local" class="tab-content active">
+                    <p class="instruction-text">
+                        Requires Python 3.11 in your systems. Most modules also work in later versions too.
+                        Use the following boostrapping command to download and run the autostart script <i>mai_bias.sh</i>
+                        in an empty directory:
+                    </p>
+                    <div class="code-block">curl -fsSL https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_bias.sh -o mai_bias.sh && chmod +x mai_bias.sh && ./mai_bias.sh</div>
+                    <p class="note">
+                        The toolkit's modules install more dependencies on-demand.
+                        For some deep learning modules, this may take a while the first time.
+                        Troubleshoot common errors or report issues in the local runner's <a href="https://github.com/mammoth-eu/mammoth-commons" target="_blank">repository</a>.
+                    </p>
+                </div>
+                <div id="Server" class="tab-content">
+                    <p class="instruction-text">
+                        Open a terminal in an empty directory and use the following curl command to download and
+                        run the bootstrap script <i>install.sh</i>.
+                        If you are on Windows, manually install docker first and set up the toolkit server in WSL.
+                    </p>
+                    <div class="code-block">curl -fsSL https://raw.githubusercontent.com/mammoth-eu/mammoth-toolkit-releases/dev/install.sh -o install.sh && bash install.sh</div>
+                    <p class="note">
+                        Default credentials and how to stop, restart, or update the server are shown when the server launches.
+                        Installation sets up a kubernetes environment may take a while. Docker images are downloaded in the server.
+                        Troubleshoot common errors or report issues in the server's <a href="https://github.com/mammoth-eu/mammoth-toolkit-releases" target="_blank">repository</a>.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; This material has been developed by the MAMMOth EU project.</p>
+        <p>
+            <a href="https://github.com/mammoth-eu">GitHub</a>&nbsp;|
+            <a href="https://mammoth-ai.eu">Website</a>
+        </p>
+    </footer>
+
+</body>
+</html>

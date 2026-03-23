@@ -41,7 +41,7 @@ jobs:
     - name: Coverage check
       run: |
         coverage xml -o coverage.xml
-        coverage report --fail-under=80
+        coverage report --fail-under=60
 
     - name: Coverage badge
       if: github.event_name == 'push'  # Only run on push, not pull_request

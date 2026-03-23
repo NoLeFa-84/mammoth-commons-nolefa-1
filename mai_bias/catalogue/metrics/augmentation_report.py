@@ -1,8 +1,8 @@
 from mammoth_commons.datasets import Dataset, ImageLike
 from mammoth_commons.models import EmptyModel
-from mammoth_commons.exports import HTML
+from mammoth_commons.exports import HTML, simplified_formatter
 from typing import List
-from mammoth_commons.reminders import on_results
+from mammoth_commons.reminders import logo_mmm_fair
 from mammoth_commons.integration import metric
 from mammoth_commons.integration_callback import notify_progress, notify_end
 
@@ -523,6 +523,7 @@ def apply_class_ratio_sampling(df, protected_attribute, target_column):
         "ucimlrepo",
         "pygrank",
     ),
+    logo=logo_mmm_fair,
 )
 def augmentation_report(
     dataset: Dataset,
@@ -531,8 +532,6 @@ def augmentation_report(
     representational_allowance: float = 0.9,
 ) -> HTML:
     """
-    <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true"
-    alt="MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
     <h3>intersectional representation imbalances in data</h3>
 
     This module uses the <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> library to
@@ -591,6 +590,9 @@ def augmentation_report(
     import pandas as pd
     import numpy as np
 
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     dataset = dataset.to_csv(sensitive)
     non_categorical = [col for col in sensitive if col not in dataset.cat]
     assert not non_categorical, (
@@ -643,79 +645,16 @@ def augmentation_report(
     group_counts["p_obs"] = group_counts["count"] / N
     biased = [inter for inter in group_counts[group_counts["p_obs"] < min_allowed_p]]
 
-    complete_html = f"""
-        <style>
-            .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
-            .banner {{width: 100%;  padding: 180px 24px; font-size: 64px; font-weight: 700; text-align: center; color: white; border-radius: 12px margin-bottom: 25px;}}
-            .banner.fair {{ background: #2e8b57; }}
-            .banner.biased {{ background: #c0392b; }}
-            .banner.report {{ background: #7f8c8d; }}
-            .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
-            .pill-btn:hover {{ background: #e0e0e0; }}
-            .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
-            .section-panel {{ display: none; padding: 12px; border: 0px; }}
-            .section-panel.active {{ display: block; }}
-            .overview-title {{font-size: 32px; font-weight: 700; margin-top: 0; margin-bottom: 10px; }}
-            .overview-sub {{ font-size: 18px; opacity: 0.8; margin-bottom: 20px; }}
-        </style>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {{
-                const buttons = document.querySelectorAll(".pill-btn");
-                const sections = document.querySelectorAll(".section-panel");
-                buttons.forEach(btn => {{
-                    btn.addEventListener("click", () => {{
-                        let target = btn.getAttribute("data-target");
-                        buttons.forEach(b => b.classList.remove("active"));
-                        sections.forEach(s => s.classList.remove("active"));
-                        btn.classList.add("active");
-                        document.getElementById(target).classList.add("active");
-                    }});
-                }});
-                document.querySelector(".pill-btn").classList.add("active");
-                document.querySelector(".section-panel").classList.add("active");
-                const tabContainer = document.getElementById("expert-tab-header");
-                if (tabContainer) {{
-                    tabContainer.addEventListener("click", function(event) {{
-                        if (event.target.classList.contains("tablinks")) {{
-                            let tabName = event.target.getAttribute("data-tab");
-                            document.querySelectorAll(".tablinks").forEach(tab => tab.classList.remove("active"));
-                            document.querySelectorAll(".tabcontent").forEach(content => content.classList.remove("active"));
-                            event.target.classList.add("active");
-                            document.getElementById(tabName).classList.add("active");
-                        }}
-                    }});
-                    let first = tabContainer.querySelector(".tablinks");
-                    if (first) {{
-                        first.classList.add("active");
-                        document.getElementById(first.getAttribute("data-tab")).classList.add("active");
-                    }}
-                }}
-            }});
-        </script>
-        <h1 class="banner {'biased' if biased else 'fair'}">{'Intersectional representation biases' if biased else 'Fair group intersections'}</h1>
-        <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true" alt="Based on MMM-Fair" style="float: left; margin-right: 5px; height: 36px;"/>
-    
-        <h1>based on MMM-fair investigation</h1>
-
-        <div class="pill-buttons">
-            <div class="pill-btn" data-target="whatis">Representations
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/donut.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="warning">
-                Responsible use
-                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="method">Analysis methodology
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="pipeline">Data pipeline
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="details">Augmentation strategies
-            <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/code.png?raw=true" height="128px"/>
-            </div>
-        </div>
-        <div id="whatis" class="section-panel">
+    html_content = simplified_formatter(
+        outcome="biased" if biased else "fair",
+        technology=logo_mmm_fair + "based on MMM-fair investigation",
+        title=(
+            "Intersectional representation biases"
+            if biased
+            else "Fair group intersections"
+        ),
+        subtitle=subtitle,
+        about=f"""
             <p>We used <a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a> 
             to create and compare distribution intersections.
             The prediction target lies in the inner disk, each ring represents a sensitive attribute.
@@ -727,11 +666,8 @@ def augmentation_report(
             <div class="plot-container overview-container">
                 {main_html_content}
             </div>
-        </div>
-        <div id="warning" class="section-panel">
-            {on_results}
-        </div>
-        <div id="method" class="section-panel">
+            """,
+        methodology=f"""
             <p>An interactive <a href="https://plotly.com/python/sunburst-charts/" target="_blank">sunburst chart</a>,
             visualizes how subgroups form and how large or small they are compared to the total dataset.
             This summarizes the distribution of data across sensitive attributes 
@@ -739,9 +675,9 @@ def augmentation_report(
             Sensitive attributes are represented as concentric rings, where each segment corresponds 
             to an intersectional subgroup. Hover over a segment to view its subgroup path and proportion in 
             the dataset, and click on it to focus on the particular intersection.</p>
-        </div>
-        <div id="pipeline" class="section-panel">{dataset.to_description()}<br><br>{model.to_description()}</div>
-        <div id="details" class="section-panel">
+            """,
+        pipeline=dataset.to_description(),
+        experts=f"""
             <p>This report also contains bar charts compare original and augmented distributions for each 
             strategy, as well as references and research findings that you can consult. 
             The annotation <i>r_aug</i> indicates the fraction of synthetic samples added to the dataset under 
@@ -790,7 +726,6 @@ def augmentation_report(
                     <p>[3] Reiter, J.P.: Using CART to generate partially synthetic public use microdata. Journal of Official Statistics 21(3), 441 (2005)</p>
                     <p>[4] Chawla, N.V., Bowyer, K.W., Hall, L.O., Kegelmeyer, W.P.: SMOTE: synthetic minority over-sampling technique. Journal of Artificial Intelligence Research 16, 321-357 (2002)</p>
             </div>
-        </div>
-        """
-
-    return HTML(complete_html)
+            """,
+    )
+    return HTML(html_content)

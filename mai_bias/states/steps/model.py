@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QThread, Signal, QMutex
 from mai_bias.backend.loaders import registry
-from mai_bias.states.step import Step, save_all_runs, InfoBox
+from mai_bias.states.step import Step, save_all_runs
 from mammoth_commons import integration_callback
 
 global items
@@ -78,8 +78,7 @@ class SelectModel(Step):
     def show_warnings_popup(self):
         popup = QMessageBox(self)
         popup.setWindowTitle("Responsible model creation")
-        popup.setText(
-            """
+        popup.setText("""
             <p>
             Fairness is a consideration at each step during the lifecycle of an AI system;
             it spans fair design, development interventions, and ongoing practices to maintain quality.
@@ -106,9 +105,9 @@ class SelectModel(Step):
             <br/>
             [2] Giovanola, Benedetta, and Simona Tiribelli.
             "Weapons of moral construction? On the value of fairness in algorithmic decision-making."
-            <i>Ethics and Information Technology</i> 24, no. 1: 3 (2022)</p> """
-        )
+            <i>Ethics and Information Technology</i> 24, no. 1: 3 (2022)</p> """)
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.setStyleSheet("color:black;background-color:white")
         popup.exec()
 
     def showEvent(self, event):
@@ -133,8 +132,11 @@ class SelectModel(Step):
         )
         super().showEvent(event)
 
-    def next(self):
+    def direct_save(self):
         self.save("model")
+
+    def next(self):
+        self.direct_save()
         save_all_runs("history.json", self.dataset)
         pipeline = self.runs[-1]
 

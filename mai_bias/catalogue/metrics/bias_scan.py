@@ -1,9 +1,14 @@
-import mammoth_commons.integration
 from mammoth_commons.datasets import Dataset
+from mammoth_commons.externals import (
+    CommonClassificationBenefits,
+    compute_benefits,
+    align_predictions,
+)
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
-from typing import List, Literal
 from mammoth_commons.integration import metric
+from mammoth_commons.reminders import logo_aif360
+from typing import List, Literal
 
 
 @metric(
@@ -17,6 +22,7 @@ from mammoth_commons.integration import metric
         "ucimlrepo",
         "pygrank",
     ),
+    logo=logo_aif360,
 )
 def bias_scan(
     dataset: Dataset,
@@ -25,11 +31,10 @@ def bias_scan(
     penalty: float = 0.5,
     scoring: Literal["Bernoulli", "Gaussian", "Poisson", "BerkJones"] = "Bernoulli",
     discovery: bool = True,
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
-    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
-    alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
-    <h3>scan for biased attribute values or their intersections</h3>
+    <h3>scan for new biased attributes or attribute intersections</h3>
 
     <p>Use <a href="https://aif360.readthedocs.io" target="_blank">AIF360</a>
     to scans your dataset to estimate the most biased attributes or combinations of attributes.
@@ -48,7 +53,6 @@ def bias_scan(
     than **exponential** time is available <a href="https://arxiv.org/pdf/1611.08292">here</a>. Instead of checking
     every possible combination (which can be very time-consuming), it uses a more efficient method.</p>
 
-
     <p>For convenience, there is a <i>discovery</i> mode available in the parameters. This automatically adds
     attributes suspected of contributing to bias to the list of ignored (already known sensitive) ones, then reruns
     the scan. While this automation helps streamline the process, it removes all attributes contributing to biased
@@ -60,14 +64,17 @@ def bias_scan(
         penalty: A positive. The higher the penalty, the less complex the highest scoring subset that gets returned is, but penalties as small as 1.E-12 could also be acceptable to promote finding intersections of many attributes.
         scoring: The distribution used to compute p-values. Can be Bernoulli, Gaussian, Poisson, or BerkJones.
         discovery: Whether the scan should attempt to create a list of problematic attribute combinations in decreasing order of importance. That list will contain only non-overlapping attribute intersections.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
     import pandas as pd
     from aif360.sklearn.detectors import bias_scan as aif360bias_scan
 
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",") if sens.strip()]
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
 
-    predictions = pd.Series(model.predict(dataset, sensitive))
+    raw_predictions = model.predict(dataset, sensitive)
+    predictions = pd.Series(raw_predictions)
     dataset = dataset.to_csv(sensitive)
     penalty = float(penalty)
     text = ""
@@ -118,34 +125,34 @@ def bias_scan(
                 f'<h4 class="text-warning">Rerunning for new sensitive attributes</h4>'
             )
 
-    return HTML(
-        simplified_formatter(
-            outcome="fair" if counts == 0 else "biased",
-            technology='<div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360\'s bias scan</h1></div>',
-            title=(
-                "No concerns for attribute values"
-                if counts == 0
-                else f"{counts} attribute biases"
-            ),
-            about=f"""
-                <p>This module identifies potentially biased intersections of attributes using 
-                IBM's AIF360 bias scan detector. Already-known sensitive attributes are ignored during scanning. Remaining 
-                attributes (including non-sensitive ones) are tested for imbalances that may 
-                contribute to unfair predictions. There is a separate analysis for each prediction class.</p>
-                {'The following' if sensitive else 'No'} attributes exhibited biases in some of their values or during the 
-                intersection with other attributes{':' if sensitive else '.'}  
-                <br><i>{'<br>'.join(sensitive)}</i>
-            """,
-            methodology=f"""
-                <p>The scan evaluates attribute combinations by computing p-values under a
-                <b>{scoring}</b> statistical model. A penalty parameter <b>{penalty}</b> controls the complexity of
-                discovered intersections: higher penalty → simpler intersections.
-                {'In discovery mode, detected suspicious attributes are added to the ignored list and the scan repeated until no more intersections are detected.'
-                if discovery else
-                'Only the top suspicious attribute combination is reported; further combinations may exist.'}
-                </p>
-            """,
-            pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
-            experts=text,
-        )
+    html_content = simplified_formatter(
+        outcome="fair" if counts == 0 else "biased",
+        technology=logo_aif360 + "based on AIF360's bias scan",
+        title_prefix=str(counts) if counts else "",
+        title=("No new concerns" if counts == 0 else f"biased attributes")
+        + compute_benefits(
+            business_benefits, *align_predictions(raw_predictions, dataset.labels)
+        ),
+        subtitle=subtitle,
+        about=f"""
+            <p>This module identifies potentially biased intersections of attributes using 
+            IBM's AIF360 bias scan detector. Already-known sensitive attributes are ignored during scanning. 
+            Remaining attributes (including non-sensitive ones) are tested for imbalances that may 
+            contribute to unfair predictions. There is a separate analysis for each prediction class.</p>
+            {'The following' if sensitive else 'No'} attributes exhibited biases in some of their values or during the 
+            intersection with other attributes{':' if sensitive else '.'}  
+            <br><i>{'<br>'.join(sensitive)}</i>
+        """,
+        methodology=f"""
+            <p>The scan evaluates attribute combinations by computing p-values under a
+            <b>{scoring}</b> statistical model. A penalty parameter <b>{penalty}</b> controls the complexity of
+            discovered intersections: higher penalty → simpler intersections.
+            {'In discovery mode, detected suspicious attributes are added to the ignored list and the scan repeated until no more intersections are detected.'
+            if discovery else
+            'Only the top suspicious attribute combination is reported; further combinations may exist.'}
+            </p>
+        """,
+        pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+        experts=text,
     )
+    return HTML(html_content)

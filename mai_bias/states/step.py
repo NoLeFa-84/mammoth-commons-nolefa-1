@@ -9,7 +9,6 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QDialog,
     QListWidget,
-    QScrollArea,
 )
 from PySide6.QtGui import QIntValidator, QDoubleValidator
 from mammoth_commons.externals import prepare_html
@@ -29,7 +28,38 @@ import os
 import csv
 import mammoth_commons.externals
 from .style import Styled
-from .step_utils.card_button import CardButton
+from .vertical_selector import ScrollSelector
+
+from PySide6.QtGui import QIcon, QPixmap, QPainter
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtCore import QByteArray, QSize
+
+
+def svg_icon(svg_data: str, size: QSize = QSize(48, 48)) -> QIcon:
+    renderer = QSvgRenderer(QByteArray(svg_data.encode()))
+    pix = QPixmap(size)
+    pix.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pix)
+    renderer.render(painter)
+    painter.end()
+    return QIcon(pix)
+
+
+LOADING_SVG = """
+<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="25" cy="25" r="20" fill="none" stroke="#555"
+          stroke-width="5" stroke-linecap="round"
+          stroke-dasharray="31.4 31.4">
+    <animateTransform attributeName="transform"
+                      type="rotate"
+                      from="0 25 25"
+                      to="360 25 25"
+                      dur="1s"
+                      repeatCount="indefinite"/>
+  </circle>
+</svg>
+"""
 
 
 def save_all_runs(path, runs):
@@ -68,148 +98,7 @@ def load_all_runs(path):
 
 
 def format_name(name):
-    """Format parameter names for better display."""
     return name.replace("_", " ").capitalize()
-
-
-class InfoBox(QFrame):
-    def __init__(self, html_content, parent=None):
-        super().__init__(parent)
-        self.setObjectName("InfoBox")
-        self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setStyleSheet(
-            """
-            QFrame#InfoBox {background-color: #dddddd; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px;}
-            QLabel {color: #334155; font-size: 13px; line-height: 1.4em;}
-            a {color: #0369a1; text-decoration: none; font-weight: 600;}
-            a:hover {text-decoration: underline;}
-            ul {margin-left: 16px;}
-            li {margin: 4px 0;}
-            """
-        )
-
-        label = QLabel(html_content, self)
-        label.setTextFormat(Qt.TextFormat.RichText)
-        label.setWordWrap(True)
-        label.setOpenExternalLinks(True)
-        label.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(label)
-
-
-class ScrollSelector(QWidget):
-    def __init__(self, items, specs, on_change, parent=None):
-        super().__init__(parent)
-
-        self.on_change = on_change
-        self.items = list(items)
-        self.specs = dict(specs)
-        self.cards = []
-        self.selected = self.items[0] if self.items else None
-
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setStyleSheet("background:transparent; border: none;")
-
-        container = QWidget()
-        self.layout = QVBoxLayout(container)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(4)
-
-        # Create cards
-        for name in self.items:
-            html = self.specs.get(name, dict()).get("description", "")
-            if not html:
-                continue
-            card = CardButton(name, html)
-            card.clicked.connect(self._select)
-            self.cards.append(card)
-            self.layout.addWidget(card)
-
-        self.layout.setAlignment(Qt.AlignTop)
-        scroll.setWidget(container)
-
-        root = QVBoxLayout(self)
-        root.setContentsMargins(0, 0, 0, 0)
-        root.addWidget(scroll)
-
-        if self.items:
-            self.set_selected(self.items[0])
-
-    # ----------------------------
-    # Selection logic
-    # ----------------------------
-    def _select(self, name):
-        self.selected = name
-        for card in self.cards:
-            card.setChecked(card.name == name)
-
-        self.on_change(name)
-
-    def set_selected(self, name):
-        if self.selected == name:
-            return
-        self.selected = name
-        for card in self.cards:
-            card.setChecked(card.name == name)
-        self.on_change(name)
-
-    # ----------------------------
-    # ComboBox compatibility
-    # ----------------------------
-    def currentText(self):
-        return self.selected
-
-    def itemText(self, index):
-        return self.items[index] if 0 <= index < len(self.items) else ""
-
-    def findText(self, text):
-        for i, name in enumerate(self.items):
-            if name == text:
-                return i
-        return -1
-
-    def setCurrentIndex(self, index):
-        if 0 <= index < len(self.items):
-            self.set_selected(self.items[index])
-
-    def clear(self):
-        for card in self.cards:
-            card.setParent(None)
-            card.deleteLater()
-        self.cards.clear()
-        self.items.clear()
-        self.selected = None
-
-    def removeItem(self, index):
-        if 0 <= index < len(self.items):
-            self.items.pop(index)
-            card = self.cards.pop(index)
-            card.setParent(None)
-            card.deleteLater()
-            if self.items:
-                self.set_selected(self.items[0])
-
-    def addItem(self, name):
-        html = self.specs.get(name, dict()).get("description", "")
-        if not html:
-            return
-        self.items.append(name)
-        card = CardButton(name, html)
-        card.clicked.connect(self._select)
-        self.cards.append(card)
-        self.layout.addWidget(card)
-
-        if self.selected is None:
-            self.set_selected(name)
-
-    def addItems(self, names):
-        for name in names:
-            self.addItem(name)
 
 
 class Step(Styled):
@@ -225,7 +114,9 @@ class Step(Styled):
         layout = QVBoxLayout()
 
         self.label = QLabel(step_name, self)
-        self.label.setStyleSheet("font-size:32px;font-weight:bold")
+        self.label.setStyleSheet(
+            "font-size:32px;font-weight:bold;margin-bottom:10px;margin-top:30px"
+        )
         layout.addWidget(self.label, 0)
 
         selector_row = QWidget()
@@ -243,9 +134,7 @@ class Step(Styled):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
 
-        icon_path = prepare(
-            "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/params.png?raw=true"
-        )
+        icon_path = prepare("https:///icons/params.png")
         icon = QIcon(QPixmap(icon_path))
 
         self.param_toggle_button = QToolButton(self)
@@ -257,14 +146,12 @@ class Step(Styled):
         self.param_toggle_button.setIconSize(QSize(72, 72))
         self.param_toggle_button.setFixedSize(96, 96)
         self.param_toggle_button.setStyleSheet(
-            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#d0d0d0;border: 1px solid #cccccc}"
+            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#EEEEEE;border: 1px solid #cccccc}"
         )
         self.param_toggle_button.clicked.connect(self.toggle_param_visibility)
         self.param_toggle_button.hide()
 
-        icon_path = prepare(
-            "https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true"
-        )
+        icon_path = prepare("https:///icons/warning.png")
         icon = QIcon(QPixmap(icon_path))
         self.warnings_toggle_button = QToolButton(self)
         self.warnings_toggle_button.setCheckable(True)
@@ -276,7 +163,7 @@ class Step(Styled):
         self.warnings_toggle_button.setFixedSize(96, 96)
         self.warnings_toggle_button.setText("responsibility")
         self.warnings_toggle_button.setStyleSheet(
-            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#d0d0d0;border: 1px solid #cccccc}"
+            "QToolButton{background:#eee;border-radius:6px;padding:4px}QToolButton:hover{background:#EEEEEE;border: 1px solid #cccccc}"
         )
         self.warnings_toggle_button.clicked.connect(self.toggle_param_visibility)
         self.warnings_toggle_button.hide()
@@ -289,13 +176,6 @@ class Step(Styled):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         layout.addWidget(selector_row, 1)
-        # selector_row.setMinimumHeight(400)
-        # layout.addStretch(2)
-
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setStyleSheet("color:#444;margin:6px 0;")
-        layout.addWidget(separator, 0)
 
         content_layout = QVBoxLayout()
         self.param_form = QFormLayout()
@@ -307,8 +187,9 @@ class Step(Styled):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
         )
         left_col = QVBoxLayout()
-        label = QLabel("Configure", self)
+        label = QLabel("Parameters", self)
         label.setStyleSheet("font-size:32px;font-weight:bold")
+        self.param_label = label
         left_col.addWidget(label)
         left_col.addWidget(self.form_widget)
         right_col = QHBoxLayout()
@@ -322,10 +203,6 @@ class Step(Styled):
         content_layout.addLayout(container_row)
 
         layout.addLayout(content_layout, 0)
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setStyleSheet("color:#444;margin:6px 0;")
-        content_layout.addWidget(separator, 0)
         content_layout.addSpacing(32)
 
         button_layout = QHBoxLayout()
@@ -371,9 +248,23 @@ class Step(Styled):
         if dataset_name not in self.dataset_loaders:
             return
         loader = self.dataset_loaders[dataset_name]
+
+        # repopulate defaults based on selection
+        self.defaults = {}
+        if self.runs:
+            for step_key in ["dataset", "model", "analysis"]:
+                step_data = self.runs[-1].get(step_key)
+                if step_data and step_data.get("module") == dataset_name:
+                    params = step_data.get("params", {})
+                    if params:
+                        self.defaults = dict(params)
+                    break
+
+        # create all widgets
         self.last_url = None
         self.last_delimiter = None
         self.count_hidden_params = 0
+        count_nonhidden_params = 0
         for name, param_type, default, description in loader["parameters"]:
             can_be_hidden = name != "sensitive" and default != "" and default != "None"
             if can_be_hidden:
@@ -388,10 +279,9 @@ class Step(Styled):
             if can_be_hidden and not self.show_all_params:
                 param_widget.hide()
             self.param_form.addRow(param_widget)
-        if self.count_hidden_params:
-            self.param_toggle_button.show()
-        else:
-            self.param_toggle_button.hide()
+            count_nonhidden_params += 1
+        self.param_label.setVisible(bool(count_nonhidden_params))
+        self.param_toggle_button.setVisible(bool(self.count_hidden_params))
         self.param_toggle_button.setText(
             "hide details"
             if self.show_all_params
@@ -399,6 +289,7 @@ class Step(Styled):
         )
 
     def toggle_param_visibility(self):
+        self.direct_save()
         self.show_all_params = self.param_toggle_button.isChecked()
         self.update_param_form(self.dataset_selector.currentText())
 
@@ -478,13 +369,11 @@ class Step(Styled):
         cancel_button = QPushButton("Cancel", dialog)
         cancel_button.clicked.connect(cancel)
         layout.addWidget(cancel_button)
-
         confirm_button = QPushButton("Done", dialog)
         confirm_button.clicked.connect(
             lambda: self.set_sensitive_values(dialog, list_widget, input_field)
         )
         layout.addWidget(confirm_button)
-
         dialog.setLayout(layout)
         dialog.exec()
 
@@ -510,15 +399,13 @@ class Step(Styled):
                 select_button = QPushButton("...")
                 select_button.setToolTip("Select from options")
                 select_button.setFixedSize(30, 20)
-                select_button.setStyleSheet(
-                    f"""QPushButton {{
+                select_button.setStyleSheet(f"""QPushButton {{
                         background-color: #dddd88; 
                         border-radius: 5px;
                     }}
                     QPushButton:hover {{
                         background-color: {self.highlight_color('#dddd88')};
-                    }}"""
-                )
+                    }}""")
                 select_button.clicked.connect(
                     lambda: self.open_sensitive_modal(
                         f"Select {name}",
@@ -593,16 +480,14 @@ class Step(Styled):
             select_button = QPushButton("...")
             select_button.setToolTip("Select from options")
             select_button.setFixedSize(30, 20)
-            select_button.setStyleSheet(
-                f"""
+            select_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #dddd88; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#dddd88')};
-                }}"""
-            )
+                }}""")
             select_button.clicked.connect(
                 lambda: self.open_sensitive_modal(
                     "Select sensitive attributes", input_widget, columns
@@ -637,16 +522,14 @@ class Step(Styled):
             file_button = QPushButton("...")
             file_button.setToolTip("Navigate")
             file_button.setFixedSize(30, 20)
-            file_button.setStyleSheet(
-                f"""
+            file_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #dddd88; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#dddd88')};
-                }}"""
-            )
+                }}""")
             file_button.clicked.connect(lambda: self.select_dir(input_widget))
             helper = file_button
 
@@ -658,16 +541,14 @@ class Step(Styled):
             file_button = QPushButton("...")
             file_button.setToolTip("Navigate")
             file_button.setFixedSize(30, 20)
-            file_button.setStyleSheet(
-                f"""
+            file_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #dddd88; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#dddd88')};
-                }}"""
-            )
+                }}""")
             file_button.clicked.connect(lambda: self.select_path(input_widget))
             helper = file_button
 
@@ -699,16 +580,14 @@ class Step(Styled):
 
             file_button = QPushButton("Preview")
             file_button.setFixedSize(50, 20)
-            file_button.setStyleSheet(
-                f"""
+            file_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #ddbbdd; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#ddbbdd')};
-                }}"""
-            )
+                }}""")
             file_button.clicked.connect(preview_file)
             preview = file_button
 
@@ -754,16 +633,14 @@ class Step(Styled):
             file_button = QPushButton("Find")
             file_button.setToolTip("Autodetect based on csv rules")
             file_button.setFixedSize(30, 20)
-            file_button.setStyleSheet(
-                f"""
+            file_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: #dddd88; 
                     border-radius: 5px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.highlight_color('#dddd88')};
-                }}"""
-            )
+                }}""")
             file_button.clicked.connect(recommend_delimiter)
             preview = file_button
 
@@ -772,8 +649,7 @@ class Step(Styled):
             input_widget.setText(str(default) if default != "None" else "")
 
         if input_widget is not None:
-            input_widget.setStyleSheet(
-                """
+            input_widget.setStyleSheet("""
                 QLineEdit {
                     background-color: #fff;
                     border: 0px solid #ccc;
@@ -785,8 +661,7 @@ class Step(Styled):
                     background-color: #fff;
                     border: 0px solid #444;
                 }
-                """
-            )
+                """)
 
         self.param_inputs[name] = input_widget
 
@@ -794,12 +669,12 @@ class Step(Styled):
         label.setFixedSize(150, 20)
         label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-        help_button = QPushButton("?")
+        help_button = QPushButton("\u2139")
         help_button.setFixedSize(20, 20)
         help_button.setStyleSheet(
             f"""
-            QPushButton {{background-color: #dddddd; border-radius: 10px;}}
-            QPushButton:hover {{background-color: {self.highlight_color('#dddddd')};}}"""
+            QPushButton {{background-color: white; border-radius: 10px;}}
+            QPushButton:hover {{background-color: {self.highlight_color('#eeeeee')};}}"""
         )
         help_button.setToolTip("Parameter info")
         help_button.clicked.connect(
@@ -820,12 +695,12 @@ class Step(Styled):
 
     def select_dir(self, input_field):
         path = QFileDialog.getExistingDirectory(self, "Select directory")
-        if path:
+        if path and path[0]:
             input_field.setText(path)
 
     def select_path(self, input_field):
         path = QFileDialog.getOpenFileName(self, "Select file")
-        if path:
+        if path and path[0]:
             input_field.setText(path[0])
 
     def show_help_popup(self, param_name, description):

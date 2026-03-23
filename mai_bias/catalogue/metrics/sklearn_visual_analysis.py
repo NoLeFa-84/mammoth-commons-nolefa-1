@@ -1,11 +1,14 @@
+from docutils.nodes import subtitle
+
 from mammoth_commons.datasets import CSV
 from mammoth_commons.models import EmptyModel
-from mammoth_commons.exports import HTML
+from mammoth_commons.exports import HTML, simplified_formatter
 from typing import Dict, List
 from mammoth_commons.integration import metric, Options
 import numpy as np
 from mammoth_commons.integration_callback import notify_progress, notify_end
 from mammoth_commons.externals import fb_categories
+from mammoth_commons.reminders import logo_fairbench
 
 
 @metric(
@@ -20,6 +23,7 @@ from mammoth_commons.externals import fb_categories
         "ucimlrepo",
         "pygrank",
     ),
+    logo=logo_fairbench,
 )
 def sklearn_visual_analysis(
     dataset: CSV,
@@ -36,9 +40,6 @@ def sklearn_visual_analysis(
     min_group_size: int = 1,
 ) -> HTML:
     """
-
-    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true"
-    alt="FairBench" style="float: left; margin-right: 5px; margin-bottom: 5px; width: 36px;"/>
     <h3>for data scientists: barplots with the biases of a simple predictor</h3>
     <p>One way to evaluate the fairness of a dataset is by testing for biases using simple models with limited
     degrees of freedom. This module audits datasets by training such models provided by the
@@ -321,8 +322,7 @@ def sklearn_visual_analysis(
                     f"<th style='width:{self.cell_width_px}px;'>{x}</th>"
                     for x in x_labels
                 )
-                html_sections.append(
-                    f"""
+                html_sections.append(f"""
                 <div style="margin:20px;">
                     <h2 style="font-family:sans-serif;">{title}</h2>
                     <table style="border-collapse:collapse;font-family:sans-serif;">
@@ -330,8 +330,7 @@ def sklearn_visual_analysis(
                         {''.join(rows_html)}
                     </table>
                 </div>
-                """
-                )
+                """)
 
             html_page = f"<html><body>{''.join(html_sections)}</body></html>"
             return html_page
@@ -412,6 +411,7 @@ def sklearn_visual_analysis(
     notify_end()
     predictions = model.predict(X_test)
     scores = model.predict_proba(X_test)[:, 1]
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     sensitive = fb.Dimensions(
         {attr + " ": fb_categories(dataset.df[attr][idx_test]) for attr in sensitive}
     )
@@ -590,4 +590,38 @@ def sklearn_visual_analysis(
         </script>
         </div>
        """
+
+    html_content = simplified_formatter(
+        outcome="report",
+        title=f"Audit of {len(sensitive.branches())} groups",
+        subtitle=subtitle,
+        technology=logo_fairbench + "based on FairBench reporting",
+        about=f"""
+            <p>This is a dataset audit using a {predictor} model trained on-the-fly. The model is deliberately simple,
+            so that, if it exhibits bias, more complex models (e.g., deep learning ones) will likely carry or 
+            amplify those biases too.</p>         
+            """,
+        methodology=f"""
+                <p>Groups were compared <b>{compare_groups.lower()}</b>.
+                Values deviating more than <b>{problematic_deviation:.3f}</b> from their ideal target
+                were counted as problematic. These deviations guide where deeper inspection is needed.
+                The result is considered biased if it lays <b>{problematic_deviation:.3f}</b> away from its ideal target 
+                that would indicate fairness. For example, the ideal target is 0 for differences between measure values, 
+                and 1 for values that should be large (e.g., the minimum accuracy across all groups).
+                Some metrics have no known ideal values.</p>
+                <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
+                <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p>
+                <p>Results were computed across {len(sensitive.branches())} protected groups, considering both classification
+                and top-{top_recommendations} recommendation performance.
+                {'Set a problematic deviation parameter for this analysis to simplify what is shown or control coloring thresholds.' if problematic_deviation == 0 else f'Only those that differ at least {problematic_deviation:.3f} from their ideal values are {"shown" if reject else "highlighted in orange or red"}; this is the problematic deviation threshold of the analysis.'}
+                Ideal targets are 0 for metrics that need to be minimized and 1 for those that need to be maximized.</p>  
+            """,
+        pipeline=dataset.to_description(),
+        experts=f"""
+                <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
+                <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>
+                <div id="expert-tab-header">{tab_headers}</div>
+                <div id="expert-tab-body">{tab_contents}</div>
+            """,
+    )
     return HTML(html_content)

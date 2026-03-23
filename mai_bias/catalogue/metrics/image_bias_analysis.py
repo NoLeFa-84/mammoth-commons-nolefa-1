@@ -1,8 +1,11 @@
+from plotly.graph_objs.layout import Margin
+
 from mammoth_commons.datasets import ImageLike
 from mammoth_commons.models import EmptyModel
-from mammoth_commons.exports import HTML, Markdown
+from mammoth_commons.exports import HTML, Markdown, simplified_formatter
 from typing import List, Literal
 from mammoth_commons.integration import metric, Options
+from mammoth_commons.reminders import logo_vbmitigator
 
 
 @metric(
@@ -10,16 +13,15 @@ from mammoth_commons.integration import metric, Options
     version="v054",
     python="3.13",
     packages=("torch", "torchvision", "cvbiasmitigation"),
+    logo=logo_vbmitigator,
 )
 def image_bias_analysis(
     dataset: ImageLike,
     model: EmptyModel,
     sensitive: List[str],
     task: Literal["face verification", "image classification"] = None,
-) -> Markdown:
+) -> HTML:
     """
-    <img src="https://github.com/mever-team/vb-mitigator/blob/main/assets/vb-mitigator%20logo_250.png?raw=true"
-    alt="vb-mitigator" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>for data scientists: solutions for imbalanced image models</h3>
 
     This module provides a comprehensive solution for analyzing image bias and recommending effective
@@ -40,7 +42,7 @@ def image_bias_analysis(
     tailored mitigation approaches. Specifically, the suitable mitigation methodologies are determined
     based on the task and the types of the detected biases in the data.
     The analysis is conducted based on the
-    <a href="https://github.com/gsarridis/cv-bias-mitigation-library">CV Bias Mitigation Library</a>.
+    <a href="https://github.com/gsarridis/cv-bias-mitigation-library">CV bias mitigation library</a>.
 
     Args:
         task: The type of predictive task. It should be either face verification or image classification.
@@ -51,7 +53,15 @@ def image_bias_analysis(
         "face verification",
         "image classification",
     ], "The provided task should be either face verification or image classification"
-    json = analysis(dataset.path, task, dataset.target, sensitive, output="json")
+    assert sensitive, "No sensitive attributes provided"
+    if isinstance(sensitive, str):
+        sensitive = [sens.strip() for sens in sensitive.split(",")]
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
+    json, title = analysis(
+        dataset.path, task, dataset.target, sensitive, output="json", return_title=True
+    )
+
+    info = {}
 
     def json_to_str_recursively(
         data, indent=0, pending_close=[""]
@@ -70,6 +80,8 @@ def image_bias_analysis(
                 if pending_close[0]:
                     result_str += pending_close[0]
                     pending_close[0] = ""
+                if "title" not in info:
+                    info["title"] = data["content"]
                 if level == 1:
                     result_str += f"# {data['content']}\n"
                 elif level == 2:
@@ -109,6 +121,8 @@ def image_bias_analysis(
                             result_str += " " * (indent + 4) + "```"
                 else:
                     result_str += " " * indent + str(content)
+                if "about" not in info:
+                    info["about"] = result_str
                 result_str += "\n"  # newline after paragraph
             elif data.get("type") == "code":
                 result_str += " " * indent + "```" + data.get("language", "") + "\n"
@@ -126,4 +140,23 @@ def image_bias_analysis(
         return result_str
 
     output_str = json_to_str_recursively(json)
-    return Markdown(output_str)
+    title = info["title"]  # important: after population by json to str
+
+    html_content = simplified_formatter(
+        outcome="biased" if "bias" in title else "fair",
+        technology=logo_vbmitigator + "based on vb-mitigator",
+        title=title,
+        subtitle=subtitle,
+        about=info["about"],
+        methodology=f"""
+            <p>We used the <a href="https://github.com/gsarridis/cv-bias-mitigation-library">CV bias mitigation library</a>
+            to detect representation imbalances, as well as spurious correlations between the target attribute (e.g., the
+            label a model is trying to predict) and other annotated attributes (such as image features like
+            color or shape). Spurious correlations are misleading patterns that do not reflect meaningful
+            relationships and can cause a model to make biased or inaccurate predictions.
+            Means of training fairer models are discussed in the <i>for experts</i> section.</p>
+            """,
+        pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+        experts=Markdown(output_str).text(),
+    )
+    return HTML(html_content)

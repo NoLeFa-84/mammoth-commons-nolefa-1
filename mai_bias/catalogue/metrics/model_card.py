@@ -1,9 +1,15 @@
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
-from typing import List, Literal
 from mammoth_commons.integration import metric
-from mammoth_commons.externals import fb_categories, align_predictions
+from mammoth_commons.externals import (
+    fb_categories,
+    align_predictions,
+    CommonClassificationBenefits,
+    compute_benefits,
+)
+from mammoth_commons.reminders import logo_fairbench
+from typing import List, Literal
 
 
 @metric(
@@ -11,6 +17,7 @@ from mammoth_commons.externals import fb_categories, align_predictions
     version="v054",
     python="3.13",
     packages=("fairbench", "pandas", "onnxruntime", "ucimlrepo", "pygrank"),
+    logo=logo_fairbench,
 )
 def model_card(
     dataset: Dataset,
@@ -22,11 +29,9 @@ def model_card(
     show_non_problematic: bool = False,
     min_group_size: int = 1,
     presentation: Literal["Numbers", "Bars"] = "Numbers",
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
-    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
-    style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
-
     <h3>cover a broad picture of imbalances</h3>
 
     <p>Generates a fairness and bias report using the <a href="https://github.com/mever-team/FairBench">FairBench</a>
@@ -61,6 +66,7 @@ def model_card(
         show_non_problematic: Determine whether deviations less than the problematic one should be shown or not. If they are shown, the coloring scheme is adjusted to identify problematic values as red.
         min_group_size: The minimum number of samples per group that should be considered during analysis - groups with less memers are ignored.
         presentation: Whether to focus on showing numbers or showing accompanying bars for easier comparison. Prefer a number comparison to avoid being influenced by comparisons between incomparable measure values.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
     # fb = importlib.import_module("fairbench")
     import fairbench as fb
@@ -70,7 +76,8 @@ def model_card(
     min_group_size = int(min_group_size)
     if isinstance(sensitive, str):
         sensitive = [sens.strip() for sens in sensitive.split(",")]
-    assert len(sensitive) != 0, "At least one sensitive attribute should be provided"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
+    assert len(sensitive) != 0, "At least one sensitive attribute is required"
     assert 0 <= prob <= 1, "Problematic deviation should be in [0,1]"
     presentation = fb.export.HtmlBars if presentation == "Bars" else fb.export.HtmlTable
     report_type = reps.pairwise if compare_groups == "Pairwise" else reps.vsall
@@ -112,42 +119,40 @@ def model_card(
             depth=3 if isinstance(predictions, dict) else 2,
         ),
     }
-    return HTML(
-        simplified_formatter(
-            outcome="biased" if problematic else "fair",
-            title=(
-                f"Biases in {len(problematic)} types of benefits"
-                if problematic
-                else "no concerns"
-            ),
-            technology='<div><img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="logo" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on FairBench reporting</h1></div>',
-            about=f"""
-                <p>{('Some system performance metrics, which indicate obtained benefits like correct or favorable '
-                  'operation, were found unevenly distributed across the population. '
-                  'These biases occurred in at least one prediction class and at least one way of aggregating the comparison '
-                  'among multiple groups. Expert assessment is needed to help understand which biases may be considered unfair. '
-                  'The biased metrics are:')
-                if problematic else 'No biases were found.'}
-                <br><br>
-                <i>{'<br>'.join(problematic)}</i>
-            """,
-            methodology=f"""
-                <p>Groups were compared <b>{compare_groups.lower()}</b>.
-                Values deviating more than <b>{prob:.3f}</b> from their ideal target
-                were counted as problematic. These deviations guide where deeper inspection is needed.
-                The result is considered biased if it lays <b>{prob:.3f}</b> away from its ideal target
-                that would indicate fairness. For example, the ideal target is 0 for differences between measure values,
-                and 1 for values that should be large (e.g., the minimum accuracy across all groups).
-                Some metrics have no known ideal values.</p>
-                <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
-                <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p></p>
-            """,
-            pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
-            experts=f"""
-                <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
-                <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>
-                <div id="expert-tab-header">{"".join(f'<button class="tablinks" data-tab="{key}">{key}</button>' for key in views)}</div>
-                <div id="expert-tab-body">{"".join(f'<div id="{key}" class="tabcontent">{value}</div>' for key, value in views.items())}</div>
-            """,
-        )
+    html_content = simplified_formatter(
+        outcome="biased" if problematic else "fair",
+        title_prefix=str(len(problematic)) if problematic else "",
+        title=(f"model biases" if problematic else "no concerns")
+        + compute_benefits(business_benefits, predictions, labels),
+        subtitle=subtitle,
+        technology=logo_fairbench + "based on FairBench reporting",
+        about=f"""
+            <p>{('Some system performance metrics, which indicate obtained benefits like correct or favorable '
+              'operation, were found unevenly distributed across the population. '
+              'These biases occurred in at least one prediction class and at least one way of aggregating the comparison '
+              'among multiple groups. Expert assessment is needed to help understand which biases may be considered unfair. '
+              'The biased metrics are:')
+            if problematic else 'No biases were found.'}
+            <br><br>
+            <i>{'<br>'.join(problematic)}</i></p>
+        """,
+        methodology=f"""
+            <p>Groups were compared <b>{compare_groups.lower()}</b>.
+            Values deviating more than <b>{prob:.3f}</b> from their ideal target
+            were counted as problematic. These deviations guide where deeper inspection is needed.
+            The result is considered biased if it lays <b>{prob:.3f}</b> away from its ideal target
+            that would indicate fairness. For example, the ideal target is 0 for differences between measure values,
+            and 1 for values that should be large (e.g., the minimum accuracy across all groups).
+            Some metrics have no known ideal values.</p>
+            <p>The analysis considered <b>{len(sensitive.branches())}</b> protected groups:
+            <br><i>{'<br>'.join(sensitive.branches().keys())}</i></p>
+        """,
+        pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+        experts=f"""
+            <details><summary>Summary of measures. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'measure' in key.role) + '</table>'}</i><br></details>
+            <details><summary>Summary of reductions. </summary><i>{'<table><tr><th>Name</th><th>Description</th></tr>' + ''.join(f'<tr><td>{key.name}</td><td>{key.details}</td></tr>' for key in report.keys() if 'reduction' in key.role) + '</table>'}</i><br></details>
+            <div id="expert-tab-header">{"".join(f'<button class="tablinks" data-tab="{key}">{key}</button>' for key in views)}</div>
+            <div id="expert-tab-body">{"".join(f'<div id="{key}" class="tabcontent">{value}</div>' for key, value in views.items())}</div>
+        """,
     )
+    return HTML(html_content)

@@ -1,24 +1,50 @@
- # MAI-BIAS modules
+ # MAI-BIAS modules and local runer
+ 
 
-[![Integration Tests](https://github.com/mammoth-eu/mammoth-commons/actions/workflows/integration.yml/badge.svg)](https://github.com/mammoth-eu/mammoth-commons/actions/workflows/integration.yml)
+[![MAI_BIAS toolkit](https://img.shields.io/badge/MAI_BIAS-⚖️_AI_fairness_tool-white)](https://mammoth-eu.github.io/mammoth-commons/index.html)[![Integration tests](https://github.com/mammoth-eu/mammoth-commons/actions/workflows/integration.yml/badge.svg)](https://github.com/mammoth-eu/mammoth-commons/actions/workflows/integration.yml)
 ![Coverage](./coverage-badge.svg)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 [![Downloads](https://static.pepy.tech/badge/mai-bias)](https://pepy.tech/projects/mai-bias)
 
-*Quickly develop and locally run MAI-BIAS toolkit modules.*
+This software is part of MAI-BIAS; a low-code toolkit for fairness analysis 
+and mitigation, with an accompanying suite of coding tools. Our ecosystem 
+operates in multidimensional and multi-attribute settings 
+(safeguarding multiple races, genders, etc), and across multiple data modalities 
+(like tabular data, images, text, graphs). Learn more 
+[here](https://mammoth-eu.github.io/mammoth-commons/).
+
+*This repository holds the toolkit's local runner, as well as implementation
+and documentation of 40+ modules.*
+
+## 👥 Who is this for?
+
+- *ML engineers and data scientists* building or evaluating models in Python.
+- *Researchers* studying AI bias across data modalities (tabular, vision, LLMs, etc).
+- *Bias auditors and compliance teams* needing standardized, traceable fairness reports, and system comparison across different datasets, parameters, and over time.
+- *Policymakers and analysts* who seek reproducible evidence for decision‑making.
+
+## ✨ About
 
 This repository is created by the [MAMMOth](https://mammoth-ai.eu/)
 project and holds the mammoth-commons library, which contains 
 supporting datatypes and decorators for developing fairness modules.
-It also hosts a catalogue of 35+ modules. 
-Finally, find desktop and terminal applications that 
-run those modules in your local machine.
+It also hosts a catalogue of 40+ modules. 
+Finally, find a desktop application that runs those modules in your 
+local machine.
 
 <img src="mai_bias/logo.png" alt="logo" style="width: 50%;" />
 
-## 🔬 Run locally
+## 🔗 Links
 
-1. Make **sure** you are on Python 3.11. Most modules also work in Python 3.13, with the exception of text debiasing.
+- [MAI-BIAS portal](https://mammoth-eu.github.io/mammoth-commons/)
+
+- [Server deployment repository](https://github.com/mammoth-eu/mammoth-toolkit-releases)
+
+- [Contribute](CONTRIBUTING.md)
+
+## ⚡ Manual local runner installation
+
+1. Make **sure** you are on Python 3.11. Most modules also work in Python 3.13 or later too.
 2. Install the *mai-bias* package.
 3. Launch the desktop app.
 
@@ -37,7 +63,8 @@ curl -fsSL https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_
 
 Modules will install further missing dependencies they need to run. **This may take some time, especially for modules depending on torch or tensorflow.**
 
-![App demo](docs/app_demo.gif)
+
+<img src="docs/screenshot1.png" alt="experiment results" style="width:100%">
 
 <details><summary>Ubuntu: Example of full installation pipeline</summary>
 
@@ -76,6 +103,22 @@ sudo apt install libasound2
 sudo apt install libxkbfile-dev
 sudo apt install --reinstall qt6-wayland libxcb-cursor0 libxkbcommon-x11-0
 sudo apt install libx11-xcb1 libxcb-xinerama0 libxcb-cursor0
+```
+
+</details>
+
+
+<details><summary>The app never opens</summary>
+
+First time, it needs to hypdrate itself with some images. 
+If it crashes nonetheless, there could be an issue with
+GPU acceleration in your environment. Try starting the 
+app with the following command
+as a first remedy (after making a virtual environment as
+described above, if not there).
+
+```bash
+python -m mai_bias.app_safe
 ```
 
 </details>
@@ -136,18 +179,10 @@ through *brew*.
 ``` 
 </details>
 
-## 🖥️ [Run in terminal](README_terminal.md)
- 
-## ☁️ [Deploy in a server](https://github.com/mammoth-eu/mammoth-toolkit-releases)
 
-## 🦣 [Module catalogue](https://mammoth-eu.github.io/mammoth-commons/)
+## 📜 License
 
-## 👍 [Contribute](CONTRIBUTING.md)
-
-
-## License
-
-This repository is distributed under the Apache 2.0 License, Copyright 2025 MAMMOth.
+This repository is distributed under the Apache 2.0 License, Copyright 2026 MAMMOth.
 
 Third-party licenses:
 
@@ -158,5 +193,5 @@ here: https://github.com/tabler/tabler-icons
 - The file `mammoth_commons/custom_kfp.py` was adjusted from the KFP project to
 handle additional metadata needed for interoperability with the demonstrator 
 and our metaprogramming decorators. Modifications were made on an original 
-version that is released under Apache 2.0 License under the KFP here: 
+version that is released under Apache 2.0 License under the KFP project here: 
 https://github.com/kubeflow/pipelines

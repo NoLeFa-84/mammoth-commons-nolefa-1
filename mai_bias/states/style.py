@@ -3,33 +3,34 @@ from PySide6.QtCore import Qt
 
 
 class Styled(QWidget):
-    def new_action(self, text, color, tooltip, callback, size=30, width=None):
+    def new_action(
+        self, text, color, tooltip, callback, size=30, width=None, icon=None
+    ):
         button = QPushButton(text, self)
-        button.setStyleSheet(
-            f"""
-            QPushButton {{background-color: {color}; color: #EEEEEE; border-radius: 5px;font-size: {size*6//8 if text=='+' else size//2}px;border: 1px solid black;font-weight: bold;}}
+        button.setStyleSheet(f"""
+            QPushButton {{background-color: {color}; color: black; border-radius: 5px;font-size: {size*6//8 if text=='+' else size//2}px;border: 1px solid #cccccc;font-weight: bold;}}
             QPushButton:hover {{border: 2px solid black;background-color: {self.highlight_color(color)};}}
-            """
-        )
+            """)
 
         button.setFixedSize(size, size)
         button.setToolTip(tooltip)
         button.clicked.connect(callback)
         if width:
             button.setFixedWidth(width)
+        if icon:
+            button.setIcon(icon)
+            # button.setIconSize(QSize(int(size * 0.6), int(size * 0.6)))
         return button
 
     def new_info_box(self, html_content):
         frame = QWidget(self)
         frame.setObjectName("InfoBox")
-        frame.setStyleSheet(
-            """
+        frame.setStyleSheet("""
                 QWidget#InfoBox {background-color: #dddddd;border: 1px solid #e2e8f0; border-radius: 10px;padding: 14px 18px;}
                 QLabel {color: #334155;font-size: 13px;line-height: 1.4em;}
                 ul {margin-left: 16px;}
                 li {margin: 4px 0;}
-            """
-        )
+            """)
         label = QLabel(html_content, frame)
         label.setTextFormat(Qt.TextFormat.RichText)
         label.setWordWrap(True)
@@ -42,13 +43,11 @@ class Styled(QWidget):
     def new_tag(self, text, tooltip, callback):
         button = QPushButton(text, self)
 
-        button.setStyleSheet(
-            """
+        button.setStyleSheet("""
             QPushButton {color: #222;border-radius: 10px; font-size: 12px; border: 0px solid #bbb; padding: 0px 5px;}
             QPushButton:hover {border-radius: 10px;border: 2px solid #888;background-color: #f5f5f5;}
             QPushButton:pressed {background-color: #dddddd;}
-            """
-        )
+            """)
 
         # button.setStyleSheet("""
         #     QPushButton {

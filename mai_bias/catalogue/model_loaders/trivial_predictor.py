@@ -7,7 +7,7 @@ def model_trivial_predictor() -> TrivialPredictor:
     """
     <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/nofeats.png?raw=true"
     alt="bias focus" style="float: left; margin-right: 15px; height: 36px;"/>
-    <h3>uncover biases when features are ignored</h3>
+    <h3>consider a trivial model that uncovers biases when features are ignored</h3>
     This is a deliberately biased predictor that ignores dataset features and decides on a fixed prediction based on
     the majority.
 

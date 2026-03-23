@@ -3,6 +3,8 @@ from mammoth_commons.datasets import Text
 from mammoth_commons.integration import metric
 from mammoth_commons.models import LLM
 from mammoth_commons.exports import HTML
+from mammoth_commons.exports.HTML import simplified_formatter_style
+from mammoth_commons.reminders import logo_mai_bias
 
 
 @metric(
@@ -12,10 +14,13 @@ from mammoth_commons.exports import HTML
     packages=(),
 )
 def llm_audit(
-    dataset: Text, model: LLM, sensitive: list[str], chain_of_votes: int = 10
+    dataset: Text,
+    model: LLM,
+    sensitive: list[str],
+    share_text: bool = False,
+    chain_of_votes: int = 10,
 ) -> HTML:
-    """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/ai.png?raw=true" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>
-
+    """<img src="https:///icons/ai.png" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>
     <h3>use an LLM as text auditor</h3>
 
     This assessment methodology sets an LLM at the role of fairness auditor and asks it to provide
@@ -25,6 +30,7 @@ def llm_audit(
     actionable insights or explanations.
 
     Args:
+        share_text: If the original text comes from a web page, uncheck this option to embed it within the report (this is not the default, because it may violate ownership).
         chain_of_votes: How many votes should be cast.
     """
     from mammoth_commons.externals import notify_progress, notify_end
@@ -71,74 +77,14 @@ def llm_audit(
         prompt="Input:" + dataset.text + "\n" + str(commentary),
     )
     notify_end()
-
-    html = f"""
-    <style>
-        .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
-        .banner {{
-            width: 100%;
-            padding: 180px 24px;
-            font-size: 42px;
-            font-weight: 700;
-            text-align: center;
-            color: white;
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }}
-        .banner.fair {{ background: #2e8b57; }}
-        .banner.biased {{ background: #c0392b; }}
-        .banner.report {{ background: #7f8c8d; }}
-        .pill-btn {{
-            width:100%; text-align:center; padding: 10px 18px;
-            background: #f5f5f5; border-radius: 10px; border: 1px solid #ccc;
-            cursor: pointer; font-size: 18px; transition: background 0.2s;
-        }}
-        .pill-btn:hover {{ background: #e0e0e0; }}
-        .pill-btn.active {{ background: #d0d0d0; border-color: #999;}}
-        .section-panel {{ display: none; padding: 0px; background: white; }}
-        .section-panel.active {{ display: block; }}
-
-        .tablinks {{
-            background-color: #ddd;
-            padding: 10px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            margin: 5px;
-        }}
-        .tablinks.active {{ background-color: #aaa; }}
-        .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
-        .tabcontent.active {{ display: block; }}
-    </style>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {{
-        const buttons = document.querySelectorAll(".pill-btn");
-        const sections = document.querySelectorAll(".section-panel");
-
-        buttons.forEach(btn => {{
-            btn.addEventListener("click", () => {{
-                let target = btn.getAttribute("data-target");
-
-                buttons.forEach(b => b.classList.remove("active"));
-                sections.forEach(s => s.classList.remove("active"));
-
-                btn.classList.add("active");
-                document.getElementById(target).classList.add("active");
-            }});
-        }});
-
-        // Activate first section
-        document.querySelector(".pill-btn").classList.add("active");
-        document.querySelector(".section-panel").classList.add("active");
-    }});
-    </script>
-
-    <h1 class="banner {'biased' if title.startswith('Biased') else 'fair'}">{title}</h1>
-    
-    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/ai.png?raw=true" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>
-
-    <h3>used an LLM to audit text biases</h3>
+    technology = """<img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/ai.png?raw=true" alt="ai" style="float: left; margin-right: 15px; height: 36px;"/>used an LLM to audit text biases"""
+    subtitle = logo_mai_bias + "MAI-BIAS analysis of: " + dataset.source
+    html = simplified_formatter_style + f"""
+    <div class="banner-container">
+        <h1 class="banner {'biased' if title.startswith('Biased') else 'fair'}">{title}</h1>
+        <div class="subtitle">{subtitle}</div>
+        <div class="technology">{technology}</div>
+    </div>
     <div class="pill-buttons">
         <div class="pill-btn" data-target="whatis">What is this?
         <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
@@ -172,11 +118,34 @@ def llm_audit(
         Manual inspection is recommended.</p>
         
         <details><summary><i>Full text</i></summary>
-        <small>{dataset.text}</small>
+        <small>{dataset.text if share_text else dataset.source}</small>
         </details>
     </div>
     <div id="pipeline" class="section-panel">{dataset.to_description()}<br><br>{model.to_description()}</div>
     <div id="reasoning" class="section-panel">{markdown2.markdown(commentary)}</div>
     <div id="actions" class="section-panel">{markdown2.markdown(result)}</div>
+    
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {{
+        const buttons = document.querySelectorAll(".pill-btn");
+        const sections = document.querySelectorAll(".section-panel");
+
+        buttons.forEach(btn => {{
+            btn.addEventListener("click", () => {{
+                let target = btn.getAttribute("data-target");
+
+                buttons.forEach(b => b.classList.remove("active"));
+                sections.forEach(s => s.classList.remove("active"));
+
+                btn.classList.add("active");
+                document.getElementById(target).classList.add("active");
+            }});
+        }});
+
+        // Activate first section
+        document.querySelector(".pill-btn").classList.add("active");
+        document.querySelector(".section-panel").classList.add("active");
+    }});
+    </script>
     """
     return HTML(html)

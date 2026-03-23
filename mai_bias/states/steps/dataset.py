@@ -2,9 +2,8 @@ from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QThread, Signal, QMutex
 from mai_bias.backend.loaders import registry
 import traceback
-from mai_bias.states.step import Step, save_all_runs, InfoBox
+from mai_bias.states.step import Step, save_all_runs
 from mammoth_commons import integration_callback
-
 
 global items
 
@@ -63,10 +62,10 @@ class DatasetLoaderThread(QThread):
 
             self.finished_success.emit(self.pipeline)
         except Exception as e:
-            traceback.print_exception(e)
+            # traceback.print_exception(e)
             if not self._is_canceled:
                 self.pipeline["status"] = "failed"
-                traceback.print_exception(e)
+                # traceback.print_exception(e)
                 self.finished_failure.emit(str(e))
             else:
                 self.mutex.lock()
@@ -101,10 +100,14 @@ class SelectDataset(Step):
             """
         )
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.setStyleSheet("color:black;background-color:white")
         popup.exec()
 
-    def next(self):
+    def direct_save(self):
         self.save("dataset")
+
+    def next(self):
+        self.direct_save()
         save_all_runs("history.json", self.dataset)
 
         self.loading_message = QMessageBox(self)

@@ -15,7 +15,7 @@ with open("config/requirements[mai].txt", "r") as file:
 
 setuptools.setup(
     name="MAI-Bias",
-    version="0.2.24",
+    version="0.2.31",
     author="Emmanouil (Manios) Krasanakis",
     author_email="maniospas@hotmail.com",
     description="Desktop app version of the MAI-Bias toolkit.",
@@ -23,6 +23,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/mammoth-eu/mammoth-commons",
     packages=setuptools.find_packages(),
+    package_data={
+        "mai_bias.icons": ["*.png", "*.svg", "*.jpg", "*.jpeg", "*.gif"],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",

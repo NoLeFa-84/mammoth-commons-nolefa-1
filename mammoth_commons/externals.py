@@ -1,7 +1,9 @@
 import urllib.request
 import urllib.parse
 import os
-from typing import Any
+import base64
+import mimetypes
+from typing import Any, Literal
 
 from mammoth_commons.datasets import Labels
 from mammoth_commons.integration_callback import notify_progress, notify_end
@@ -10,6 +12,8 @@ import bz2
 import pathlib
 import shutil
 import re
+
+SEPARATOR = " <span style='width:4em'>&nbsp;</span> "
 
 
 def get_import_list(code):
@@ -54,17 +58,21 @@ def get_model_layer_list(model):
         return []
 
 
-def align_predictions(predictions: Any, labels: Labels) -> (Labels, Labels | None):
+def align_predictions(
+    predictions: Any, labels: Labels | str
+) -> (Labels, Labels | None):
     if labels is None:
         assert isinstance(
             predictions, Labels
         ), "Internal error: align_predictions with no labels requires predictions of class Labels"
         return predictions, None
+    if isinstance(predictions, dict):
+        predictions = Labels(predictions)
+    if isinstance(labels, dict):
+        labels = Labels(labels)
     assert isinstance(
         labels, Labels
     ), "Internal error: align_predictions requires labels of class Labels"
-    if isinstance(predictions, dict):
-        predictions = Labels(predictions)
     if isinstance(predictions, Labels):
         try:
             assert len(predictions) == len(labels)
@@ -98,6 +106,57 @@ def align_predictions(predictions: Any, labels: Labels) -> (Labels, Labels | Non
     predictions = Labels({f"class {k}": v for k, v in predictions.items()})
     labels = Labels({f"class {k}": v for k, v in labels.items()})
     return predictions, labels
+
+
+CommonClassificationBenefits = Literal[
+    "Accuracy", "Precision", "Recall", "F1 score", "Ignore"
+]
+
+
+def compute_benefits(
+    benefit: CommonClassificationBenefits,
+    predictions: dict | Labels,
+    labels: dict | Labels | None,
+) -> str:
+    import numpy as np
+
+    def _as_numpy(labels: Labels) -> np.ndarray:
+        cols = [np.asarray(v) for _, v in labels.items()]
+        if not cols:
+            raise ValueError("Labels object contains no columns")
+        return np.column_stack(cols)
+
+    if labels is None:
+        return ""
+    if benefit == "Ignore":
+        return ""
+    predictions, labels = align_predictions(predictions, labels)
+    pred_arr = _as_numpy(predictions)
+    true_arr = _as_numpy(labels)
+    pred_cls = np.argmax(pred_arr, axis=1)
+    true_cls = np.argmax(true_arr, axis=1)
+    if benefit == "Accuracy":
+        metric = (pred_cls == true_cls).mean()
+    else:
+        if pred_arr.shape[1] != 2:
+            raise Exception(f"Cannot compute {benefit} for non-binary predictions")
+        tp = np.sum((pred_cls == 1) & (true_cls == 1))
+        tn = np.sum((pred_cls == 0) & (true_cls == 0))
+        fp = np.sum((pred_cls == 1) & (true_cls == 0))
+        fn = np.sum((pred_cls == 0) & (true_cls == 1))
+
+        if benefit == "Recall":
+            metric = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        elif benefit == "Precision":
+            metric = tp / (tp + fp) if (fp + tn) > 0 else 0.0
+        elif benefit == "F1 score":
+            denom = 2 * tp + fp + fn
+            metric = (2 * tp) / denom if denom > 0 else 0.0
+        else:
+            raise Exception(f"Unknown benefit: {benefit}")
+    percent = int(round(metric * 100))
+    readable_name = benefit.lower()
+    return f"{SEPARATOR}<span style='border-radius:20px;background:#f8f8cc;padding:5px 10px;color:black;border:2px solid black'>{percent}%</span> {readable_name}"
 
 
 def fb_categories(it):
@@ -190,6 +249,17 @@ def _toextract(path):
 
 
 def prepare(url, cache=".cache"):
+    if "/icons/" in url:
+        from importlib.resources import files
+
+        path = str(
+            files("mai_bias.icons").joinpath(url.split("/icons/")[1].split("?")[0])
+        )
+        if os.path.exists(path):
+            return path
+        else:
+            raise Exception("Could not find icon path: " + path)
+
     url = url.replace("\\", "/")
     if (
         ".zip/" in url
@@ -220,7 +290,10 @@ def to_file_url(path: str) -> str:
     return f"file:///{encoded}"
 
 
-def prepare_html(html: str) -> str:
+__failed_to_parse = set()
+
+
+def prepare_html(html: str, cache_copy_if_possible: bool = True) -> str:
     pattern = r'(src|href)=(["\'])([^"\']+)\2'
 
     def repl(match):
@@ -235,12 +308,33 @@ def prepare_html(html: str) -> str:
             or ".jpg" in url
             or "githubusercontent" in url
         ):
+            if url in __failed_to_parse:
+                return ""
+            file_url = url
             try:
-                cached_path = prepare(url)
-                file_url = to_file_url(cached_path)
+                if "/icons/" in url:
+                    from importlib.resources import files
+
+                    file_url = str(
+                        files("mai_bias.icons").joinpath(
+                            url.split("/icons/")[1].split("?")[0]
+                        )
+                    )
+                else:
+                    if not cache_copy_if_possible:
+                        return match.group(0)
+                    file_url = prepare(url)
+                with open(file_url, "rb") as f:
+                    data = f.read()
+                if ".png" in url or ".jpg" in url:  # hardcode images
+                    b64_data = base64.b64encode(data).decode("utf-8")
+                    mime_type, _ = mimetypes.guess_type(file_url)
+                    return f"{attr}={quote}data:{mime_type};base64,{b64_data}{quote}"
+                file_url = to_file_url(prepare(url))
                 return f"{attr}={quote}{file_url}{quote}"
             except Exception as e:
-                print("prepare_html WARNING:", e)
+                __failed_to_parse.add(url)
+                print("Failed to cache resource '" + file_url + "': " + str(e))
                 return match.group(0)  # keep original
         return match.group(0)
 

@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QThread, Signal, QMutex
 from mai_bias.backend.loaders import registry
-from mai_bias.states.step import Step, save_all_runs, InfoBox
+from mai_bias.states.step import Step, save_all_runs
 import traceback
 from mammoth_commons import integration_callback
 
@@ -78,7 +78,7 @@ class AnalysisThread(QThread):
 
             self.finished_success.emit(self.pipeline)
         except Exception as e:
-            traceback.print_exception(e)
+            # traceback.print_exception(e)
             if not self._is_canceled:
                 self.pipeline["status"] = "failed"
                 self.finished_failure.emit(str(e))
@@ -99,8 +99,7 @@ class SelectAnalysis(Step):
     def show_warnings_popup(self):
         popup = QMessageBox(self)
         popup.setWindowTitle("Responsible analysis")
-        popup.setText(
-            """
+        popup.setText("""
             <p>💡 <b>Fairness is context-specific.</b> There is no general fairness definition that applies to every context or use case.
             This page lets you select fairness/bias assessment methodologies that contain definitions from the computer science literature. 
             However, which ones are suitable depends on the specific situation you are studying; less common methodologies and definitions 
@@ -112,9 +111,9 @@ class SelectAnalysis(Step):
             be part of the evaluation, but lenders might think it is fair to provide impartial and systematic responses (although these may also contain
             biases that were not accounted for during system creation, like historical racism in training data).
             </p>
-            s"""
-        )
+            """)
         popup.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.setStyleSheet("color:black;background-color:white")
         popup.exec()
 
     def showEvent(self, event):
@@ -147,15 +146,16 @@ class SelectAnalysis(Step):
         )
         super().showEvent(event)
 
-    def next(self):
+    def direct_save(self):
         self.save("analysis")
+
+    def next(self):
+        self.direct_save()
         pipeline = self.runs[-1]
 
         self.loading_message = QMessageBox(self)
         self.loading_message.setWindowTitle("Running fairness analysis")
-        self.loading_message.setText(
-            "Please wait while the fairness analysis is running..."
-        )
+        self.loading_message.setText("The fairness analysis is running...")
         self.loading_message.setStandardButtons(QMessageBox.StandardButton.Cancel)
         self.loading_message.setModal(True)
         self.loading_message.button(QMessageBox.StandardButton.Cancel).clicked.connect(

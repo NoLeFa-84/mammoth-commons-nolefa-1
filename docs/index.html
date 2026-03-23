@@ -1,175 +1,326 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAMMOth Catalogue</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        .main-content {
-            margin-top: 60px;
-        }
-        .side-menu {
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 200px;
-            padding-top: 70px;
-            background-color: #f8f9fa;
-            border-right: 1px solid #dee2e6;
-        }
-        .side-menu a {
-            display: block;
-            padding: 5px 20px;
-            color: #495057;
-            text-decoration: none;
-        }
-        .side-menu a:hover {
-            background-color: #e9ecef;
-        }
-        .content-wrapper {
-            margin-left: 220px;
-            margin-right: 220px;
-            padding: 20px;
-        }
-        h2 {
-            color: #007bff;
-            border-bottom: 3px solid #007bff;
-            padding-bottom: 5px;
-            margin-top: 20px;
-        }
-        
-        /* Hide navbar on small screens */
-        @media (max-width: 576px) {
-            .side-menu {
-                display: none;
-            }
-    
-            .content-wrapper {
-                margin-left: 0;
-                margin-right: 0;
-                padding: 0;
-            }
-            .main-content {
-                margin-top: 200px;
-            }
-        }
-    </style>
+    <title>MAI-BIAS portal</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <div class="mx-auto">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="index.html">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="datasets.html">Datasets</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="models.html">Models</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="analysis_methods.html">Analysis</a>
-                </li>
-            </ul>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">MAI-BIAS</div>
+            <div class="nav-links">
+                <a href="#toolkit">Toolkit</a>
+                <a href="#software">Software</a>
+                <a href="#learning">Training</a>
+            </div>
         </div>
     </nav>
+    <header class="intro">
+        <h1>Welcome to the MAI-BIAS portal!</h1>
+        <p>Audit bias and develop fairer AI systems in the wild. Get started with our tools.</p>
+    </header>
 
-    <!-- Side Menu -->
-    <div class="side-menu">
-        
-    </div>
+    <img src="https://github.com/mammoth-eu/mammoth-commons/raw/dev/mai_bias/icons/mai_bias.png" alt="logo" style="width:250px;display:block;margin:auto">
 
-    <!-- Main Content -->
-    <div class="content-wrapper">
-        <div class="main-content container">
-            <div class="container">
-
-<h1 class='display-4 text-center my-4'>MAMMOth Catalogue</h1>
-<p class='lead text-center'>Explore the core modules of the MAI-BIAS toolkit and demonstrator.</p>
-<p>This catalogue gathers the MAI-BIAS modules developed by the <a href=https://mammoth-ai.eu/>MAMMOth</a> project.
-These hold research results and third-party libraries to perform various kinds of fairness assessment.
-Some will also guide you on how to apply mitigation strategies. 
-The documentation found here is the same as the one shown by the respective tools. However, by organizing
-everything in one place, it becomes easier to understand all available options for the toolkit.
-Use the navigation links to overview datasets, models, and analysis methods.</p>
-<p>Broadly, we offer three types of modules:</p>
-<div class="container my-4">
-    <div class="row">
-        <!-- Dataset Loaders Card -->
-        <div class="col-md-4">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">🗄 <a href='datasets.html'>Dataset loaders</a></h5>
-                    <p class="card-text">Load your own datasets or automatically use public datasets that are popular in fairness literature research.</p>
+    <main class="container">
+        <section id="toolkit">
+            <div class="toolkit-header">
+                <h2>Our toolkit</h2>
+            </div>
+            <p>The MAI-BIAS toolkit is a low-code fairness assessment and bias mitigation app.
+            It contains 40+ modules from our partners and third parties, accessible through a
+            standardized interface. It adjusts to your setting with out-of-the-box support for many
+            <a href="datasets.html">data types</a>, <a href="models.html">models</a>, and
+            <a href="analysis_methods.html">fairness concerns</a>.</p>
+            <div style="text-align: center; padding: 10px; border-radius: 8px;">
+                <div class="player">
+                  <iframe style="width:100%;aspect-ratio:16/9;"
+                          src="https://www.youtube.com/embed/Ezz74cwzcxw"
+                          title="MAI-BIAS demo"
+                          frameborder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowfullscreen>
+                  </iframe>
                 </div>
             </div>
-        </div>
 
-        <!-- Model Loaders Card -->
-        <div class="col-md-4">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">🧮 <a href='models.html'>Model loaders</a></h5>
-                    <p class="card-text">Import a wide range of trained machine learning model formats or other artificial intelligence algorithms.</p>
+            <p>How to ...</p>
+            <div class="learning-list">
+                <a href="install.html"><span>Install locally or in a server</span></a>
+                <a href="examples/quickstart.html"><span><span>Audit</span> a dataset in 10 clicks.</span></a>
+                <a href="examples/model.html">Investigate and summarize hundreds of model biases.</span></a>
+                <a href="examples/face.html"><span><span>Find face regions</span> influencing the decisions of vision models.</span></a>
+                <a href="examples/text.html"><span><span>Analyze text</span> biases with robustified LLMs. Example on a news feed.</span></a>
+            </div>
+
+            <p>Everyone can explore results, including policymakers and non-experts. Examples:</p>
+            <div class="learning-list">
+                <a href="examples/share.html">From our tools.</a>
+                <a href="examples/thirdparty.html"><span>From integrated FairLearn and AIF360 analysis.</span></a>
+            </div>
+        </section>
+        <section>
+            <h2>Toolkit gallery</h2>
+            <div id="gallery">
+                <p>Click on any screenshot to enlarge it.</p>
+                <div class="screenshot-gallery">
+                    <div class="gallery-item" onclick="openLightbox(0)">
+                        <img src="screenshots/screenshot1.png" alt="Dataset analysis results">
+                        <div class="overlay"><span>Dataset analysis results</span></div>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox(0)">
+                        <img src="screenshots/screenshot8.png" alt="Specific concerns">
+                        <div class="overlay"><span>Specific concerns</span></div>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox(0)">
+                        <img src="screenshots/screenshot7.png" alt="Dataset augmentation">
+                        <div class="overlay"><span>Dataset augmentation</span></div>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox(0)">
+                        <img src="screenshots/screenshot6.png" alt="Important face regions">
+                        <div class="overlay"><span>Important face regions</span></div>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox(1)">
+                        <img src="screenshots/screenshot2.png" alt="Main menu">
+                        <div class="overlay"><span>Main menu</span></div>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox(2)">
+                        <img src="screenshots/screenshot3.png" alt="Set dataset">
+                        <div class="overlay"><span>Choose a data type</span></div>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox(3)">
+                        <img src="screenshots/screenshot4.png" alt="Set model">
+                        <div class="overlay"><span>Set model</span></div>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox(4)">
+                        <img src="screenshots/screenshot5.png" alt="Sensitive attributes">
+                        <div class="overlay"><span>Sensitive attributes</span></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Analysis Metrics Card -->
-        <div class="col-md-4">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">🔬 <a href='analysis_methods.html'>Analysis metrics</a></h5>
-                    <p class="card-text">Includes traditional metrics quantifying disparities between sensitive groups and visualizations that aid explainability.</p>
+
+            <div class="note">
+                <p>Want to add your own modules or report an issue? Visit the GitHub repositories of the
+                <a href="https://github.com/mammoth-eu/mammoth-commons">local runner</a>
+                or <a href="https://github.com/mammoth-eu/mammoth-toolkit-releases">server runner</a>.
+                </p>
+            </div>
+        </section>
+
+        <section id="software">
+            <h2>Reuse our software</h2>
+            <p>Apply bias detection and mitigation code in your projects independently. Software listed here also
+            supports the MAI-BIAS toolkit.</p>
+
+            <div class="software-grid">
+                <!-- General / Multi-Modal -->
+                <div class="card">
+                    <img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/mever-team/FairBench">FairBench</a><span class="tag">Any data</span><span class="tag">Library</span></h3>
+                    <p>A comprehensive AI fairness exploration library with >300 standardized measures.
+                    It can parse any data modality, including generated text.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <img src="https://github.com/arjunroyihrpa/MMM_fair/blob/main/images/mmm-fair.png?raw=true"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/arjunroyihrpa/MMM_fair">MMM-fair</a><span class="tag">Any data</span><span class="tag">Library</span></h3>
+                    A library that supports high-stakes AI decision-making under competing fairness and accuracy demands.
+                </div>
+
+                <div class="card">
+                    <img src="https://github.com/mammoth-eu/mammoth-commons/raw/dev/mai_bias/icons/mai_bias.png"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/arjunroyihrpa/FairBranch">FairBranch</a><span class="tag">Any data</span><span class="tag">Algorithm</span></h3>
+                    <p>Implementation of FairBranch pipelines for vision and tabular modalities.</p>
+                </div>
+
+                <!-- Tabular -->
+                <div class="card">
+                    <img src="https://github.com/mammoth-eu/mammoth-commons/raw/dev/mai_bias/icons/mai_bias.png"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/arjunroyihrpa/Multi-Fairness-under-Class-Imbalance">MBFPP</a><span class="tag">Tabular data</span><span class="tag">Algorithm</span></h3>
+                    <p>Implementation of a work on multi-fairness under class imbalance.</p>
+                </div>
+
+                <!-- Visual -->
+                <div class="card">
+                    <img src="https://github.com/mever-team/vb-mitigator/raw/main/assets/vb-mitigator%20logo_250.png"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/mever-team/vb-mitigator">VB-Mitigator</a><span class="tag">Vision</span><span class="tag">Algorithm</span></h3>
+                    <p>Implementation and evaluation of existing and new visual bias mitigation methods.</p>
+                </div>
+
+                <div class="card">
+                    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/mai_bias/icons/facex.png?raw=true"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/gsarridis/faceX">FaceX</a><span class="tag">Vision</span><span class="tag">Algorithm</span></h3>
+                    <p>Understanding face attribute classifiers through summary model explanations.</p>
+                </div>
+
+                <div class="card">
+                    <img src="https://github.com/gebaltso/SDFD/raw/main/examplesSDFD.png?raw=true"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/gebaltso/SDFD">SDFD</a><span class="tag">Vision</span><span class="tag">Dataset</span></h3>
+                    <p>A synthetic face image dataset that captures broad facial diversity (demographics, biometrics, non-permanent traits).</p>
+                </div>
+
+                <!-- Graphs -->
+                <div class="card">
+                    <img src="https://github.com/CSHVienna/NetworkInequalities/raw/main/docs/source/netin-logo.png?raw=true"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/CSHVienna/NetworkInequalities">NetIn</a><span class="tag">Networks</span><span class="tag">Library</span></h3>
+                    <p>A library of methods to study network inequalities.</p>
+                </div>
+
+                <div class="card">
+                    <img src="https://github.com/CSHVienna/hyper_fair/blob/main/logo.png?raw=true"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/CSHVienna/hyper_fair">HyperFair</a><span class="tag">Networks</span><span class="tag">Library</span></h3>
+                    <p>A Python library for generating, evaluating, and improving rankings under fairness constraints.</p>
+                </div>
+
+                <div class="card">
+                    <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/mai_bias/icons/graph.png?raw=true"
+                         alt="icon"
+                         style="height: 50px; position: absolute; left: 50%; transform: translateX(-50%); top: -25px;border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+
+                    <h3><a href="https://github.com/MKLab-ITI/pygrank-f">pygrank-f</a><span class="tag">Networks</span><span class="tag">Algorithm</span></h3>
+                    <p>Implementation of node ranking debiasing in large graphs.</p>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+        </section>
 
 
-<p>Visit our <a href="https://github.com/mammoth-eu/mammoth-commons">GitHub</a> repository
-to set up a local runner for these modules. View validation data <a href="validation_data.html">here</a>.<p>
-
+        <!-- SECTION: Learning Material -->
+        <section id="learning">
+            <h2>Training material for AI creators</h2>
+            <div class="learning-list">
+                <a href="https://github.com/mammoth-eu/FairnessDefinitionGuide"><strong>AI Fairness Definition Guide</strong></a>
+                <a href="https://arjunroyihrpa.github.io/My-Tutorials-FairML/"><strong>Fairness-aware ML Tutorials</strong></a>
             </div>
-        </div>
+        </section>
+
+    </main>
+
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+        <button class="lightbox-close" onclick="closeLightbox(event)" aria-label="Close">&times;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="prevSlide(event)" aria-label="Previous">&#10094;</button>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="">
+        <button class="lightbox-nav lightbox-next" onclick="nextSlide(event)" aria-label="Next">&#10095;</button>
+        <div class="lightbox-counter"><span id="lightbox-counter"></span></div>
     </div>
 
-    <!-- Description Modal -->
-    <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title text-muted" id="descriptionModalLabel">Description</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" id="descriptionModalBody">
-            <!-- Description will be injected here -->
-          </div>
-        </div>
-      </div>
-    </div>
+    <footer>
+        <p>&copy; This material has been developed by the MAMMOth EU project.</p>
+        <p>
+            <a href="https://github.com/mammoth-eu">GitHub</a>&nbsp;|
+            <a href="https://mammoth-ai.eu">Website</a>
+        </p>
+    </footer>
 
-<script>
-    function showDescriptionModal(button) {
-        const description = button.getAttribute("data-description");
-        const name = button.getAttribute("data-name");
-        document.getElementById("descriptionModalLabel").innerText = name;
-        document.getElementById("descriptionModalBody").innerText = description;
-        const modal = new bootstrap.Modal(document.getElementById("descriptionModal"));
-        modal.show();
-    }
-</script>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+    <script>
+        function openMammothTab(evt, tabName) {
+            evt.preventDefault();
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.className += " active";
+        }
+        const images = [
+            'screenshots/screenshot1.png',
+            'screenshots/screenshot8.png',
+            'screenshots/screenshot7.png',
+            'screenshots/screenshot6.png',
+            'screenshots/screenshot2.png',
+            'screenshots/screenshot3.png',
+            'screenshots/screenshot4.png',
+            'screenshots/screenshot5.png'];
+        let currentIndex = 0;
+
+        function openLightbox(index) {
+            currentIndex = index;
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+            img.src = images[index];
+            counter.textContent = `${index + 1} / ${images.length}`;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox(event) {
+            if (event.target.classList.contains('lightbox') ||
+                event.target.classList.contains('lightbox-close')) {
+                const lightbox = document.getElementById('lightbox');
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function prevSlide(event) {
+            event.stopPropagation();
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            document.getElementById('lightbox-img').src = images[currentIndex];
+            document.getElementById('lightbox-counter').textContent = `${currentIndex + 1} / ${images.length}`;
+        }
+
+        function nextSlide(event) {
+            event.stopPropagation();
+            currentIndex = (currentIndex + 1) % images.length;
+            document.getElementById('lightbox-img').src = images[currentIndex];
+            document.getElementById('lightbox-counter').textContent = `${currentIndex + 1} / ${images.length}`;
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const lightbox = document.getElementById('lightbox');
+            if (!lightbox.classList.contains('active')) return;
+
+            if (e.key === 'Escape') {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide({ stopPropagation: () => {} });
+            } else if (e.key === 'ArrowRight') {
+                nextSlide({ stopPropagation: () => {} });
+            }
+        });
+    </script>
 </body>
 </html>

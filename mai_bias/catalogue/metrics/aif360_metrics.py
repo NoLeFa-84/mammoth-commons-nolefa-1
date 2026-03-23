@@ -1,17 +1,20 @@
 import math
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
-from mammoth_commons.exports import HTML
+from mammoth_commons.exports import HTML, simplified_formatter
 from typing import List
 from mammoth_commons.integration import metric
-from mammoth_commons.externals import align_predictions
+from mammoth_commons.externals import (
+    align_predictions,
+    CommonClassificationBenefits,
+    compute_benefits,
+)
 from mammoth_commons.integration_callback import notify_progress, notify_end
-from mammoth_commons.reminders import on_results
+from mammoth_commons.reminders import on_results, logo_aif360
 import json
 
 
 def render_metric_bars(rows, sensitive):
-    # (unchanged original function)
     constant_metrics = []
     varying_metrics = []
     for row in rows:
@@ -37,8 +40,14 @@ def render_metric_bars(rows, sensitive):
             try:
                 val = float(val)
             except:
-                val = None
-            chart_data.append({"metric": metric, "group": attr, "value": val})
+                val = math.nan
+            chart_data.append(
+                {
+                    "metric": metric,
+                    "group": attr,
+                    "value": val if not math.isnan(val) else 0,
+                }
+            )
 
     data_json = json.dumps(chart_data)
 
@@ -58,11 +67,9 @@ def render_metric_bars(rows, sensitive):
         </table>
         """
 
-    return (
-        render_constant_table()
-        + f"""
+    return render_constant_table() + f"""
 <div id="chart-container"></div>
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
 (function() {{
     const data = {data_json};
@@ -122,7 +129,6 @@ def render_metric_bars(rows, sensitive):
 }})();
 </script>
 """
-    )
 
 
 @metric(
@@ -137,6 +143,7 @@ def render_metric_bars(rows, sensitive):
         "ucimlrepo",
         "pygrank",
     ),
+    logo=logo_aif360,
 )
 def aif360_metrics(
     dataset: Dataset,
@@ -145,11 +152,9 @@ def aif360_metrics(
     favorable_label: int = 1,
     unfavorable_label: int = 0,
     bias_threshold: float = 0.05,
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
-    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
-    alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
-
     <h3>popular types of bias</h3>
 
     <p>Use IBM's <a href="https://aif360.readthedocs.io" target="_blank">AIF360</a> to compute
@@ -166,6 +171,7 @@ def aif360_metrics(
         favorable_label: The prediction label value which is considered favorable (i.e. "positive"). Default is 1 for binary classifiers.
         unfavorable_label: The prediction label value which is considered unfavorable (i.e. "negative"). Default is 0 for binary classifiers.
         bias_threshold: The maximum value of bias assessment. Common literature default is 0.1 or 0.2, but stakeholder engagement in the MAMMOth project suggests that this value should be lower for measures of bias that matter. Hence a more conservative default of 0.05 is used.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
 
     from aif360.metrics import ClassificationMetric
@@ -174,6 +180,7 @@ def aif360_metrics(
     threshold = float(bias_threshold)
     if isinstance(sensitive, str):
         sensitive = [s.strip() for s in sensitive.split(",")]
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     assert len(sensitive) > 0, "Must specify at least one sensitive attribute"
     y_pred = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
@@ -303,7 +310,7 @@ def aif360_metrics(
         "False Discovery Rate Ratio": 1.0,
         "False Omission Rate Ratio": 1.0,
         "False Omission Rate Difference": 0.0,
-        "False Positive Rate Ratio": 0.0,
+        "False Positive Rate Ratio": 1.0,
     }
     biases = {
         r["Metric"].lower()
@@ -315,99 +322,39 @@ def aif360_metrics(
         and not math.isnan(v)
         and abs(IDEAL_VALUES[r["Metric"]] - float(v)) > threshold
     }
-    verdict = (
-        (
-            list(biases)[0][0].upper()
-            + list(biases)[0][1:]
-            + f" bias"  # " in {len(sensitive)} groups"
+    html_content = simplified_formatter(
+        outcome="biased" if biases else "fair",
+        technology=logo_aif360 + "based on AIF360 metrics",
+        title_prefix=(
+            (
+                list(biases)[0][0].upper() + list(biases)[0][1:]
+                if len(biases) == 1
+                else str(len(biases))
+            )
+            if biases
+            else ""
+        ),
+        title=(
+            " bias"
+            if len(biases) == 1
+            else ("types of bias" if len(biases) else "No concerns")
         )
-        if len(biases) == 1
-        else (
-            f"{len(biases)} types of bias"  # " in {len(sensitive)} groups"
-            if len(biases)
-            else f"No concerns"  # " among {len(sensitive)} groups"
-        )
-    )
-    bias_list_html = (
-        "<i>" + "<br>".join(biases) + "</i>" if biases else "the system is likely fair"
-    )
-    html_content = f"""
-    <style>
-        .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
-        .banner {{width: 100%;  padding: 180px 24px; font-size: 64px; font-weight: 700; text-align: center; color: white; border-radius: 12px margin-bottom: 25px;}}
-        .banner.fair {{ background: #2e8b57; }}
-        .banner.biased {{ background: #c0392b; }}
-        .banner.report {{ background: #7f8c8d; }}
-        .pill-btn {{ width:100%; text-align:center; padding: 10px 18px; background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc; cursor: pointer; font-size: 18px; transition: background 0.2s;}}
-        .pill-btn:hover {{ background: #e0e0e0; }}
-        .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
-        .section-panel {{ display: none; padding: 12px; border: 0px; }}
-        .section-panel.active {{ display: block; }}
-        .overview-title {{font-size: 32px; font-weight: 700; margin-top: 0; margin-bottom: 10px; }}
-        .overview-sub {{ font-size: 18px; opacity: 0.8; margin-bottom: 20px; }}
-    </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {{
-            const buttons = document.querySelectorAll(".pill-btn");
-            const sections = document.querySelectorAll(".section-panel");
-            buttons.forEach(btn => {{
-                btn.addEventListener("click", () => {{
-                    let t = btn.getAttribute("data-target");
-                    buttons.forEach(b => b.classList.remove("active"));
-                    sections.forEach(s => s.classList.remove("active"));
-                    btn.classList.add("active");
-                    document.getElementById(t).classList.add("active");
-                }});
-            }});
-            buttons[0].classList.add("active");
-            sections[0].classList.add("active");
-        }});
-    </script>
-    <div>
-        <h1 class="banner {'biased' if 'bias' in verdict else 'fair'}">{verdict}</h1>
-        <div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360 metrics</h1></div>
-        <div class="pill-buttons">
-            <div class="pill-btn" data-target="whatis">
-                What is this?<br>
-                <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/question.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="warning">
-                Responsible use
-                <br><img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/warning.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="methodology">
-                Analysis methodology<br>
-                <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/methodology.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="pipeline">
-                Data pipeline<br>
-                <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/data.png?raw=true" height="128px"/>
-            </div>
-            <div class="pill-btn" data-target="experts">
-                For experts<br>
-                <img src="https://github.com/mammoth-eu/mammoth-commons/blob/dev/docs/icons/chart.png?raw=true" height="128px"/>
-            </div>
-        </div>
-        <div id="whatis" class="section-panel">
-            <p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>{bias_list_html}
-        </div>
-        <div id="warning" class="section-panel">
-            {on_results}
-        </div>
-        <div id="methodology" class="section-panel">
+        + compute_benefits(business_benefits, y_pred, y_true),
+        subtitle=subtitle,
+        about="<p>We used IBM’s AIF360 library to checks for common types of bias and found the following:</p>"
+        + (
+            "<i>" + "<br>".join(biases) + "</i>"
+            if biases
+            else "the system is likely fair"
+        ),
+        methodology=f"""
             <p>Each fairness metric provided by AIF360 is computed across <b>{len(sensitive)}</b> groups, each of which 
             is compared to the rest of the population. No group intersections are accounted for. 
             We check whether notions of bias exceed <b>{threshold}</b> in a scale 0-1 where 0 represents biased systems, 
             or whether notions of fairness are lesser than <b>{1-threshold}</b> in a scale 0-1 where 1 represents fair systems.</p>
             Considered groups are: <i><br>{"<br>".join(sens.replace('_', ' ') for sens in sensitive)}</i>
-        </div>
-        <div id="pipeline" class="section-panel">
-            {dataset.to_description().split("Args:")[0]}<br><br>{model.to_description().split("Args:")[0]}
-        </div>
-        <div id="experts" class="section-panel">
-            {render_metric_bars(rows, sensitive)}
-        </div>
-    </div>
-    """
-
+        """,
+        pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+        experts=render_metric_bars(rows, sensitive),
+    )
     return HTML(html_content)

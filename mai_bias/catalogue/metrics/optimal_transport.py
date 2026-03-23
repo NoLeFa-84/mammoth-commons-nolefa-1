@@ -1,9 +1,14 @@
 from mammoth_commons.datasets import Dataset, ImageLike
-from mammoth_commons.externals import align_predictions
+from mammoth_commons.externals import (
+    align_predictions,
+    CommonClassificationBenefits,
+    compute_benefits,
+)
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML, simplified_formatter
 from typing import List
 from mammoth_commons.integration import metric
+from mammoth_commons.reminders import logo_aif360
 
 
 @metric(
@@ -19,13 +24,16 @@ from mammoth_commons.integration import metric
         "pygrank",
         "scikit-image",
     ),
+    logo=logo_aif360,
 )
 def optimal_transport(
-    dataset: Dataset, model: Predictor, sensitive: List[str], threshold: float = 0.01
+    dataset: Dataset,
+    model: Predictor,
+    sensitive: List[str],
+    threshold: float = 0.01,
+    business_benefits: CommonClassificationBenefits = "Accuracy",
 ) -> HTML:
     """
-    <img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4"
-    alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 36px;"/>
     <h3>representational disparities in predictions</h3>
 
     Evaluates the cost of transforming distribution differences between the predictions of different
@@ -33,9 +41,9 @@ def optimal_transport(
 
     <details><summary><i>Expert details.</i></summary>
 
-    Creates an optimal transport evaluation based on the implementation provided by the AIF360 library.
+    <p>Creates an optimal transport evaluation based on the implementation provided by the AIF360 library.
     The evaluation computes the Wasserstein distance that reflects the cost of transforming the predictive
-    distributions between sensitive attribute groups.
+    distributions between sensitive attribute groups.</p>
 
     <p>Optimal Transport (OT) is a field of mathematics which studies the geometry of probability spaces. Among its
     many contributions, OT provides a principled way to compare and align probability distributions by taking into
@@ -43,25 +51,27 @@ def optimal_transport(
     As a mathematical problem, it was first introduced by Gaspard Monge in 1781. It addresses the task of determining
     the most efficient method for transporting mass from one distribution to another. In this problem, the cost
     associated with moving a unit of mass from one position to another is referred to as the ground cost. The primary
-    objective of OT is to minimize the total cost incurred when moving one mass distribution onto another.
-    </p><p>
-    OT can be used to detect model-induced bias by calculating the a cost known as Earth Mover's distance or
-    Wasserstein distance between the distribution of ground truth labels and model predictions for each of the
-    protected groups. If its value is close to 1, the model is biased towards this group.
-    </p>
+    objective of OT is to minimize the total cost incurred when moving one mass distribution onto another.</p>
 
-    <b>License</b><p><i>Parts of the above description are adapted from AIF360
+    <p>OT can be used to detect model-induced bias by calculating the a cost known as Earth Mover's distance or
+    Wasserstein distance between the distribution of ground truth labels and model predictions for each of the
+    protected groups. If its value is close to 1, the model is biased towards this group.</p>
+
+    <b>License</b>
+    <p><i>Parts of the above description are adapted from AIF360
     (<a href="https://github.com/Trusted-AI/AIF360">https://github.com/Trusted-AI/AIF360</a>),
     which is licensed under Apache License 2.0.</i></p>
     </details>
 
     Args:
         threshold: Transport distances below the given threshold are considered negligible.
+        business_benefits: Which kind of business benefit does the model aim to maximize?
     """
     from aif360.sklearn.metrics import ot_distance
     import pandas as pd
 
     assert len(sensitive) != 0, "At least one sensitive attribute should be selected"
+    subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     threshold = float(threshold)
     text = ""
     predictions = pd.Series(model.predict(dataset, sensitive))
@@ -111,38 +121,38 @@ def optimal_transport(
         text += "</tr>"
     text += "</tbody></table></div>"
 
-    return HTML(
-        """
+    html_content = simplified_formatter(
+        outcome="biased" if worst_distance >= threshold else "fair",
+        title=(
+            f"{len(offenders)} biased distributions"
+            if worst_distance >= threshold
+            else "No discrimination concerns"
+        )
+        + compute_benefits(business_benefits, predictions, labels),
+        subtitle=subtitle,
+        technology=logo_aif360 + "based on AIF360's optimal transport",
+        about=f"""
+            <p>We searched for potentially biased attribute values, or intersections of attribute values.
+            We employed IBM's AIF360 bias scan detector, and ignored already known sensitive attributes during 
+            scanning. Remaining attributes (including non-sensitive ones) are tested for imbalances that could 
+            contribute to unfair predictions.</p>
+            The following problematic data distributions were found:
+            <br><i>{'<br>'.join(offenders) if offenders else 'No concerns.'}</i>
+        """,
+        methodology=f"""
+            The normalized Wasserstein distance is computed for each group based on optimal transport theory. 
+            Higher values (maximum is 1, minimum is 0) indicate greater 
+            distribution differences between each group and the rest of the population. 
+            Differences more than the manually provided threshold <b>{threshold:.3f}</b> are considered to 
+            indicate bias.
+            </p>
+            The following attributes were examined for imbalances:
+            <br><i>{'<br>'.join(sensitive)}</i>
+        """,
+        pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
+        experts=text,
+    )
+    return HTML("""
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        """
-        + simplified_formatter(
-            outcome="biased" if worst_distance >= threshold else "fair",
-            title=(
-                f"{len(offenders)} biased distributions"
-                if worst_distance >= threshold
-                else "No concerns about discrimination"
-            ),
-            technology='<div><img src="https://avatars.githubusercontent.com/u/56103733?s=48&v=4" alt="Based on AIF360" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>&nbsp;based on AIF360\'s optimal transport</h1></div>',
-            about=f"""
-                <p>We searched for potentially biased attribute values, or intersections of attribute values.
-                We employed IBM's AIF360 bias scan detector, and ignored already known sensitive attributes during 
-                scanning. Remaining attributes (including non-sensitive ones) are tested for imbalances that could 
-                contribute to unfair predictions.</p>
-                The following problematic data distributions were found:
-                <br><i>{'<br>'.join(offenders) if offenders else 'No concerns.'}</i>
-            """,
-            methodology=f"""
-                The normalized Wasserstein distance is computed for each group based on optimal transport theory. 
-                Higher values (maximum is 1, minimum is 0) indicate greater 
-                distribution differences between each group and the rest of the population. 
-                Differences more than the manually provided threshold <b>{threshold:.3f}</b> are considered to 
-                indicate bias.
-                </p>
-                The following attributes were examined for imbalances:
-                <br><i>{'<br>'.join(sensitive)}</i>
-            """,
-            pipeline=f"{dataset.to_description()}<br><br>{model.to_description()}",
-            experts=text,
-        )
-    )
+        """ + html_content)

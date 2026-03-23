@@ -1,7 +1,6 @@
 from mai_bias.backend.catalogue_loaders import registry
 import re
 
-
 template_prefix = """
 <!DOCTYPE html>
 <html lang="en">
@@ -225,14 +224,14 @@ Use the navigation links to overview datasets, models, and analysis methods.</p>
 to set up a local runner for these modules. View validation data <a href="validation_data.html">here</a>.<p>
 """
 
-with open("docs/index.html", "w") as file:
-    file.write(
-        template_prefix.replace("{{ title }}", "MAMMOth Catalogue").replace(
-            "{{ sidebar_content }}", ""
-        )
-        + index_content
-        + template_postfix
-    )
+# with open("docs/index.html", "w") as file:
+#     file.write(
+#         template_prefix.replace("{{ title }}", "MAMMOth Catalogue").replace(
+#             "{{ sidebar_content }}", ""
+#         )
+#         + index_content
+#         + template_postfix
+#     )
 
 
 import os

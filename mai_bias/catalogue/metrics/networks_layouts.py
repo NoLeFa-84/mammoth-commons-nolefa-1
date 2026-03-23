@@ -181,9 +181,9 @@ def forceatlas2_layout(
     def estimate_factor(n, swing, traction, speed, speed_efficiency, jitter_tolerance):
         """Computes the scaling factor for the force in the ForceAtlas2 layout algorithm.
 
-        This   helper  function   adjusts   the  speed   and
-        efficiency  of the  layout generation  based on  the
-        current state of  the system, such as  the number of
+        This helper function adjusts the  speed  and
+        efficiency of the layout generation based on the
+        current state of the system, such as the number of
         nodes, current swing, and traction forces.
 
         Parameters

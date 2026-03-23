@@ -1,9 +1,10 @@
 from mammoth_commons.datasets import Dataset
 from mammoth_commons.models import Predictor
 from mammoth_commons.exports import HTML
-from typing import Dict, List, Literal
-from mammoth_commons.integration import metric, Options
+from typing import List, Literal
+from mammoth_commons.integration import metric
 from mammoth_commons.externals import fb_categories, align_predictions
+from mammoth_commons.reminders import logo_fairbench
 
 
 @metric(
@@ -11,6 +12,7 @@ from mammoth_commons.externals import fb_categories, align_predictions
     version="v054",
     python="3.13",
     packages=("fairbench", "pandas", "onnxruntime", "ucimlrepo", "pygrank"),
+    logo=logo_fairbench,
 )
 def interactive_report(
     dataset: Dataset,
@@ -19,8 +21,7 @@ def interactive_report(
     intersectional: bool = False,
     compare_groups: Literal["Pairwise", "To the total population"] = "Pairwise",
 ) -> HTML:
-    """<img src="https://github.com/mever-team/FairBench/blob/main/docs/fairbench.png?raw=true" alt="Based on FairBench"
-    style="float: left; margin-right: 5px; margin-bottom: 5px; width: 36px;"/>
+    """
     <h3>for data scientists: explore several biases and their intermediate quantities</h3>
 
     Creates an interactive report using the FairBench library. The report creates traceable evaluations that

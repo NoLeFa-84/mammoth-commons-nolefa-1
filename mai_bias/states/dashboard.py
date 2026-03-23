@@ -2,7 +2,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QGridLayout,
     QWidget,
-    QFrame,
     QHBoxLayout,
     QScrollArea,
     QMessageBox,
@@ -13,8 +12,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import QTimer
 from PySide6.QtCore import Qt, QUrl
-from datetime import datetime
-from mammoth_commons.externals import prepare, prepare_html
+from datetime import datetime, timedelta
+from mammoth_commons.externals import prepare, prepare_html, SEPARATOR
 from PySide6.QtGui import QPixmap, QDesktopServices
 from functools import partial
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -22,32 +21,52 @@ from .cache import ExternalLinkPage
 from .step import save_all_runs
 from .style import Styled
 import re
+from collections import defaultdict
+
+EN_MONTHS = {
+    1: "January",
+    2: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December",
+}
 
 
 def now():
     return datetime.now().strftime("%y-%m-%d %H:%M")
 
 
-ENGLISH_MONTHS = [
-    "",
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-]
+def get_timestamp(run):
+    return run.get("timestamp") or ""
+
+
+def _category_from_ts(ts_str: str) -> str:
+    try:
+        dt = datetime.strptime(ts_str, "%y-%m-%d %H:%M")
+    except Exception:
+        return ""
+    now = datetime.now()
+    if now - dt < timedelta(hours=1):
+        return "Last hour"
+    if dt.date() == now.date():
+        return "Today"
+    if dt.date() == (now - timedelta(days=1)).date():
+        return "Yesterday"
+    if dt.year == now.year and dt.month == now.month:
+        return "This month"
+    return f"{EN_MONTHS[dt.month]} {dt.year}"
 
 
 def convert_to_readable(date_str):
     dt = datetime.strptime(date_str, "%y-%m-%d %H:%M")
-    return f"{dt.day} {ENGLISH_MONTHS[dt.month]} {dt.year} - {dt.strftime('%H:%M')}"
+    return f"{dt.day} {EN_MONTHS[dt.month]} {dt.year} - {dt.strftime('%H:%M')}"
 
 
 class Dashboard(Styled):
@@ -78,7 +97,7 @@ class Dashboard(Styled):
             self.new_action(
                 "🌐",
                 "#0369a1",
-                "Module catalogue",
+                "Developer portal",
                 lambda: QDesktopServices.openUrl(
                     QUrl("https://mammoth-eu.github.io/mammoth-commons/")
                 ),
@@ -92,30 +111,22 @@ class Dashboard(Styled):
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.scroll_area.setStyleSheet(
-            """
+        self.scroll_area.setStyleSheet("""
             QScrollArea {border: none; background: transparent;}
             QScrollArea QWidget {background: transparent;}
             QScrollBar:vertical, QScrollBar:horizontal {border: none;background: transparent;}
-            """
-        )
+            """)
 
         # --- LOGO CARD ---
         logo_card = QPushButton(self)
+        logo_card.setText("\n\n\n\n\n\nStart new MAI-BIAS analysis")
         logo_card.setCursor(Qt.CursorShape.PointingHandCursor)
-        logo_card.setToolTip("New analysis")
         logo_card.clicked.connect(self.create_new_item)
-        logo_card.setStyleSheet(
-            f"""
-            QPushButton {{background-color: white; border: 2px dashed #0369a1; border-radius: 10px; padding: 0px;}}
-            QPushButton:hover {{background-color: #d3ecfa; border: 2px solid #0369a1;}}
-            """
-        )
-        logo_pixmap = QPixmap(
-            prepare(
-                "https://raw.githubusercontent.com/mammoth-eu/mammoth-commons/dev/mai_bias/logo.png"
-            )
-        )
+        logo_card.setStyleSheet(f"""
+            QPushButton {{background-color: white; border-left: 3px solid #0369a1; border-radius: 0px; padding: 0px;}}
+            QPushButton:hover {{background-color: #d3ecfa; border-left: 4px solid #0369a1;}}
+            """)
+        logo_pixmap = QPixmap(prepare("https:///icons/mai_bias.png"))
         # Fit logo to ~60% width of card, keep aspect
         img_max_width = int(1100 * 0.60)
         img_max_height = int(40 * 2)
@@ -130,8 +141,6 @@ class Dashboard(Styled):
         self.logo_pixmap = logo_pixmap
         self.logo_card = logo_card
         self.logo_label = logo_label
-
-        # Content Widget
         self.content_widget = QWidget()
         self.layout = QVBoxLayout(self.content_widget)
         self.layout.setAlignment(
@@ -139,95 +148,14 @@ class Dashboard(Styled):
         )
         self.layout.setSpacing(0)
         self.scroll_area.setWidget(self.content_widget)
-
         self.main_layout.addWidget(self.scroll_area)
-
-        # --- Informational Sections ---
 
         info_container = QVBoxLayout()
         info_container.setAlignment(Qt.AlignmentFlag.AlignTop)
         info_container.setSpacing(16)
-
-        def make_info_box(html_content):
-            frame = QFrame(self)
-            frame.setObjectName("InfoBox")
-            frame.setFrameShape(QFrame.Shape.StyledPanel)
-            frame.setStyleSheet(
-                """
-                        QFrame#InfoBox {
-                            background-color: #dddddd;
-                            border: 1px solid #e2e8f0;
-                            border-radius: 10px;
-                            padding: 14px 18px;
-                        }
-                        QLabel {
-                            color: #334155;
-                            font-size: 13px;
-                            line-height: 1.4em;
-                        }
-                        a {
-                            color: #0369a1;
-                            text-decoration: none;
-                            font-weight: 600;
-                        }
-                        a:hover {
-                            text-decoration: underline;
-                        }
-                        ul {
-                            margin-left: 16px;
-                        }
-                        li {
-                            margin: 4px 0;
-                        }
-                    """
-            )
-            label = QLabel(html_content, frame)
-            label.setTextFormat(Qt.TextFormat.RichText)
-            label.setWordWrap(True)
-            label.setOpenExternalLinks(True)
-            layout = QVBoxLayout(frame)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.addWidget(label)
-            return frame
-
-        # 1️⃣ Fairness is multi-layered
-        fairness_html = """
-                <p><b>Fairness is multi-layered</b> in that it needs to account for various aspects, 
-                such as technical, social, legal, and ethical. MAI-BIAS is meant for AI system creators, 
-                so it focuses on the technical aspects. However, these make up only a part of the problem; 
-                we recommend close cooperation with other disciplines to properly address the issue of fairness:
-                </p>
-
-                💡 Consult with legal experts to ensure compliance with laws and regulations.
-                <br>💡 Work with social scientists to gather interests of 
-                stakeholders and ensure that they are adequately represented and integrated.
-                <br>💡 Combine research principles with fairness concerns. This requires co-designing AI systems with stakeholders.</li>
-                <br><br>
-                
-                <a href='https://github.com/mammoth-eu/FairnessDefinitionGuide' target='_blank'>AI fairness definition guide</a><br/>
-                <span>Learn more about an interdisciplinary approach to fairness in this guide by the MAMMOth project.</span>
-                <br>
-                <a href='https://www.trail-ml.com/eu-ai-act-compliance-checker' target='_blank'>Am I affected by the EU AI Act?</a><br/>
-                <span>Visit this self-assessment checklist by the third-party European AI Alliance.</span>
-                <br>
-                <b>A social science perspective</b>
-                <br>
-                AI “bias” originates from historical and present social inequalities 
-                and systems of oppression at the expense of marginalized groups, which should be understood 
-                in your domain.
-                """
-        """
-                Stakeholders include individuals or social groups who might be positively or negatively affected 
-                by AI, like developers, users, profiting organizations, policymakers, 
-                and vulnerable groups who might be discriminated against by its use. They may also include product 
-                owners that drive main technical specifications, such as parent or funding organizations."""
-        # info_container.addWidget(make_info_box(fairness_html))
-
         self.main_layout.addLayout(info_container)
-
         self.setLayout(self.main_layout)
         self.tag_descriptions = tag_descriptions
-
         self.hidden = set()
         self.refresh_dashboard()
 
@@ -299,7 +227,7 @@ class Dashboard(Styled):
             and QMessageBox.question(
                 self,
                 "Delete?",
-                f"The analysis will be permanently deleted.",
+                f"The analysis, which is the most recent of its kind,\nwill be permanently deleted. This message does\nnot appear for older history items.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
             )
@@ -336,10 +264,7 @@ class Dashboard(Styled):
     def refresh_dashboard(self):
         scroll_bar = self.scroll_area.verticalScrollBar()
         scroll_value = scroll_bar.value()
-
         self.clear_layout(self.layout)
-        from collections import defaultdict
-
         groups = defaultdict(list)
         for i, run in enumerate(self.runs):
             if i in self.hidden:
@@ -352,24 +277,18 @@ class Dashboard(Styled):
             )
             groups[group_key].append((i, run))
 
-        def get_timestamp(run):
-            return run.get("timestamp") or ""
-
         latest_per_group = {}
         for group_key, runs in groups.items():
             runs_sorted = sorted(runs, key=lambda x: get_timestamp(x[1]), reverse=True)
             latest_per_group[group_key] = runs_sorted
 
         # --- Card layout constants ---
-        card_width = 1100
-        card_height = 40
+        card_width = (self.width() or 1200) - 80
+        card_height = 50
         card_spacing = 6
-        # Responsive cols
-        window_width = self.scroll_area.viewport().width() or 700
-        max_cols = max(1, window_width // (card_width + card_spacing))
-        if len(latest_per_group) == 1:
-            max_cols = 1
+        max_cols = 1
 
+        current_category = None
         grid_layout = QGridLayout()
         grid_layout.setSpacing(card_spacing)
         row = 0
@@ -396,102 +315,106 @@ class Dashboard(Styled):
             row += 1
             col = 0
 
-        # --- RESULT CARDS ---
-        for group_key, runs in latest_per_group.items():
-            latest_index, latest_run = runs[0]
+        def _maybe_add_separator(cat: str):
+            """Insert a full‑width QLabel if *cat* is non‑empty and different
+            from the previously printed heading."""
+            nonlocal row, col, current_category
+            if not cat or cat == current_category:
+                return
+            sep_lbl = QLabel(cat, self)
+            sep_lbl.setStyleSheet("""
+                QLabel {
+                    font-size: 18px;
+                    color: #444;
+                    background: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    margin-top: 10px;
+                }
+                """)
+            grid_layout.addWidget(sep_lbl, row, 0, 1, max_cols)  # span all columns
+            row += 1
+            col = 0
+            current_category = cat
 
+        # --- RESULT CARDS ---
+        for group_key, runs in sorted(
+            latest_per_group.items(),
+            key=lambda kv: get_timestamp(
+                kv[1][0][1]
+            ),  # timestamp of the first (newest) run
+            reverse=True,
+        ):
+            latest_index, latest_run = runs[0]
+            _maybe_add_separator(_category_from_ts(latest_run.get("timestamp", "")))
             card_widget = QWidget(self)
+            card_widget.setCursor(Qt.CursorShape.PointingHandCursor)
             card_widget.setObjectName("ResultCard")
             card_widget.setFixedSize(card_width, card_height)
             special = get_special_title(latest_run).lower()
             if "fail" in special or "bias" in special:
-                card_border = "#b91c1c"  # deep red
-                card_hover = "#fcd8dd"  # matte red
+                card_border = "#b91c1c"
             elif any(
                 word in special
                 for word in ["report", "audit", "scan", "analysis", "explanation"]
             ):
-                card_border = "#0369a1"  # deep blue
-                card_hover = "#d3ecfa"  # matte blue
+                card_border = "#0369a1"
             else:
-                card_border = "#047857"  # deep green
-                card_hover = "#bff2c1"  # matte green (more green)
+                card_border = "#047857"
             if latest_run["status"] != "completed":
-                card_border = "#ca8a04"  # deep yellow
-                card_hover = "#fff7c2"  # matte yellow
+                card_border = "#ca8a04"
 
-            card_widget.setStyleSheet(
-                f"""
+            card_widget.setStyleSheet(f"""
                 QWidget#ResultCard {{
                     background: white;
-                    border: 1px solid {card_border};
-                    border-radius: 10px;
+                    border-left: 3px solid {card_border};
+                    border-radius: 0px;
                 }}
                 QWidget#ResultCard:hover {{
-                    background: {card_hover};
-                    border: 2px solid {card_border};
+                    background: #EEEEEE;
+                    border-left: 4px solid {card_border};
+                    border-radius: 0px;
                 }}
-            """
-            )
-
-            # --- Compact one-line layout instead of stacked sections ---
+            """)
             card_layout = QHBoxLayout(card_widget)
             card_layout.setContentsMargins(10, 6, 10, 6)
-            card_layout.setSpacing(8)
+            card_layout.setSpacing(2)
 
             # --- Title / status label ---
             desc_label = QLabel(
                 (
-                    get_special_title(latest_run)
+                    "<b>"
+                    + latest_run.get("analysis", {}).get("module", "")[0]
+                    + latest_run.get("analysis", {}).get("module", "")[1:].lower()
+                    + " for "
+                    + latest_run.get("dataset", {}).get("module", "").lower()
+                    + " and "
+                    + latest_run.get("model", {}).get("module", "").lower()
+                    + " model </b><br>"
+                    + get_special_title(latest_run)
                     if latest_run["status"] == "completed"
                     else "INCOMPLETE"
-                ),
+                ).replace("model model", "model"),
                 card_widget,
             )
             desc_label.setStyleSheet(
-                f"font-size: 13px; font-weight: bold; color: {card_border}; border: none; background: none;"
+                f"font-size: 13px; color: black; border: none; background: none;"
             )
-            desc_label.setFixedHeight(26)
-            desc_label.setFixedWidth(360)
+            desc_label.setFixedHeight(40)
             card_layout.addWidget(desc_label)
-
-            # --- Tags inline (dataset/model/analysis) ---
-            tags_row = QHBoxLayout()
-            tags_row.setSpacing(4)
-            tags_row.setContentsMargins(0, 0, 0, 0)
-            tags_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-            for key in ["dataset", "model", "analysis"]:
-                mod = latest_run.get(key, {}).get("module", "")
-                if mod:
-                    tag_btn = self.new_tag(
-                        f"{mod}",
-                        "Module info",
-                        partial(lambda mod=mod: self.show_tag_description(mod)),
-                    )
-                    tag_btn.setFixedHeight(24)
-                    tags_row.addWidget(tag_btn)
-            tags_widget = QWidget(card_widget)
-            tags_widget.setLayout(tags_row)
-
-            # --- Timestamp ---
             timestamp_label = QLabel(
                 convert_to_readable(latest_run["timestamp"]),
-                # if latest_run["status"] == "completed"
-                # else "not yet run",
                 card_widget,
             )
-            timestamp_label.setFixedWidth(140)
+            timestamp_label.setFixedWidth(160)
             timestamp_label.setStyleSheet(
-                "font-size: 12px; color: #666; background: none; border: none;"
+                "font-size: 12px; color: #666; background: none; border: none;padding-right:2px"
             )
             timestamp_label.setAlignment(
                 Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight
             )
-            card_layout.addWidget(timestamp_label)
-
-            # --- Spacer ---
-            card_layout.addWidget(tags_widget)
             card_layout.addStretch()
+            card_layout.addWidget(timestamp_label)
 
             # --- Actions inline (History, New, Delete) ---
             if len(runs) > 1 and len(latest_per_group) != 1:
@@ -499,8 +422,7 @@ class Dashboard(Styled):
                 history_btn.setCursor(Qt.CursorShape.PointingHandCursor)
                 history_btn.setFixedHeight(26)
                 history_btn.setFixedWidth(100)
-                history_btn.setStyleSheet(
-                    """
+                history_btn.setStyleSheet("""
                     QPushButton {
                         background: #f1f5f9;
                         border-radius: 5px;
@@ -515,8 +437,7 @@ class Dashboard(Styled):
                         color: #035388;
                         border: 1px solid #38bdf8;
                     }
-                """
-                )
+                """)
                 group_run_indices = [idx for idx, _ in runs]
 
                 def make_on_history(indices):
@@ -533,7 +454,7 @@ class Dashboard(Styled):
                 card_layout.addWidget(
                     self.new_action(
                         "+",
-                        "#007bff",
+                        "#FFFFFF",
                         "New variation",
                         partial(lambda i=latest_index: self.create_variation(i)),
                         size=26,
@@ -542,28 +463,25 @@ class Dashboard(Styled):
 
             card_layout.addWidget(
                 self.new_action(
-                    "🗑",
-                    "#dc3545",
+                    "X",
+                    "#FFFFFF",
                     "Delete",
                     partial(lambda i=latest_index: self.delete_item(i)),
                     size=26,
                 )
             )
 
-            # --- Make card clickable except buttons and tags ---
             def card_mouse_press(
                 event,
                 i=latest_index,
                 r=latest_run,
-                runs_in_group=[idx for idx, _ in runs],
+                runs_in_group=(idx for idx, _ in runs),
             ):
-                # Get click pos as QPoint (ints)
-                if hasattr(event, "position"):
-                    pos = event.position().toPoint()
-                else:
-                    pos = event.pos()
-
-                # Check if click was on a child button
+                pos = (
+                    event.position().toPoint()
+                    if hasattr(event, "position")
+                    else event.pos()
+                )
                 for btn in card_widget.findChildren(QPushButton):
                     local_pos = btn.mapFromParent(pos)
                     if btn.rect().contains(local_pos):
@@ -573,13 +491,11 @@ class Dashboard(Styled):
                 else:
                     self.edit_item(i)
 
-            # Assign directly; do NOT use lambda+partial, just a closure:
             card_widget.mousePressEvent = partial(
-                lambda event, i=latest_index, r=latest_run, runs_in_group=[
+                lambda event, i=latest_index, r=latest_run, runs_in_group=(
                     idx for idx, _ in runs
-                ]: card_mouse_press(event, i, r, runs_in_group)
+                ): card_mouse_press(event, i, r, runs_in_group)
             )
-
             grid_layout.addWidget(card_widget, row, col)
             col += 1
             if col >= max_cols:
@@ -592,13 +508,11 @@ class Dashboard(Styled):
         if not latest_per_group and self.runs:
             no_results_label = QLabel("No results found.", self)
             no_results_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            no_results_label.setStyleSheet(
-                """
+            no_results_label.setStyleSheet("""
                 color: #666;
                 font-size: 15px;
                 padding: 20px;
-            """
-            )
+            """)
             # Add to a full-width row under the logo card (use next grid row, col=0 spanning all columns)
             grid_layout.addWidget(no_results_label, row, 0, 1, max_cols)
             row += 1
@@ -609,13 +523,12 @@ class Dashboard(Styled):
             # --- Clear Search Button ---
             clear_search_btn = QPushButton("Back", self)
             clear_search_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            clear_search_btn.setStyleSheet(
-                """
+            clear_search_btn.setStyleSheet("""
                 QPushButton {
-                    background: #7c2d12;         /* Very dark orange background */
-                    border-radius: 7px;
-                    border: 1.1px solid #ea580c; /* Strong orange border */
-                    color: #fde68a;              /* Light orange text for contrast */
+                    background: #7c2d12;
+                    border-radius: 0px;
+                    border-left: 3px solid #ea580c; /* Strong orange border */
+                    color: #fde68a;
                     font-size: 13px;
                     font-weight: 500;
                     padding: 6px 22px;
@@ -623,10 +536,9 @@ class Dashboard(Styled):
                 QPushButton:hover {
                     background: #a53f13;         /* Brighter/darker orange on hover */
                     color: #fff7ed;              /* Lighter text on hover */
-                    border: 1.4px solid #fb923c; /* Lighter orange border on hover */
+                    border-left: 4px solid #fb923c; /* Lighter orange border on hover */
                 }
-            """
-            )
+            """)
 
             def on_clear_search():
                 self.search_field.setText("")
@@ -637,91 +549,69 @@ class Dashboard(Styled):
             grid_layout.addWidget(clear_search_btn, row, 0, 1, max_cols)
             row += 1
 
-        # if len(latest_per_group) == 1 and len(runs)==1:
-        #     no_results_label = QLabel("Showing history." if  len(runs)>1 else "Found one run: no history.", self)
-        #     no_results_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        #     no_results_label.setStyleSheet("""
-        #         color: #666;
-        #         font-size: 15px;
-        #         padding: 20px;
-        #     """)
-        #     # Add to a full-width row under the logo card (use next grid row, col=0 spanning all columns)
-        #     grid_layout.addWidget(no_results_label, row, 0, 1, max_cols)
-        #     row += 1
-
         if len(latest_per_group) == 1 and len(runs) > 1:
-            # other runs, sorted by timestamp DESC (latest first, skip runs[0])
             for sub_index, (index, run) in enumerate(
                 sorted(runs[1:], key=lambda x: get_timestamp(x[1]), reverse=True)
             ):
+                _maybe_add_separator(_category_from_ts(run.get("timestamp", "")))
                 special = get_special_title(run).lower()
                 if "fail" in special or "bias" in special:
-                    narrow_border = "#b91c1c"  # deep red
-                    narrow_bg = "#fcd8dd"  # matte red
+                    narrow_border = "#b91c1c"
                 elif any(
                     word in special
                     for word in ["report", "audit", "scan", "analysis", "explanation"]
                 ):
-                    narrow_border = "#0369a1"  # deep blue
-                    narrow_bg = "#d3ecfa"  # matte blue
+                    narrow_border = "#0369a1"
                 else:
-                    narrow_border = "#047857"  # deep green
-                    narrow_bg = "#bff2c1"  # matte green
+                    narrow_border = "#047857"
                 if run["status"] != "completed":
-                    narrow_border = "#ca8a04"  # deep yellow
-                    narrow_bg = "#fff7c2"  # matte yellow
+                    narrow_border = "#ca8a04"
 
                 narrow_card = QWidget(self)
                 narrow_card.setObjectName("NarrowResultCard")
-                narrow_width = int(card_width)
-                narrow_card.setFixedSize(narrow_width, 35)
-                narrow_card.setStyleSheet(
-                    f"""
+                narrow_card.setCursor(Qt.CursorShape.PointingHandCursor)
+                narrow_card.setFixedSize(card_width, 35)
+                narrow_card.setStyleSheet(f"""
                     QWidget#NarrowResultCard {{
-                        background: {narrow_bg};
-                        border: 1.8px solid {narrow_border};
-                        border-radius: 7px;
+                        background: white;
+                        border-left: 3px solid {narrow_border};
+                        border-radius: 0px;
                     }}
                     QWidget#NarrowResultCard:hover {{
-                        border: 2.2px solid {narrow_border};
-                        background: {self.highlight_color(narrow_bg)};
+                        border-left: 4px solid {narrow_border};
+                        background: #EEEEEE;
                     }}
-                """
+                """)
+                h_layout = QHBoxLayout(narrow_card)
+                h_layout.setContentsMargins(7, 3, 7, 3)
+                h_layout.setSpacing(2)
+                title_txt = (
+                    get_special_title(run)
+                    if run["status"] == "completed"
+                    else "INCOMPLETE"
                 )
-                narrow_layout = QGridLayout(narrow_card)
-                narrow_layout.setContentsMargins(7, 3, 7, 3)
-                narrow_layout.setSpacing(2)
-
-                # --- Special title and date ---
-                info_label = QLabel(
-                    "<b>{}</b> <span style='color:#666'>{}</span>".format(
-                        (
-                            get_special_title(run)
-                            if run["status"] == "completed"
-                            else "INCOMPLETE"
-                        ),
-                        convert_to_readable(run["timestamp"]),
-                    ),
-                    self,
+                title_lbl = QLabel(title_txt, narrow_card)
+                title_lbl.setStyleSheet(
+                    "border:none;background:none;font-size:12px;color:#000;"
                 )
-                info_label.setTextFormat(Qt.TextFormat.RichText)
-                info_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-                info_label.setStyleSheet(
-                    "border: none; background: none; font-size: 12px; margin-top: 2px;"
+                h_layout.addWidget(title_lbl)
+                h_layout.addStretch()
+                ts_lbl = QLabel(convert_to_readable(run["timestamp"]), narrow_card)
+                ts_lbl.setStyleSheet(
+                    "border:none;background:none;font-size:12px;color:#666;padding-left:8px;"
                 )
-                narrow_layout.addWidget(info_label, 0, 0)
+                ts_lbl.setAlignment(
+                    Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight
+                )
+                h_layout.addWidget(ts_lbl)
                 delete_button = self.new_action(
-                    "🗑",
-                    "#dc3545",
+                    "X",
+                    "#FFFFFF",
                     "Delete",
                     partial(lambda i=index: self.delete_item(i, confirm=False)),
-                    size=25,
+                    size=24,
                 )
-                narrow_layout.addWidget(
-                    delete_button,
-                    0,
-                    1,
-                )
+                h_layout.addWidget(delete_button)
 
                 def narrow_card_mouse_press(event, i=index, r=run):
                     if event.button() == Qt.MouseButton.LeftButton:
@@ -730,6 +620,7 @@ class Dashboard(Styled):
                             if hasattr(event, "position")
                             else event.pos()
                         )
+                        # ignore clicks on any child button
                         for b in narrow_card.findChildren(QPushButton):
                             if b.geometry().contains(int(pos.x()), int(pos.y())):
                                 return
@@ -739,8 +630,6 @@ class Dashboard(Styled):
                             self.edit_item(i)
 
                 narrow_card.mousePressEvent = narrow_card_mouse_press
-
-                # Add to grid (use next col/row, just like normal cards)
                 grid_layout.addWidget(narrow_card, row, col)
                 col += 1
                 if col >= max_cols:
@@ -789,6 +678,7 @@ class Dashboard(Styled):
 
 
 def get_special_title(run):
+    ret = ""
     try:
         match = re.search(
             r"<h1\b[^>]*>.*?</h1>",
@@ -796,7 +686,15 @@ def get_special_title(run):
             re.DOTALL,
         )
         if match:
-            return match.group().replace("h1", "span")
+            ret = match.group().replace("h1", "span")
     except Exception:
         pass
-    return ""
+    ret = ret.replace("background:#f8f8cc;", ";")
+    if run.get("analysis", {}).get("params", {}).get("sensitive", ""):
+        ret += (
+            SEPARATOR
+            + "Sensitive: <i>"
+            + run.get("analysis", {}).get("params", {}).get("sensitive", "")
+            + "</i>"
+        )
+    return ret

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAI-BIAS portal</title>
+    <style>
+        .scale-wrap {
+            width: 100%;
+            overflow: hidden;
+            max-height: 500px;
+        }
+        .scale-wrap iframe {
+            transform: scale(0.5);
+            transform-origin: top left;
+            width: 200%;
+            height: 1000px;
+            border: 0;
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Top Menu -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo"><a href="../index.html">MAI-BIAS</a></div>
+            <div class="nav-links">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Introduction -->
+    <header class="intro">
+        <h1>Our Analysis</h1>
+        <p>Examples shown here are exported from the MAI-BIAS toolkit and can be viewed in the browser, as you are doing now.
+        Methodological and computational details accompany the verdict to help experts get a deeper picture.
+        Always be mindful of fairness-washing!</p>
+    </header>
+
+    <main class="container">
+        <section>
+            <h2>Check for a specific bias</h2>
+            <p>Consider any dataset and predictive model that is able to process such data. You can compute a
+            <a href="https://zenodo.org/records/10799073">standardized measure of bias</a>
+            by choosing parameters from several options. This measure aims to assess whether business benefits,
+            such as model accuracy (how correct the system is) are equalized for all population groups. This includes
+            intersectional groups (e.g., Black Women is one of the intersections of gender and race).</p>
+            <p>To compute a standardized measure, use the <i>specific concerns</i> module to make an assessment like the following.
+            We provide a default threshold for the assessment obtained through MAMMOth's co-creation process, but
+            this needs to be adjusted in new social or legal contexts based on stakeholder feedback. Other expert
+            parameters include the type of predictive benefits to be safeguarded, how these are compared, etc.</p>
+            <div class="scale-wrap">
+                <iframe src="../assets/example3.html"
+                        title="Specific concern"
+                        allowfullscreen></iframe>
+            </div>
+        </section>
+
+        <section>
+            <h2>Analyze a model's bias</h2>
+            <p>Given a reasonably trustworthy dataset (that at most encoudes unintended biases)
+            that serves as ground truth, you can use it to assess the biases of an AI model. Here we run a model
+            card summary on one such model. This explores hundreds of potential biases
+            across pairwise comparisons of sensitive attribute intersections, as well as
+            performance measures and benefits to safeguard in the population.</p>
+            <p>Not all found issues are deal-breakers in each setting,
+            especially since it is mathematically impossible to mitigate
+            all conceivable definitions of bias simultaneously.</p>
+            <p>We also compute a business benefit measure
+            summarizing model performance, for example that correlates to business revenue.
+            This is typically accuracy, though here we used expert options to designate high
+            precision as desired (not erring in positive classifications). Typically, one
+            can investigate system variations to get a sense of trade-offs between performance
+            and fairness.</p>
+            <div class="scale-wrap">
+                <iframe src="../assets/example1.html"
+                        title="Model bias example"
+                        allowfullscreen></iframe>
+            </div>
+        </section>
+
+        <section>
+            <h2>Audit a dataset for representational imbalances</h2>
+            <p>Biased datasets are problematic themselves, as extreme biases cannot be offset by models
+            without concessions in predictive accuracy (or in safeguarding other kinds of business benefits).
+            Furthermore, if models take no bias mitigation action, dataset biases can be encoded or even amplified
+            during real-world usage.</p>
+            <p>For this reason, MAI-BIAS offers various means of auditing datasets. Here we show the outcome of
+            checking for representational imbalances, especially those that occur due to the intersection of multiple
+            sensitive and predictive attributes; excessive specialization may make some societal subgroups too small
+            or empty. This particular analysis both visualizes the intersectional imbalances, and provides
+            means of mitigating these biases in the <code>for experts</code> tab.</p>
+            <div class="scale-wrap">
+                <iframe src="../assets/example2.html"
+                        title="Data bias example"
+                        allowfullscreen></iframe>
+            </div>
+
+        </section>
+
+
+        <section>
+            <h2>Face region importance</h2>
+            <p>When it comes down to computer vision models, it is often desire-able to check whether their
+            means of making predictions conform to human intuition. For example, if a model makes assessment based
+            on proxy visual features often correlated with sensitive attribute value (e.g., wearing earrings as a proxy
+            of gender) it can be considered biased. Or models may pick up on unrelated features, like image
+            backgrounds.</p>
+            <p>One of MAI-BIAS modules can be used to investigate how computer vision models focus on facial features.
+            These are shown as a heatmap, in which red areas indicate more focus and blue areas indicate indifference.
+            Characteristic image regions are shown underneath for each area. Interpreting this result is done
+            qualitatively.</p>
+
+            <div class="scale-wrap">
+                <iframe src="../assets/example4.html"
+                        title="Face region importance"
+                        allowfullscreen></iframe>
+            </div>
+        </section>
+
+
+        <section>
+            <h2>Uncover biases in text</h2>
+            <p>The advent of large language models (LLMs) has created a wave of malicious actors that leverage them
+            to promote malicious opinions and disinformation. Furthermore, when these models are used to generate text,
+            they may encode biases and stereotypes of their training datasets.</p>
+            <p>Yet, the same models can also help uncover biases in human-generated or LLM-generated text. One challenge
+            in doing so is mitigating the effect of hallucinations (information that LLMs consider factual but
+            is not) as well as the fact that outputs could vary depending on small input changes.</p>
+            <p>Some MAI-BIAS modules can be used to assess LLMs or use them to audit textual biases. Below is
+            a report where a model developed in 2023 is used to uncover biases in a news report on the 2026 war
+            on Iran.</p>
+            <div class="scale-wrap">
+                <iframe src="../assets/example7.html"
+                        title="Text biases"
+                        allowfullscreen></iframe>
+            </div>
+        </section>
+
+
+    </main>
+
+    <footer>
+        <p>&copy; This material has been developed by the MAMMOth EU project.</p>
+        <p>
+            <a href="https://github.com/mammoth-eu">GitHub</a>&nbsp;|
+            <a href="https://mammoth-ai.eu">Website</a>
+        </p>
+    </footer>
+
+</body>
+</html>
