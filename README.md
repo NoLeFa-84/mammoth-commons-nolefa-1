@@ -28,9 +28,9 @@ and documentation of 40+ modules.*
 This repository is created by the [MAMMOth](https://mammoth-ai.eu/)
 project and holds the mammoth-commons library, which contains 
 supporting datatypes and decorators for developing fairness modules.
-It also hosts a catalogue of 35+ modules. 
-Finally, find desktop and terminal applications that 
-run those modules in your local machine.
+It also hosts a catalogue of 40+ modules. 
+Finally, find a desktop application that runs those modules in your 
+local machine.
 
 <img src="mai_bias/logo.png" alt="logo" style="width: 50%;" />
 
@@ -44,7 +44,7 @@ run those modules in your local machine.
 
 ## ⚡ Manual local runner installation
 
-1. Make **sure** you are on Python 3.11. Most modules also work in Python 3.13, with the exception of text debiasing.
+1. Make **sure** you are on Python 3.11. Most modules also work in Python 3.13 or later too.
 2. Install the *mai-bias* package.
 3. Launch the desktop app.
 

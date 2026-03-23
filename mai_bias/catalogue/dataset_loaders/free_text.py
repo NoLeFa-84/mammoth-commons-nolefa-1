@@ -21,6 +21,7 @@ def data_free_text(text: str = "") -> Text:
     import requests
 
     if text.startswith("http://") or text.startswith("https://"):
+        source = "text accessed from " + text
         response = requests.get(text, timeout=10)
         response.raise_for_status()
         html_content = response.text
@@ -30,5 +31,6 @@ def data_free_text(text: str = "") -> Text:
         text = "\n\n".join(
             p.get_text(strip=True) for p in soup.find_all("p") if p.get_text(strip=True)
         )
-
-    return Text(text)
+    else:
+        source = text
+    return Text(text, source)

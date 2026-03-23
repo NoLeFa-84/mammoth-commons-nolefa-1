@@ -58,6 +58,65 @@ def _highlight_code(html_content):
         return html_content
 
 
+simplified_formatter_style = f"""
+<style>
+    .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
+    .banner-container {{
+        position: relative;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }}
+    .banner {{
+        width: 100%;
+        padding: 200px 0px;
+        font-weight: 700;
+        text-align: center;
+        color: white;
+        border-radius: 12px;
+        font-size: 64px;
+    }}
+    .banner.fair {{ background: #2e8b57; }}
+    .banner.biased {{ background: #c0392b; }}
+    .banner.report {{ background: #7f8c8d; }}
+    body {{margin: 20px}}
+    .pill-btn {{
+        width:100%; text-align:center; padding: 10px 18px;
+        background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc;
+        cursor: pointer; font-size: 18px; transition: background 0.2s;
+    }}
+    .pill-btn:hover {{ background: #e0e0e0; }}
+    .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
+    .section-panel {{ display: none; padding: 0px; background: white; }}
+    .section-panel.active {{ display: block; }}
+    .tablinks {{
+        background-color: #ddd;
+        padding: 10px;
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        margin: 5px;
+    }}
+    .tablinks.active {{ background-color: #aaa; }}
+    .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
+    .tabcontent.active {{ display: block; }}
+    .subtitle {{
+        position: absolute;
+        left: 20px;
+        bottom: 55px;
+        font-size: 24px;
+        color: white;
+    }}
+    .technology {{
+        position: absolute;
+        left: 20px;
+        bottom: 15px;
+        font-size: 24px;
+        color: white;
+    }}
+</style>
+"""
+
+
 def simplified_formatter(
     outcome: Literal["biased", "fair", "report"],
     title: str,
@@ -92,63 +151,7 @@ def simplified_formatter(
     now = datetime.now()
     english_date = f"{now.day:02d} {EN_MONTHS[now.month]} {now.year}"
     technology = technology + " on " + english_date
-    return f"""
-        <style>
-            .pill-buttons {{display: flex; gap: 12px; margin: 20px 0;}}
-            .banner-container {{
-                position: relative;
-                border-radius: 12px;
-                margin-bottom: 25px;
-            }}
-            .banner {{
-                width: 100%;
-                padding: 200px 0px;
-                font-weight: 700;
-                text-align: center;
-                color: white;
-                border-radius: 12px;
-                font-size: 64px;
-            }}
-            .banner.fair {{ background: #2e8b57; }}
-            .banner.biased {{ background: #c0392b; }}
-            .banner.report {{ background: #7f8c8d; }}
-            body {{margin: 20px}}
-            .pill-btn {{
-                width:100%; text-align:center; padding: 10px 18px;
-                background: #f5f5f5; border-radius: 10px; border: 1px solid #cccccc;
-                cursor: pointer; font-size: 18px; transition: background 0.2s;
-            }}
-            .pill-btn:hover {{ background: #e0e0e0; }}
-            .pill-btn.active {{ background: #d0d0d0; border-color: #999999;}}
-            .section-panel {{ display: none; padding: 0px; background: white; }}
-            .section-panel.active {{ display: block; }}
-            .tablinks {{
-                background-color: #ddd;
-                padding: 10px;
-                cursor: pointer;
-                border: none;
-                border-radius: 5px;
-                margin: 5px;
-            }}
-            .tablinks.active {{ background-color: #aaa; }}
-            .tabcontent {{ display: none; padding: 10px; border: 1px solid #ccc; }}
-            .tabcontent.active {{ display: block; }}
-            .subtitle {{
-                position: absolute;
-                left: 20px;
-                bottom: 55px;
-                font-size: 24px;
-                color: white;
-            }}
-            .technology {{
-                position: absolute;
-                left: 20px;
-                bottom: 15px;
-                font-size: 24px;
-                color: white;
-            }}
-        </style>
-
+    return simplified_formatter_style + f"""
         <script>
             document.addEventListener("DOMContentLoaded", function() {{
                 const buttons = document.querySelectorAll(".pill-btn");

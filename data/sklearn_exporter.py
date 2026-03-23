@@ -77,5 +77,3 @@ onnx_model = convert_sklearn(clf, initial_types=initial_types)
 
 with open("bank_model.onnx", "wb") as f:
     f.write(onnx_model.SerializeToString())
-
-print("OK → Exported to bank_model.onnx")
