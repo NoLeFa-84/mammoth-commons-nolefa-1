@@ -189,27 +189,21 @@ def viz_fairness_plots(
 
     # --- STEP 1: Strip inline styles from .report and .explanation divs ---
     html_string = re.sub(
-        r'(<div[^>]*class="report"[^>]*?)style="[^"]*"',
-        r'\1',
-        html_string
+        r'(<div[^>]*class="report"[^>]*?)style="[^"]*"', r"\1", html_string
     )
     html_string = re.sub(
-        r'(<div[^>]*class="explanation"[^>]*?)style="[^"]*"',
-        r'\1',
-        html_string
+        r'(<div[^>]*class="explanation"[^>]*?)style="[^"]*"', r"\1", html_string
     )
 
     # --- STEP 2: Fix ALL divs with width: 50% — makes inner panels full width ---
     html_string = re.sub(
-        r'(style="[^"]*?)width\s*:\s*50%([^"]*")',
-        r'\1width: 100%\2',
-        html_string
+        r'(style="[^"]*?)width\s*:\s*50%([^"]*")', r"\1width: 100%\2", html_string
     )
 
     # --- STEP 3: Fix bias threshold text ---
     html_string = html_string.replace(
         "<p>Generally, difference &gt; <strong>0.1</strong> or ratio &lt; <strong>0.8</strong> may indicate bias.</p>",
-        f"<p>Generally, difference &gt; <strong>{prob:.1f}</strong> or ratio &lt; <strong>{1.0 - prob:.1f}</strong> may indicate bias.</p>"
+        f"<p>Generally, difference &gt; <strong>{prob:.1f}</strong> or ratio &lt; <strong>{1.0 - prob:.1f}</strong> may indicate bias.</p>",
     )
 
     # --- STEP 4: Patch hardcoded values inside the embedded <style> block ---
@@ -263,7 +257,7 @@ def viz_fairness_plots(
 }
 </style>"""
 
-    html_string = '<div id="mmm-expert-panel">' + style_block + html_string + '</div>'
+    html_string = '<div id="mmm-expert-panel">' + style_block + html_string + "</div>"
 
     return HTML(
         simplified_formatter(
