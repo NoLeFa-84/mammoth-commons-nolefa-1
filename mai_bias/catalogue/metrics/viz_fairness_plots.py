@@ -8,9 +8,9 @@ from mammoth_commons.datasets import Dataset
 from mammoth_commons.exports import HTML, simplified_formatter
 from mammoth_commons.models import Predictor
 from mammoth_commons.integration import metric
-from mammoth_commons.reminders import on_results
 
 from typing import List
+from mammoth_commons.reminders import logo_fairlearn
 
 
 @metric(
@@ -25,6 +25,7 @@ from typing import List
         "mmm-fair-cli",
         "skl2onnx",
     ),
+    logo=logo_fairlearn,
 )
 def viz_fairness_plots(
     dataset: Dataset,
@@ -130,9 +131,13 @@ def viz_fairness_plots(
     total_flagged = sum(len(f) for f in per_attr_flags.values())
     outcome = "fair" if total_flagged == 0 else "biased"
     title_text = (
-        f"Biases in {total_flagged} benefit(s)"
-        if total_flagged > 0
-        else "no fairness concerns"
+        f"Biases in a benefit"
+        if total_flagged == 1
+        else (
+            f"Biases in {total_flagged} benefits"
+            if total_flagged > 0
+            else "no fairness concerns"
+        )
     )
 
     # --- Build per-attribute status summary table for the "about" panel ---
@@ -183,7 +188,7 @@ def viz_fairness_plots(
         y_test=y_true,
         launch_browser=False,
         group_mappings=group_mappings,
-    )
+    ).replace("font-family: monospace;", "")
 
     import re
 
@@ -261,9 +266,9 @@ def viz_fairness_plots(
 
     return HTML(
         simplified_formatter(
-            outcome=outcome,
+            outcome="fair" if total_flagged == 0 else "biased",
             title=title_text,
-            technology='<div><img src="https://raw.githubusercontent.com/fairlearn/fairlearn/29f6d6f67eea061ae5dae72e976f2069cb38772e/docs/static_landing_page/images/fairlearn_logo.svg" alt="logo" style="float: left; margin-right: 5px; margin-bottom: 5px; height: 48px;"/> <h1>based on Fairlearn reporting</h1></div>',
+            technology=logo_fairlearn + "based on Fairlearn reporting",
             about=about_html,
             methodology=f"""
                 <p>The report was generated using the <a href="https://fairlearn.org/" target="_blank">Fairlearn</a> library.

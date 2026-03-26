@@ -664,7 +664,7 @@ def augmentation_report(
             to go back a step. Hover over a segment to see the intersectional group it represents and the proportion
             of samples in the population contained in that group.
             <div class="plot-container overview-container">
-                {main_html_content}
+                {main_html_content.replace("font-family: monospace;", "")}
             </div>
             """,
         methodology=f"""
@@ -697,7 +697,7 @@ def augmentation_report(
             <em>r_aug</em> represents the percentage of synthetic samples in the final dataset, 
             providing insight into how much the dataset has been augmented.</p>
 
-            {''.join([f"<div class'plot-container'><h3>Augmentation Strategies for sensitive attribute {sensitive[i]}</h3>{plot_html}</div>" 
+            {''.join([f"<div class'plot-container'><h3>Augmentation Strategies for sensitive attribute {sensitive[i]}</h3>{plot_html.replace("font-family: monospace;", "")}</div>" 
                       for i, plot_html in enumerate(augmentation_html_plots)])}
             
             <div class="model-comparison">

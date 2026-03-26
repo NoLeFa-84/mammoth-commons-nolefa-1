@@ -23,3 +23,6 @@ logo_mai_bias = """<img src="https:///icons/mai_bias.png"
 alt="Produced with MAI‑BIAS"
 style="float:left;margin-right:5px;height:36px;">
 """
+logo_fairlearn = """
+<img src="https://raw.githubusercontent.com/fairlearn/fairlearn/29f6d6f67eea061ae5dae72e976f2069cb38772e/docs/static_landing_page/images/fairlearn_logo.svg" 
+alt="Based on fairlearn" style="float: left; margin-right: 5px; margin-bottom:2px;height: 36px;"/>"""
