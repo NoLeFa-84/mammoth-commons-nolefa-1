@@ -7,7 +7,9 @@ from mammoth_commons.integration import loader
     namespace="mammotheu", version="v054", python="3.13", packages=("scikit-learn",)
 )
 def model_from_sklearn(
-    architecture: Literal["Logistic regression", "SVC", "Decision tree", "tabicl"] = "Logistic regression",
+    architecture: Literal[
+        "Logistic regression", "SVC", "Decision tree", "tabicl"
+    ] = "Logistic regression",
     fraction_of_training_set: float = 0.2,
     train_with_sensitive: bool = True,
 ) -> SklearnValidator:
