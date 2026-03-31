@@ -9,7 +9,7 @@ from mai_bias.catalogue.dataset_loaders.image_pairs import data_image_pairs
 from mai_bias.catalogue.dataset_loaders.uci_csv import data_uci
 from mai_bias.catalogue.dataset_loaders.data_any import data_read_any
 from mai_bias.catalogue.dataset_loaders.free_text import data_free_text
-from mai_bias.catalogue.model_loaders.model_from_sklearn import model_from_sklearn
+from mai_bias.catalogue.model_loaders.popular_architecture import model_from_sklearn
 
 # model loaders
 from mai_bias.catalogue.model_loaders.no_model import no_model

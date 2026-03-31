@@ -1,6 +1,6 @@
 from mammoth_commons import testing
 from mai_bias.catalogue.dataset_loaders.auto_csv import data_auto_csv
-from mai_bias.catalogue.model_loaders.model_from_sklearn import model_from_sklearn
+from mai_bias.catalogue.model_loaders.popular_architecture import model_from_sklearn
 from mai_bias.catalogue.metrics.model_card import model_card
 from mai_bias.catalogue.metrics.croissant import croissant
 

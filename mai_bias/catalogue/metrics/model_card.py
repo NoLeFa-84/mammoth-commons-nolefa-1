@@ -107,13 +107,15 @@ def model_card(
     if prob != 0:
         report = report.filter(fb.investigate.DeviationsOver(prob, prune=reject))
     views = {
-        "Summary": report.show(env=presentation(view=False, filename=None)),
+        "Summary": report.show(
+            env=presentation(view=False, filename=None, transpose=False)
+        ),
         "Stamps": report.filter(fb.investigate.Stamps).show(
             env=fb.export.Html(view=False, filename=None),
             depth=2 if isinstance(predictions, dict) else 1,
         ),
         "Distribution per group": report.show(
-            env=presentation(view=False, filename=None),
+            env=presentation(view=False, filename=None, sideways=False),
             depth=3 if isinstance(predictions, dict) else 2,
         ),
     }

@@ -132,26 +132,23 @@ def specific_concerns(
     report = fb.quick.__getattr__(metric_name)(
         predictions=predictions, labels=labels, sensitive=sensitive
     )
-    problematic_deviation = float(problematic_deviation)
-    assert (
-        0 <= problematic_deviation <= 1
-    ), "Problematic deviation should be in the range [0,1]"
-    if problematic_deviation:
-        report = report.filter(
-            fb.investigate.DeviationsOver(problematic_deviation, prune=False)
-        )
+    prob = float(problematic_deviation)
+    assert 0 <= prob <= 1, "Problematic deviation should be in the range [0,1]"
+    if prob:
+        report = report.filter(fb.investigate.DeviationsOver(prob, prune=False))
     full_report = report.show(
         env=fb.export.Html(view=False, filename=None),
         depth=1 if isinstance(predictions, dict) else 0,
     )
-    value = report.flatten(True)[0]
+    values = report.filter(fb.investigate.DeviationsOver(prob, prune=True))
     outcome = (
-        "Fair" if value < problematic_deviation else "biased"
-    ) + f" {base_measure.lower()}"  # " in {len(sensitive.branches())} protected groups"
+        "fair" if values.value is None and len(values.depends) == 0 else "biased"
+    ) + f" {base_measure.lower()}"
+    value = max([float(v) for v in report.flatten()])
 
     html_content = simplified_formatter(
-        outcome=outcome.split(" ")[0].lower(),
-        title_prefix="" if value < problematic_deviation else f"{value*100:.0f}%",
+        outcome=outcome.split(" ")[0],
+        title_prefix="" if value < prob else f"{value*100:.0f}%",
         title=outcome + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
@@ -159,13 +156,13 @@ def specific_concerns(
             We analysed how {getattr(fb.measures, fb_measures[base_measure]).descriptor.details.lower()} is 
             distributed in a model's outputs given a tested dataset by comparing several protected groups 
             {compare_groups.lower()}. 
-            {'Expert interpretation of numeric details is required.' if problematic_deviation == 0 else 
+            {'Expert interpretation of numeric details is required.' if prob == 0 else 
             'The assessment depends on specific parameters provided as inputs.'}
             """,
         methodology=f"""
             <p>The {reduction.lower()} of {getattr(fb.measures, fb_measures[base_measure]).descriptor.details.lower()} 
             is obtained across all protected groups, by comparing them {compare_groups.lower()}.
-            The result is considered biased if it lays <b>{problematic_deviation:.3f}</b> away from its ideal target 
+            The result is considered biased if it lays <b>{prob:.3f}</b> away from its ideal target 
             that would indicate fairness. For example, the ideal target is 0 for differences between measure values, 
             and 1 for values that should be large (e.g., the minimum accuracy across all groups).
             Some metrics have no known ideal values.</p>

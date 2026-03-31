@@ -23,7 +23,7 @@ from mai_bias.catalogue.model_loaders.compute_researcher_ranking import (
     model_mitigation_ranking,
 )
 from mai_bias.catalogue.model_loaders.ollama import ollama_model
-from mai_bias.catalogue.model_loaders.model_from_sklearn import model_from_sklearn
+from mai_bias.catalogue.model_loaders.popular_architecture import model_from_sklearn
 
 # metrics
 from mai_bias.catalogue.metrics.model_card import model_card
