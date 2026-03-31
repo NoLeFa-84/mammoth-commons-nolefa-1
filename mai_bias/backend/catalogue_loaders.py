@@ -23,7 +23,9 @@ from mai_bias.catalogue.model_loaders.compute_researcher_ranking import (
     model_mitigation_ranking,
 )
 from mai_bias.catalogue.model_loaders.ollama import ollama_model
-from mai_bias.catalogue.model_loaders.popular_architecture import model_from_sklearn
+from mai_bias.catalogue.model_loaders.popular_architecture import (
+    popular_model_architecture,
+)
 
 # metrics
 from mai_bias.catalogue.metrics.model_card import model_card
@@ -106,7 +108,7 @@ registry.model(
     model_onnx, compatible=[data_auto_csv, data_custom_csv, data_uci, data_read_any]
 )
 registry.model(
-    model_from_sklearn,
+    popular_model_architecture,
     compatible=[data_auto_csv, data_custom_csv, data_uci, data_read_any],
 )
 registry.model(

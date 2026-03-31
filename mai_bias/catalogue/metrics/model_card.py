@@ -98,12 +98,17 @@ def model_card(
     report = report_type(predictions=predictions, labels=labels, sensitive=sensitive)
     problematic = set()
     cutoff = fb.investigate.DeviationsOver(prob, prune=True)
+    problem_values = list()
     for col in report.filter(cutoff).depends.values():
         for col2 in col.depends.values():
             for value in col2.depends.values():
                 problematic.add(
                     f"{value.descriptor.prototype.details} ({value.descriptor.name})"
                 )
+                val = float(value)
+                if val > 1:
+                    continue
+                problem_values.append(max(val, 1 - val))
     if prob != 0:
         report = report.filter(fb.investigate.DeviationsOver(prob, prune=reject))
     views = {
@@ -121,8 +126,17 @@ def model_card(
     }
     html_content = simplified_formatter(
         outcome="biased" if problematic else "fair",
-        title_prefix=str(len(problematic)) if problematic else "",
-        title=(f"model biases" if problematic else "no concerns")
+        title_prefix=(
+            (
+                f"{min(problem_values)*100:.0f}&ndash;"
+                if min(problem_values) != max(problem_values)
+                else ""
+            )
+            + f"{max(problem_values)*100:.0f}%"
+            if problematic
+            else ""
+        ),
+        title=(f"bias in {len(problematic)} benefits" if problematic else "no concerns")
         + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
