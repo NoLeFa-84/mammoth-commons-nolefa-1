@@ -34,7 +34,9 @@ def get_import_list(code):
     return found_imports
 
 
-def safeexec(code: str, out: str = "commons", whitelist: list[str] = None):
+def safeexec(
+    code: str, out: str = "commons", whitelist: list[str] | tuple[[str]] | None = None
+):
     code = pathlib.Path(prepare(code)).read_text() if code.endswith(".py") else code
     whitelist = () if whitelist is None else set(whitelist)
     for module_name in get_import_list(code):
@@ -61,6 +63,17 @@ def get_model_layer_list(model):
 def align_predictions(
     predictions: Any, labels: Labels | str
 ) -> (Labels, Labels | None):
+    if (
+        isinstance(predictions, tuple) and len(predictions) == 2
+    ):  # classifier returned both predictions and labels
+        predictions, labels = predictions
+        assert isinstance(
+            predictions, Labels
+        ), "Internal error: align_prediction expects Label data already when parsing a tuple of predictions, labels"
+        assert isinstance(
+            labels, Labels
+        ), "Internal error: align_prediction expects Label data already when parsing a tuple of predictions, labels"
+        return predictions, labels
     if labels is None:
         assert isinstance(
             predictions, Labels

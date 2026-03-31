@@ -68,7 +68,6 @@ def model_card(
         presentation: Whether to focus on showing numbers or showing accompanying bars for easier comparison. Prefer a number comparison to avoid being influenced by comparisons between incomparable measure values.
         business_benefits: Which kind of business benefit does the model aim to maximize?
     """
-    # fb = importlib.import_module("fairbench")
     import fairbench as fb
 
     reps = fb.reports

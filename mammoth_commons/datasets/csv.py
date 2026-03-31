@@ -71,7 +71,7 @@ class CSV(Dataset):
         ), "Internal error: misused to_numpy - a selection of features is required"
         assert (
             len(features) > 2
-        ), "Internal error: misused to_numpy - a selection of features is required"
+        ), "Internal error: misused to_numpy - a selection of at least two features is required"
         feats = set(features if features is not None else self.cols)
         return pd_features(
             self.df,

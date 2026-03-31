@@ -619,9 +619,9 @@ def augmentation_report(
     for i, sens in enumerate(sensitive):
         notify_progress((1 + i) / (1 + len(sensitive)), f"Creating figures: {sens}")
         augmentation_html_plots.append(
-            plot_sampling_strategies(df, sens, target).to_html(
-                include_plotlyjs="cdn", full_html=False
-            )
+            plot_sampling_strategies(df, sens, target)
+            .to_html(include_plotlyjs="cdn", full_html=False)
+            .replace("font-family: monospace;", "")
         )
     notify_progress(1, f"Converting to html")
     notify_end()
@@ -664,7 +664,7 @@ def augmentation_report(
             to go back a step. Hover over a segment to see the intersectional group it represents and the proportion
             of samples in the population contained in that group.
             <div class="plot-container overview-container">
-                {main_html_content}
+                {main_html_content.replace("font-family: monospace;", "")}
             </div>
             """,
         methodology=f"""
@@ -697,8 +697,7 @@ def augmentation_report(
             <em>r_aug</em> represents the percentage of synthetic samples in the final dataset, 
             providing insight into how much the dataset has been augmented.</p>
 
-            {''.join([f"<div class'plot-container'><h3>Augmentation Strategies for sensitive attribute {sensitive[i]}</h3>{plot_html}</div>" 
-                      for i, plot_html in enumerate(augmentation_html_plots)])}
+            {''.join([f"<div class'plot-container'><h3>Augmentation Strategies for sensitive attribute {sensitive[i]}</h3>{plot_html}</div>" for i, plot_html in enumerate(augmentation_html_plots)])}
             
             <div class="model-comparison">
                 <h2>Generative Models for Oversampling</h2>
