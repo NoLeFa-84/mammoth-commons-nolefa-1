@@ -3,6 +3,8 @@ import base64
 import re
 from datetime import datetime
 from typing import Literal
+
+from mammoth_commons.externals import prepare_html
 from mammoth_commons.reminders import on_results, logo_mai_bias
 
 
@@ -272,6 +274,7 @@ class HTML:
 
     def text(self):
         body = self.body
+        body = prepare_html(body)
         for image, path in self.images.items():
             data = _encode_image_to_base64(path)
             img = f'<img src="base64,{data}" alt="{image}" />'

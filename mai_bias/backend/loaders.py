@@ -9,6 +9,7 @@ from mai_bias.catalogue.dataset_loaders.image_pairs import data_image_pairs
 from mai_bias.catalogue.dataset_loaders.uci_csv import data_uci
 from mai_bias.catalogue.dataset_loaders.data_any import data_read_any
 from mai_bias.catalogue.dataset_loaders.free_text import data_free_text
+from mai_bias.catalogue.model_loaders.model_from_sklearn import model_from_sklearn
 
 # model loaders
 from mai_bias.catalogue.model_loaders.no_model import no_model
@@ -106,6 +107,10 @@ registry.model(
 )
 registry.model(
     model_onnx, compatible=[data_auto_csv, data_custom_csv, data_uci, data_read_any]
+)
+registry.model(
+    model_from_sklearn,
+    compatible=[data_auto_csv, data_custom_csv, data_uci, data_read_any],
 )
 registry.model(
     model_onnx_ensemble,
