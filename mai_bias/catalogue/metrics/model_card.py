@@ -97,9 +97,8 @@ def model_card(
     labels = labels.columns if labels else None
     report = report_type(predictions=predictions, labels=labels, sensitive=sensitive)
     problematic = set()
-    for col in report.filter(
-        fb.investigate.DeviationsOver(prob, prune=True)
-    ).depends.values():
+    cutoff = fb.investigate.DeviationsOver(prob, prune=True)
+    for col in report.filter(cutoff).depends.values():
         for col2 in col.depends.values():
             for value in col2.depends.values():
                 problematic.add(
