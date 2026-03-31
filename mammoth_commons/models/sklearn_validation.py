@@ -1,6 +1,5 @@
 import numpy as np
 from mammoth_commons.datasets.dataset import Labels
-from sklearn.model_selection import train_test_split
 from mammoth_commons.datasets.csv import CSV
 from mammoth_commons.externals import align_predictions, safeexec
 from mammoth_commons.integration import install_package
@@ -33,6 +32,8 @@ class SklearnValidator(Predictor):
         return np.column_stack(cols)
 
     def predict(self, dataset, sensitive):
+        from sklearn.model_selection import train_test_split
+
         model = self.model
         if isinstance(model, str):
             for package in self.require_install:
