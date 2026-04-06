@@ -1,4 +1,4 @@
-name: "sum all related software stars"
+name: "gather related software stars & downloads"
 on:
   push:
     branches: [dev]
@@ -37,7 +37,7 @@ jobs:
             "gebaltso/SDFD"
             "CSHVienna/hyper_fair"
             "CSHVienna/multisoc"
-            "MKLab-ITI/pygrank-f"
+            "MKLab-ITI/pygrank"
           )
           python config/sum_stars.py "${REPOS[@]}"
       - name: Commit badge if changed
