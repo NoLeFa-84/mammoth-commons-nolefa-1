@@ -17,6 +17,7 @@ import json
 import urllib.request
 from urllib.error import HTTPError
 
+
 # -------------------------------------------------
 # Helpers
 # -------------------------------------------------
@@ -28,6 +29,7 @@ def api_get(url: str, token: str) -> dict:
     with urllib.request.urlopen(req) as resp:
         return json.load(resp)
 
+
 def fetch_stars(repo: str, token: str) -> int:
     """Return star count for a single repo (owner/name)."""
     try:
@@ -37,6 +39,7 @@ def fetch_stars(repo: str, token: str) -> int:
         print(f"⚠️  Could not fetch {repo}: {e.code} {e.reason}", file=sys.stderr)
         return 0
 
+
 def make_shields_svg(label: str, message: str, color: str = "brightgreen") -> str:
     """
     Return a simple Shields.io style SVG.
@@ -44,10 +47,12 @@ def make_shields_svg(label: str, message: str, color: str = "brightgreen") -> st
     but we embed it locally so the badge stays static.
     """
     import base64, hashlib
+
     # Use Shields.io API to generate the image – easiest & always up‑to‑date.
     url = f"https://img.shields.io/badge/{urllib.parse.quote(label)}-{urllib.parse.quote(message)}-{color}.svg"
     with urllib.request.urlopen(url) as resp:
         return resp.read().decode("utf-8")
+
 
 # -------------------------------------------------
 # Main
@@ -59,7 +64,7 @@ if __name__ == "__main__":
         print("❌  GITHUB_TOKEN env var not set", file=sys.stderr)
         sys.exit(1)
 
-    repos = sys.argv[1:]               # e.g. ["owner1/repoA", "owner2/repoB"]
+    repos = sys.argv[1:]  # e.g. ["owner1/repoA", "owner2/repoB"]
     if not repos:
         print("❌  No repositories supplied", file=sys.stderr)
         sys.exit(1)
@@ -69,7 +74,9 @@ if __name__ == "__main__":
 
     # Create the badge SVG (label = "stars", message = total)
     badge_svg = make_shields_svg("stars", str(total))
-    badge_path = os.path.join(os.getenv("GITHUB_WORKSPACE", "."), "stars-mammoth-badge.svg")
+    badge_path = os.path.join(
+        os.getenv("GITHUB_WORKSPACE", "."), "stars-mammoth-badge.svg"
+    )
     with open(badge_path, "w", encoding="utf-8") as f:
         f.write(badge_svg)
 
