@@ -31,7 +31,7 @@ def make_shields_svg(label: str, message: str, color: str = "brightgreen") -> st
         return resp.read().decode("utf-8")
 
 
-def local_svg_template(label: str, message: str, color: str = "#ffa") -> str:
+def local_svg_template(label: str, message: str, color: str = "#9E8111") -> str:
     label_w = max(40, len(label) * 6 + 10)
     message_w = max(40, len(message) * 6 + 10)
     total_w = label_w + message_w
@@ -50,7 +50,7 @@ def local_svg_template(label: str, message: str, color: str = "#ffa") -> str:
     <rect x="{label_w}" width="{message_w}" height="20" fill="{bg_message}"/>
     <rect width="{total_w}" height="20" fill="url(#b)"/>
   </g>
-  <g fill="#222" text-anchor="middle"
+  <g fill="#fff" text-anchor="middle"
      font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
     <text x="{label_w/2}" y="15" fill="#010101" fill-opacity=".3">{label}</text>
     <text x="{label_w/2}" y="14">{label}</text>
