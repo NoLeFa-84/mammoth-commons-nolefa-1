@@ -77,7 +77,7 @@ if __name__ == "__main__":
     total = sum(fetch_stars(r, token) for r in repos)
     print(f"⭐ Total stars: {total}")
 
-    badge_svg = local_svg_template("stars", str(total))
+    badge_svg = local_svg_template("⭐ Total MAI-BIAS stars", str(total))
     workspace = os.getenv("GITHUB_WORKSPACE", ".")
     out_file = os.path.join(workspace, "stars-mammoth-badge.svg")
     write_badge(badge_svg, out_file)
