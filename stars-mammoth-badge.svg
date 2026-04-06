@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="176" height="20">
+<svg xmlns="http://www.w3.org/2000/svg" width="182" height="20">
   <linearGradient id="b" x2="0" y2="100%">
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/>
   </linearGradient>
-  <mask id="a"><rect width="176" height="20" rx="3" fill="#fff"/></mask>
+  <mask id="a"><rect width="182" height="20" rx="3" fill="#222"/></mask>
   <g mask="url(#a)">
-    <rect width="136" height="20" fill="#555"/>
-    <rect x="136" width="40" height="20" fill="#ffa"/>
-    <rect width="176" height="20" fill="url(#b)"/>
+    <rect width="142" height="20" fill="#555"/>
+    <rect x="142" width="40" height="20" fill="#ffa"/>
+    <rect width="182" height="20" fill="url(#b)"/>
   </g>
   <g fill="#fff" text-anchor="middle"
      font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
-    <text x="68.0" y="15" fill="#010101" fill-opacity=".3">⭐ MAI-BIAS star total</text>
-    <text x="68.0" y="14">⭐ MAI-BIAS star total</text>
-    <text x="156.0" y="15" fill="#010101" fill-opacity=".3">87</text>
-    <text x="156.0" y="14">87</text>
+    <text x="71.0" y="15" fill="#010101" fill-opacity=".3">⭐ MAI-BIAS total stars</text>
+    <text x="71.0" y="14">⭐ MAI-BIAS total stars</text>
+    <text x="162.0" y="15" fill="#010101" fill-opacity=".3">87</text>
+    <text x="162.0" y="14">87</text>
   </g>
 </svg>
