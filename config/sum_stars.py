@@ -44,13 +44,13 @@ def local_svg_template(label: str, message: str, color: str = "#ffa") -> str:
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/>
   </linearGradient>
-  <mask id="a"><rect width="{total_w}" height="20" rx="3" fill="#222"/></mask>
+  <mask id="a"><rect width="{total_w}" height="20" rx="3" fill="#fff"/></mask>
   <g mask="url(#a)">
     <rect width="{label_w}" height="20" fill="{bg_label}"/>
     <rect x="{label_w}" width="{message_w}" height="20" fill="{bg_message}"/>
     <rect width="{total_w}" height="20" fill="url(#b)"/>
   </g>
-  <g fill="#fff" text-anchor="middle"
+  <g fill="#222" text-anchor="middle"
      font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
     <text x="{label_w/2}" y="15" fill="#010101" fill-opacity=".3">{label}</text>
     <text x="{label_w/2}" y="14">{label}</text>
