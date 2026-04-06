@@ -44,7 +44,7 @@ def local_svg_template(label: str, message: str, color: str = "#ffa") -> str:
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/>
   </linearGradient>
-  <mask id="a"><rect width="{total_w}" height="20" rx="3" fill="#fff"/></mask>
+  <mask id="a"><rect width="{total_w}" height="20" rx="3" fill="#222"/></mask>
   <g mask="url(#a)">
     <rect width="{label_w}" height="20" fill="{bg_label}"/>
     <rect x="{label_w}" width="{message_w}" height="20" fill="{bg_message}"/>
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     total = sum(fetch_stars(r, token) for r in repos)
     print(f"⭐ Total stars: {total}")
 
-    badge_svg = local_svg_template("⭐ MAI-BIAS star total", str(total))
+    badge_svg = local_svg_template("⭐ MAI-BIAS total stars", str(total))
     workspace = os.getenv("GITHUB_WORKSPACE", ".")
     out_file = os.path.join(workspace, "stars-mammoth-badge.svg")
     write_badge(badge_svg, out_file)
