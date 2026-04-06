@@ -1,0 +1,55 @@
+name: "Sum MAMMOth stars"
+on:
+  push:
+    branches: [dev]
+  schedule:
+    - cron: "0 0 * * *"
+permissions:
+  contents: write
+jobs:
+  build-badge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install --quiet --upgrade pip
+      - name: Calculate total stars & generate badge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPOS=(
+            "mammoth-eu/mammoth-commons"
+            "mammoth-eu/mammoth-toolkit-releases"
+            "mever-team/FairBench"
+            "arjunroyihrpa/MMM_fair"
+            "arjunroyihrpa/FairBranch"
+            "Multi-Fairness-under-Class-Imbalance"
+            "mever-team/fairbench-tiny"
+            "mever-team/vb-mitigator"
+            "gsarridis/faceX"
+            "gebaltso/SDFD"
+            "CSHVienna/hyper_fair"
+            "CSHVienna/multisoc"
+            "MKLab-ITI/pygrank-f"
+          )
+          python config/sum_stars.py "${REPOS[@]}"
+      - name: Commit badge if changed
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet stars-mammoth-badge.svg; then
+            echo "No changes to badge."
+          else
+            git add stars-total.svg
+            git commit -m "Updated total stars badge (total = $(cat stars-mammoth-badge.svg | grep -o '>[0-9]*<' | tr -d '<>'))"
+            git push
+          fi
