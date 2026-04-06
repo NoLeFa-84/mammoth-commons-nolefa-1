@@ -1,4 +1,4 @@
-name: Import safety canary
+name: import safety canary
 
 on:
   push:

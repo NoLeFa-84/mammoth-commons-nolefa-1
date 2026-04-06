@@ -31,7 +31,7 @@ def make_shields_svg(label: str, message: str, color: str = "brightgreen") -> st
         return resp.read().decode("utf-8")
 
 
-def local_svg_template(label: str, message: str, color: str = "#4c1") -> str:
+def local_svg_template(label: str, message: str, color: str = "#ffa") -> str:
     label_w = max(40, len(label) * 6 + 10)
     message_w = max(40, len(message) * 6 + 10)
     total_w = label_w + message_w
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     total = sum(fetch_stars(r, token) for r in repos)
     print(f"⭐ Total stars: {total}")
 
-    badge_svg = local_svg_template("⭐ Total MAI-BIAS stars", str(total))
+    badge_svg = local_svg_template("⭐ MAI-BIAS star total", str(total))
     workspace = os.getenv("GITHUB_WORKSPACE", ".")
     out_file = os.path.join(workspace, "stars-mammoth-badge.svg")
     write_badge(badge_svg, out_file)

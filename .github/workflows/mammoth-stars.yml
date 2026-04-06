@@ -1,4 +1,4 @@
-name: "Sum MAMMOth stars"
+name: "sum all related software stars"
 on:
   push:
     branches: [dev]

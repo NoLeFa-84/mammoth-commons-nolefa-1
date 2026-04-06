@@ -1,4 +1,4 @@
-name: Release unstable module images
+name: release unstable docker images
 on:
   workflow_dispatch:
     inputs:
