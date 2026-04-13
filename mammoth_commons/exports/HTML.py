@@ -274,7 +274,7 @@ class HTML:
 
     def text(self):
         body = self.body
-        body = prepare_html(body)
+        body = prepare_html(body, False)
         for image, path in self.images.items():
             data = _encode_image_to_base64(path)
             img = f'<img src="base64,{data}" alt="{image}" />'

@@ -9,19 +9,25 @@ as a maintainer are provided [here](mai_bias/catalogue/README.md).
 
 **The catalogue may be hosted in a different repository in the future.**
 
-1. [Create a module](#create-a-module)
-2. [Add tests](#locally-test-a-module)
-3. [Write documentation](#write-documentation)
+1. [How to work](#how-to-work)
+2. [Create a module](#create-a-module)
+3. [Add tests](#locally-test-a-module)
+4. [Write documentation](#write-documentation)
 
-
-## Create a module
+## How to work
 
 Create a fork of the repository. You may work on the `dev` branch and 
 create pull requests that repository maintainers will try to merge.
 Those requests will trigger continuous integration actions to verify
 that contributions are compliant with all technical requirements of the toolkit.
 Use the *black* linter, though this can be fixed upon merging too. 
-Pull requests with errors other than linting ones will be rejected.
+Pull requests with errors other than linting ones or due to new tests 
+may be rejected based on the discretion of maintainers.
+
+There may be bilateral agreements to work collaborate on other branches that
+are eventually merged with `dev` once sufficiently mature.
+
+## Create a module
 
 Creating a module is as simple as adding a file in the `mai_bias/catalogue/`
 directory, adding an function with typehints, and decorating the latter.

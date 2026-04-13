@@ -74,7 +74,7 @@ def optimal_transport(
     subtitle = "for sensitive attributes: <i>" + ", ".join(sensitive) + "</i>"
     threshold = float(threshold)
     text = ""
-    predictions = pd.Series(model.predict(dataset, sensitive))
+    predictions = model.predict(dataset, sensitive)
     dataset = dataset.to_csv(sensitive)
     labels = dataset.labels
     predictions, labels = align_predictions(predictions, labels)

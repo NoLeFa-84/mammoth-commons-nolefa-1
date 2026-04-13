@@ -1,4 +1,4 @@
-name: Release module images
+name: release docker images
 on:
   workflow_dispatch:
     inputs:

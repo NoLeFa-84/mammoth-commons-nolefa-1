@@ -97,31 +97,46 @@ def model_card(
     labels = labels.columns if labels else None
     report = report_type(predictions=predictions, labels=labels, sensitive=sensitive)
     problematic = set()
-    for col in report.filter(
-        fb.investigate.DeviationsOver(prob, prune=True)
-    ).depends.values():
+    cutoff = fb.investigate.DeviationsOver(prob, prune=True)
+    problem_values = list()
+    for col in report.filter(cutoff).depends.values():
         for col2 in col.depends.values():
             for value in col2.depends.values():
                 problematic.add(
                     f"{value.descriptor.prototype.details} ({value.descriptor.name})"
                 )
+                val = float(value)
+                if val > 1:
+                    continue
+                problem_values.append(max(val, 1 - val))
     if prob != 0:
         report = report.filter(fb.investigate.DeviationsOver(prob, prune=reject))
     views = {
-        "Summary": report.show(env=presentation(view=False, filename=None)),
+        "Summary": report.show(
+            env=presentation(view=False, filename=None, transpose=False)
+        ),
         "Stamps": report.filter(fb.investigate.Stamps).show(
             env=fb.export.Html(view=False, filename=None),
             depth=2 if isinstance(predictions, dict) else 1,
         ),
         "Distribution per group": report.show(
-            env=presentation(view=False, filename=None),
+            env=presentation(view=False, filename=None, sideways=False),
             depth=3 if isinstance(predictions, dict) else 2,
         ),
     }
     html_content = simplified_formatter(
         outcome="biased" if problematic else "fair",
-        title_prefix=str(len(problematic)) if problematic else "",
-        title=(f"model biases" if problematic else "no concerns")
+        title_prefix=(
+            (
+                f"{min(problem_values)*100:.0f}&ndash;"
+                if min(problem_values) != max(problem_values)
+                else ""
+            )
+            + f"{max(problem_values)*100:.0f}%"
+            if problematic
+            else ""
+        ),
+        title=(f"bias in {len(problematic)} benefits" if problematic else "no concerns")
         + compute_benefits(business_benefits, predictions, labels),
         subtitle=subtitle,
         technology=logo_fairbench + "based on FairBench reporting",
